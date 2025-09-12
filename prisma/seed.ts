@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
@@ -203,7 +204,7 @@ async function main() {
 
   console.log('✅ Sliders created')
 
-  // Create sample users
+  // Create sample users with hashed passwords
   const users = await Promise.all([
     prisma.user.upsert({
       where: { email: 'admin@sahibparfumeriya.az' },
@@ -211,7 +212,7 @@ async function main() {
       create: {
         email: 'admin@sahibparfumeriya.az',
         name: 'Admin',
-        password: 'admin123', // In real app, this should be hashed
+        password: await bcrypt.hash('admin123', 12),
         role: 'ADMIN'
       }
     }),
@@ -221,7 +222,7 @@ async function main() {
       create: {
         email: 'user@example.com',
         name: 'Test User',
-        password: 'user123', // In real app, this should be hashed
+        password: await bcrypt.hash('user123', 12),
         role: 'USER'
       }
     })
