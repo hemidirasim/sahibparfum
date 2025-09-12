@@ -10,7 +10,7 @@ const UNITED_PAYMENT_CONFIG = {
   // API Configuration
   email: process.env.UNITED_PAYMENT_EMAIL,
   password: process.env.UNITED_PAYMENT_PASSWORD,
-  partnerId: process.env.UNITED_PAYMENT_PARTNER_ID || 'TestPartnerId',
+  partnerId: process.env.UNITED_PAYMENT_PARTNER_ID, // Optional parameter
   
   // URLs
   callbackUrl: process.env.UNITED_PAYMENT_CALLBACK_URL || 'http://localhost:3000/api/payment/callback',
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Prepare payment data according to United Payment API format
-    const paymentData = {
+    const paymentData: any = {
       clientOrderId: orderId,
       amount: amount, // Keep amount in AZN (no conversion needed)
       language: "AZ", // Azerbaijani
@@ -91,8 +91,12 @@ export async function POST(request: NextRequest) {
       phoneNumber: customerInfo.phone || '',
       clientName: customerInfo.name || 'Guest',
       currency: "944", // AZN currency code
-      addcard: false, // Don't save card by default
-      partnerId: UNITED_PAYMENT_CONFIG.partnerId
+      addcard: false // Don't save card by default
+    }
+
+    // Add partnerId only if it's configured
+    if (UNITED_PAYMENT_CONFIG.partnerId) {
+      paymentData.partnerId = UNITED_PAYMENT_CONFIG.partnerId
     }
 
     const apiUrl = getApiUrl()

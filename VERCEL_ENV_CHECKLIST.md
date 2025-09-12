@@ -19,9 +19,10 @@ Production site-də hələ də `500 Internal Server Error` var.
 ```
 UNITED_PAYMENT_EMAIL=support@unitedpayment.com
 UNITED_PAYMENT_PASSWORD=Testmerchant12!
-UNITED_PAYMENT_PARTNER_ID=your_partner_id
 UNITED_PAYMENT_ENV=development
 ```
+
+**Note:** `UNITED_PAYMENT_PARTNER_ID` optional parametrdir və lazım deyil.
 
 #### B) Database Configuration
 ```
@@ -54,8 +55,8 @@ Variables əlavə edildikdən sonra:
 - [ ] Settings > Environment Variables-ə gedin
 - [ ] UNITED_PAYMENT_EMAIL əlavə edin
 - [ ] UNITED_PAYMENT_PASSWORD əlavə edin
-- [ ] UNITED_PAYMENT_PARTNER_ID əlavə edin
 - [ ] UNITED_PAYMENT_ENV=development əlavə edin
+- [ ] ~~UNITED_PAYMENT_PARTNER_ID~~ (lazım deyil)
 - [ ] DATABASE_URL əlavə edin
 - [ ] NEXTAUTH_URL əlavə edin
 - [ ] NEXTAUTH_SECRET əlavə edin
