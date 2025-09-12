@@ -126,10 +126,12 @@ export default function WishlistPage() {
       for (const favorite of favorites.filter(fav => fav.product.inStock)) {
         addItem({
           id: favorite.product.id,
+          productId: favorite.product.id,
           name: favorite.product.name,
           price: favorite.product.salePrice || favorite.product.price,
           image: favorite.product.images[0] || '/placeholder.jpg',
-          quantity: 1
+          quantity: 1,
+          sku: favorite.product.id // Using product ID as SKU for now
         })
       }
       toast.success('Bütün məhsullar səbətə əlavə edildi')
