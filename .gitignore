@@ -34,4 +34,5 @@ ehthumbs.db
 Thumbs.db
 
 # Uploads (if they're large)
-public/uploads/
+public/uploads/.next/
+.DS_Store
