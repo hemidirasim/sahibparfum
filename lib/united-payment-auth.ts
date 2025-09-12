@@ -9,8 +9,8 @@ const UNITED_PAYMENT_AUTH_CONFIG = {
   password: process.env.UNITED_PAYMENT_PASSWORD,
   partnerId: process.env.UNITED_PAYMENT_PARTNER_ID,
   
-  // Environment
-  isProduction: process.env.UNITED_PAYMENT_ENV === 'production'
+  // Environment - Always use test environment for now
+  isProduction: false // Temporarily disabled until production credentials are activated
 }
 
 // In-memory token storage (in production, use Redis or database)

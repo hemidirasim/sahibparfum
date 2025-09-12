@@ -19,8 +19,8 @@ const UNITED_PAYMENT_CONFIG = {
   cancelUrl: process.env.UNITED_PAYMENT_CANCEL_URL || 'http://localhost:3000/checkout?payment=cancelled',
   declineUrl: process.env.UNITED_PAYMENT_DECLINE_URL || 'http://localhost:3000/checkout?payment=declined',
   
-  // Environment
-  isProduction: process.env.UNITED_PAYMENT_ENV === 'production'
+  // Environment - Always use test environment for now
+  isProduction: false // Temporarily disabled until production credentials are activated
 }
 
 // Get API URL based on environment
