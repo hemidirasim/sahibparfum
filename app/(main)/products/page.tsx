@@ -108,12 +108,12 @@ export default function ProductsPage() {
           </aside>
           <div className="lg:col-span-3">
             <ProductGrid
-              searchQuery={search}
-              categoryFilter={category}
-              alphabetFilter={filter}
+              search={search}
+              category={category}
+              filter={filter}
               newProducts={newProducts}
               sale={sale}
-              filters={activeFilters}
+              activeFilters={activeFilters}
             />
           </div>
         </div>
