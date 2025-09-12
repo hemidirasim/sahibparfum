@@ -114,6 +114,11 @@ export async function POST(request: NextRequest) {
       addcard: false // Don't save card by default
     }
 
+    // Add partnerId if configured (required for production API)
+    if (UNITED_PAYMENT_CONFIG.partnerId) {
+      paymentData.partnerId = UNITED_PAYMENT_CONFIG.partnerId
+    }
+
     // Log payment data structure for debugging
     console.log('Payment data structure:', {
       hasClientOrderId: !!paymentData.clientOrderId,
@@ -131,10 +136,6 @@ export async function POST(request: NextRequest) {
       hasAddcard: !!paymentData.addcard
     })
 
-    // Add partnerId only if it's configured and not a placeholder
-    if (UNITED_PAYMENT_CONFIG.partnerId && UNITED_PAYMENT_CONFIG.partnerId !== 'your_partner_id') {
-      paymentData.partnerId = UNITED_PAYMENT_CONFIG.partnerId
-    }
 
     const apiUrl = getApiUrl()
     console.log('Making request to:', `${apiUrl}/api/transactions/checkout`)
