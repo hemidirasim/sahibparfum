@@ -81,7 +81,7 @@ export default function NewProductPage() {
         Object.values(data.brands || {}).forEach((brandList: any) => {
           allBrands.push(...brandList)
         })
-        setBrands([...new Set(allBrands)].sort()) // Remove duplicates and sort
+        setBrands(Array.from(new Set(allBrands)).sort()) // Remove duplicates and sort
       } else {
         console.error('Failed to fetch brands')
       }
