@@ -13,17 +13,6 @@ const UNITED_PAYMENT_AUTH_CONFIG = {
   isProduction: process.env.UNITED_PAYMENT_ENV === 'production'
 }
 
-// In-memory token storage (in production, use Redis or database)
-let tokenCache: {
-  token: string | null
-  expiresAt: number
-  refreshToken: string | null
-} = {
-  token: null,
-  expiresAt: 0,
-  refreshToken: null
-}
-
 // Get API URL based on environment
 function getApiUrl(): string {
   return UNITED_PAYMENT_AUTH_CONFIG.isProduction 
@@ -31,53 +20,26 @@ function getApiUrl(): string {
     : UNITED_PAYMENT_AUTH_CONFIG.testApiUrl
 }
 
-// Utility function to get valid token (used by other API routes)
+// Get fresh authentication token for each request
+// United Payment API requires fresh token for each transaction
 export async function getValidToken(): Promise<string | null> {
   try {
-    // Check if current token is valid
-    if (tokenCache.token && tokenCache.expiresAt > Date.now()) {
-      return tokenCache.token
+    console.log('Getting fresh authentication token...')
+    
+    // Check if credentials are configured
+    if (!UNITED_PAYMENT_AUTH_CONFIG.email || !UNITED_PAYMENT_AUTH_CONFIG.password) {
+      console.error('United Payment credentials not configured')
+      return null
     }
 
-    // Try to refresh token
-    if (tokenCache.refreshToken) {
-      const apiUrl = getApiUrl()
-      const refreshData = {
-        refreshToken: tokenCache.refreshToken
-      }
-
-      const response = await fetch(`${apiUrl}/api/auth/refresh`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify(refreshData)
-      })
-
-      if (response.ok) {
-        const result = await response.json()
-        const { token, expiresIn, refreshToken } = result
-        const expiresInSeconds = expiresIn || 3600
-        const expiresAt = Date.now() + (expiresInSeconds * 1000)
-
-        tokenCache = {
-          token,
-          expiresAt,
-          refreshToken: refreshToken || tokenCache.refreshToken
-        }
-
-        return token
-      }
-    }
-
-    // If refresh fails, try to login again
     const loginData = {
       email: UNITED_PAYMENT_AUTH_CONFIG.email,
       password: UNITED_PAYMENT_AUTH_CONFIG.password
     }
 
     const apiUrl = getApiUrl()
+    console.log('Making authentication request to:', `${apiUrl}/api/auth/`)
+    
     const response = await fetch(`${apiUrl}/api/auth/`, {
       method: 'POST',
       headers: {
@@ -87,27 +49,29 @@ export async function getValidToken(): Promise<string | null> {
       body: JSON.stringify(loginData)
     })
 
+    console.log('Authentication response status:', response.status)
+
     if (response.ok) {
       const result = await response.json()
-      const { token, expiresIn, refreshToken } = result
-      const expiresInSeconds = expiresIn || 3600
-      const expiresAt = Date.now() + (expiresInSeconds * 1000)
-
-      tokenCache = {
-        token,
-        expiresAt,
-        refreshToken: refreshToken || null
+      console.log('Authentication successful, token received')
+      
+      if (result.token) {
+        return result.token
+      } else {
+        console.error('No token in response:', result)
+        return null
       }
-
-      return token
+    } else {
+      const errorText = await response.text()
+      console.error('Authentication failed:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText
+      })
+      return null
     }
-
-    return null
   } catch (error) {
-    console.error('Error getting valid token:', error)
+    console.error('Error getting fresh token:', error instanceof Error ? error.message : 'Unknown error')
     return null
   }
 }
-
-// Export token cache for other uses
-export { tokenCache }
