@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getValidToken } from '@/lib/united-payment-auth'
 
 // United Payment Authentication Configuration
 const UNITED_PAYMENT_AUTH_CONFIG = {
@@ -224,7 +225,7 @@ export async function GET() {
 }
 
 // Utility function to get valid token (used by other API routes)
-export async function getValidToken(): Promise<string | null> {
+async function getValidToken(): Promise<string | null> {
   try {
     // Check if current token is valid
     if (tokenCache.token && tokenCache.expiresAt > Date.now()) {

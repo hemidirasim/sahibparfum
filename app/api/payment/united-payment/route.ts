@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getValidToken } from './auth/route'
+import { getValidToken } from '@/lib/united-payment-auth'
 
 // United Payment API configuration
 const UNITED_PAYMENT_CONFIG = {
