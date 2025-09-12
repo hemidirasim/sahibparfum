@@ -114,8 +114,25 @@ export async function POST(request: NextRequest) {
       addcard: false // Don't save card by default
     }
 
-    // Add partnerId only if it's configured
-    if (UNITED_PAYMENT_CONFIG.partnerId) {
+    // Log payment data structure for debugging
+    console.log('Payment data structure:', {
+      hasClientOrderId: !!paymentData.clientOrderId,
+      hasAmount: !!paymentData.amount,
+      hasLanguage: !!paymentData.language,
+      hasSuccessUrl: !!paymentData.successUrl,
+      hasCancelUrl: !!paymentData.cancelUrl,
+      hasDeclineUrl: !!paymentData.declineUrl,
+      hasDescription: !!paymentData.description,
+      hasMemberId: !!paymentData.memberId,
+      hasEmail: !!paymentData.email,
+      hasPhoneNumber: !!paymentData.phoneNumber,
+      hasClientName: !!paymentData.clientName,
+      hasCurrency: !!paymentData.currency,
+      hasAddcard: !!paymentData.addcard
+    })
+
+    // Add partnerId only if it's configured and not a placeholder
+    if (UNITED_PAYMENT_CONFIG.partnerId && UNITED_PAYMENT_CONFIG.partnerId !== 'your_partner_id') {
       paymentData.partnerId = UNITED_PAYMENT_CONFIG.partnerId
     }
 
@@ -123,6 +140,8 @@ export async function POST(request: NextRequest) {
     console.log('Making request to:', `${apiUrl}/api/transactions/checkout`)
     console.log('Payment data:', paymentData)
     console.log('Auth token:', authToken ? 'Present' : 'Missing')
+    console.log('Partner ID configured:', UNITED_PAYMENT_CONFIG.partnerId ? 'Yes' : 'No')
+    console.log('Partner ID value:', UNITED_PAYMENT_CONFIG.partnerId)
 
     // Make request to United Payment API
     const response = await fetch(`${apiUrl}/api/transactions/checkout`, {
