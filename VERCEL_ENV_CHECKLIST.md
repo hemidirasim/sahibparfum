@@ -17,9 +17,9 @@ Production site-də hələ də `500 Internal Server Error` var.
 
 #### A) United Payment Configuration
 ```
-UNITED_PAYMENT_EMAIL=support@unitedpayment.com
-UNITED_PAYMENT_PASSWORD=Testmerchant12!
-UNITED_PAYMENT_ENV=development
+UNITED_PAYMENT_EMAIL=a.hasan@aurora.com.az
+UNITED_PAYMENT_PASSWORD=YmTc?17J6g.w
+UNITED_PAYMENT_ENV=production
 ```
 
 **Note:** `UNITED_PAYMENT_PARTNER_ID` optional parametrdir və lazım deyil.
@@ -53,9 +53,9 @@ Variables əlavə edildikdən sonra:
 ## Yoxlama Siyahısı
 - [ ] Vercel Dashboard-a daxil oldunuz
 - [ ] Settings > Environment Variables-ə gedin
-- [ ] UNITED_PAYMENT_EMAIL əlavə edin
-- [ ] UNITED_PAYMENT_PASSWORD əlavə edin
-- [ ] UNITED_PAYMENT_ENV=development əlavə edin
+- [ ] UNITED_PAYMENT_EMAIL=a.hasan@aurora.com.az əlavə edin
+- [ ] UNITED_PAYMENT_PASSWORD=YmTc?17J6g.w əlavə edin
+- [ ] UNITED_PAYMENT_ENV=production əlavə edin
 - [ ] ~~UNITED_PAYMENT_PARTNER_ID~~ (lazım deyil)
 - [ ] DATABASE_URL əlavə edin
 - [ ] NEXTAUTH_URL əlavə edin
