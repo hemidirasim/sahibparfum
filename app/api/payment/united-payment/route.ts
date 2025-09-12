@@ -20,7 +20,7 @@ const UNITED_PAYMENT_CONFIG = {
   declineUrl: process.env.UNITED_PAYMENT_DECLINE_URL || 'http://localhost:3000/checkout?payment=declined',
   
   // Environment
-  isProduction: process.env.NODE_ENV === 'production' && process.env.UNITED_PAYMENT_ENV === 'production'
+  isProduction: process.env.UNITED_PAYMENT_ENV === 'production'
 }
 
 // Get API URL based on environment

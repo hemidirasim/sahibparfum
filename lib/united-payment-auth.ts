@@ -10,7 +10,7 @@ const UNITED_PAYMENT_AUTH_CONFIG = {
   partnerId: process.env.UNITED_PAYMENT_PARTNER_ID,
   
   // Environment
-  isProduction: process.env.NODE_ENV === 'production' && process.env.UNITED_PAYMENT_ENV === 'production'
+  isProduction: process.env.UNITED_PAYMENT_ENV === 'production'
 }
 
 // In-memory token storage (in production, use Redis or database)
