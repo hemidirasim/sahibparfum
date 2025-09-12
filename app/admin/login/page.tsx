@@ -39,10 +39,8 @@ export default function AdminLoginPage() {
       if (result?.error) {
         setError('Email və ya şifrə yanlışdır')
       } else if (result?.ok) {
-        // Wait for session to update, then redirect
-        setTimeout(() => {
-          window.location.href = '/admin'
-        }, 100)
+        // Success - reload the page to get fresh session
+        window.location.reload()
       }
     } catch (error) {
       setError('Giriş zamanı xəta baş verdi')
