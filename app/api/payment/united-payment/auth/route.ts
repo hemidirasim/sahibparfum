@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getValidToken } from '@/lib/united-payment-auth'
 
 // United Payment Authentication Configuration
 const UNITED_PAYMENT_AUTH_CONFIG = {
