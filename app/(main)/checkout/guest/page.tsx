@@ -1,7 +1,7 @@
 'use client'
 
 import { useCart } from '@/hooks/use-cart'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { CreditCard, Truck, User, Mail, Phone, MapPin } from 'lucide-react'
 
@@ -122,8 +122,13 @@ export default function GuestCheckoutPage() {
     }
   }
 
+  useEffect(() => {
+    if (items.length === 0) {
+      router.push('/cart')
+    }
+  }, [items.length, router])
+
   if (items.length === 0) {
-    router.push('/cart')
     return null
   }
 
