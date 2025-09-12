@@ -23,10 +23,8 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10')
     const skip = (page - 1) * limit
 
-    // Build where clause
-    const where: any = {
-      isActive: true
-    }
+    // Build where clause - Admin should see ALL products
+    const where: any = {}
 
     if (search) {
       where.OR = [
@@ -81,7 +79,7 @@ export async function GET(request: NextRequest) {
       image: product.images || '/images/placeholder.jpg',
       images: product.images ? [product.images] : [],
       sku: product.sku,
-      brand: typeof product.brand === 'string' ? product.brand : product.brand?.name || 'Brend məlumatı yoxdur',
+      brand: product.brand?.name || 'Brend məlumatı yoxdur',
       category: product.category.name,
       isNew: product.isNew,
       isOnSale: product.isOnSale,
@@ -132,7 +130,7 @@ export async function POST(request: NextRequest) {
     const {
       name,
       description,
-      brand,
+      brandId,
       categoryId,
       price,
       salePrice,
@@ -165,7 +163,7 @@ export async function POST(request: NextRequest) {
       data: {
         name,
         description,
-        brand,
+        brandId,
         categoryId,
         price: price ? parseFloat(price) : 0,
         salePrice: salePrice ? parseFloat(salePrice) : null,
@@ -174,7 +172,7 @@ export async function POST(request: NextRequest) {
         isNew: isNew || false,
         isOnSale: isOnSale || false,
         isActive: isActive !== false,
-        images: JSON.stringify(images || [])
+        images: Array.isArray(images) ? images[0] || '' : images || ''
       }
     })
 
