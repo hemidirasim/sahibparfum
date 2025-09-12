@@ -20,23 +20,10 @@ function getApiUrl(): string {
     : UNITED_PAYMENT_AUTH_CONFIG.testApiUrl
 }
 
-// Token caching with expiration check
-// Cache token until it expires to avoid unnecessary auth requests
-let tokenCache: {
-  token: string | null
-  expiresAt: number
-} = {
-  token: null,
-  expiresAt: 0
-}
+// Always get fresh token for each request
+// United Payment API requires fresh token for each transaction
 export async function getValidToken(): Promise<string | null> {
   try {
-    // Check if we have a valid cached token
-    if (tokenCache.token && tokenCache.expiresAt > Date.now()) {
-      console.log('Using cached authentication token')
-      return tokenCache.token
-    }
-
     console.log('Getting fresh authentication token...')
     
     // Check if credentials are configured
@@ -69,14 +56,7 @@ export async function getValidToken(): Promise<string | null> {
       console.log('Authentication successful, token received')
       
       if (result.token) {
-        // Cache the token with expiration (default 1 hour)
-        const expiresIn = 3600 * 1000 // 1 hour in milliseconds
-        tokenCache = {
-          token: result.token,
-          expiresAt: Date.now() + expiresIn
-        }
-        
-        console.log('Token cached until:', new Date(tokenCache.expiresAt).toISOString())
+        console.log('Token obtained successfully')
         return result.token
       } else {
         console.error('No token in response:', result)
