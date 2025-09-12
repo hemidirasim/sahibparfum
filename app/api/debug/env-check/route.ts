@@ -13,7 +13,7 @@ export async function GET() {
     }
 
     // Test authentication
-    let authTest = null
+    let authTest: any = null
     try {
       const loginData = {
         email: process.env.UNITED_PAYMENT_EMAIL,
