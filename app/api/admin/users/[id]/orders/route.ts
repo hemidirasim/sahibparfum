@@ -20,7 +20,7 @@ export async function GET(
         userId: params.id
       },
       include: {
-        items: {
+        orderItems: {
           include: {
             product: {
               select: {
@@ -44,7 +44,7 @@ export async function GET(
       totalAmount: Number(order.totalAmount),
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
-      items: order.items.map(item => ({
+      items: order.orderItems.map(item => ({
         id: item.id,
         quantity: item.quantity,
         price: Number(item.price),
