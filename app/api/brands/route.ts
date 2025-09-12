@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching brands:', error)
     return NextResponse.json(
-      { error: 'Brands yüklənərkən xəta baş verdi', details: error.message },
+      { error: 'Brands yüklənərkən xəta baş verdi', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     )
   }
