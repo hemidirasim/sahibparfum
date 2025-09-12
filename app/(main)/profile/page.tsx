@@ -12,9 +12,9 @@ export default function ProfilePage() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const { items: cartItems } = useCart()
-  const [orders, setOrders] = useState([])
-  const [addresses, setAddresses] = useState([])
-  const [favorites, setFavorites] = useState([])
+  const [orders, setOrders] = useState<any[]>([])
+  const [addresses, setAddresses] = useState<any[]>([])
+  const [favorites, setFavorites] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
   const [editForm, setEditForm] = useState({
