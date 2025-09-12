@@ -137,6 +137,7 @@ export async function POST(request: NextRequest) {
       amount: amount,
       currency: currency,
       status: result.status,
+      isMock: false, // Real payment
       // Additional details for debugging
       paymentDetails: {
         clientOrderId: result.clientOrderId,
