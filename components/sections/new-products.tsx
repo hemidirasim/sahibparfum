@@ -149,6 +149,7 @@ export function NewProducts() {
   const handleAddToCart = (product: NewProduct) => {
     addItem({
       id: product.id,
+      productId: product.id,
       name: product.name,
       price: product.price,
       salePrice: product.salePrice,

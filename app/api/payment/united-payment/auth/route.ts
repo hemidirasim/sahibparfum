@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Authentication error:', error)
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     )
   }
@@ -196,7 +196,7 @@ export async function PUT(request: NextRequest) {
   } catch (error) {
     console.error('Token refresh error:', error)
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     )
   }
@@ -217,7 +217,7 @@ export async function GET() {
   } catch (error) {
     console.error('Token status error:', error)
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     )
   }

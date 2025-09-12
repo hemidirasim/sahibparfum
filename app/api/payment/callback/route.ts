@@ -64,11 +64,6 @@ export async function POST(request: NextRequest) {
         data: {
           status: orderStatus,
           paymentStatus: paymentStatus,
-          paymentId: paymentId || transactionId,
-          transactionId: transactionId,
-          paymentAmount: amount ? parseFloat(amount.toString()) : null, // Keep amount as is (already in AZN)
-          paymentCurrency: currency,
-          paymentMessage: message,
           updatedAt: new Date()
         }
       })
@@ -83,11 +78,11 @@ export async function POST(request: NextRequest) {
         })
 
         for (const item of orderItems) {
-          if (item.product && item.product.stock !== null) {
+          if (item.product && item.product.stockCount !== null) {
             await prisma.product.update({
               where: { id: item.product.id },
               data: {
-                stock: Math.max(0, item.product.stock - item.quantity)
+                stockCount: Math.max(0, item.product.stockCount - item.quantity)
               }
             })
           }
@@ -107,7 +102,7 @@ export async function POST(request: NextRequest) {
       console.error('Database error updating order:', dbError)
       return NextResponse.json({ 
         error: 'Database error', 
-        details: dbError.message 
+        details: dbError instanceof Error ? dbError.message : 'Unknown database error'
       }, { status: 500 })
     }
 
@@ -115,7 +110,7 @@ export async function POST(request: NextRequest) {
     console.error('Callback processing error:', error)
     return NextResponse.json({ 
       error: 'Callback processing failed', 
-      details: error.message 
+      details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 })
   }
 }

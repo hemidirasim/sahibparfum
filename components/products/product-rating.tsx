@@ -91,10 +91,14 @@ export default function ProductRating({ productId }: { productId: string }) {
   }
 
   const getProgressPercentage = (category: string, option: string) => {
-    if (!stats || !stats[category as keyof RatingStats] || !stats[category as keyof RatingStats][option]) {
+    if (!stats || !stats[category as keyof RatingStats] || typeof stats[category as keyof RatingStats] !== 'object') {
       return 0
     }
-    const count = stats[category as keyof RatingStats][option] as number
+    const categoryStats = stats[category as keyof RatingStats] as Record<string, number>
+    if (!categoryStats[option]) {
+      return 0
+    }
+    const count = categoryStats[option]
     return Math.round((count / stats.total) * 100)
   }
 

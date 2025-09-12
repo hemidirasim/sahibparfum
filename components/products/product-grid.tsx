@@ -143,19 +143,19 @@ export function ProductGrid({
         if (minRating) params.append('minRating', minRating)
         
         // Add filter parameters
-        if (activeFilters?.categories.length > 0) {
+        if (activeFilters?.categories && activeFilters.categories.length > 0) {
           activeFilters.categories.forEach(catId => params.append('categoryIds', catId))
         }
-        if (activeFilters?.brands.length > 0) {
+        if (activeFilters?.brands && activeFilters.brands.length > 0) {
           activeFilters.brands.forEach(brand => params.append('brands', brand))
         }
-        if (activeFilters?.priceRanges.length > 0) {
+        if (activeFilters?.priceRanges && activeFilters.priceRanges.length > 0) {
           activeFilters.priceRanges.forEach(range => params.append('priceRanges', range))
         }
-        if (activeFilters?.volumes.length > 0) {
+        if (activeFilters?.volumes && activeFilters.volumes.length > 0) {
           activeFilters.volumes.forEach(volume => params.append('volumes', volume))
         }
-        if (activeFilters?.ratings.length > 0) {
+        if (activeFilters?.ratings && activeFilters.ratings.length > 0) {
           activeFilters.ratings.forEach(rating => params.append('ratings', rating.toString()))
         }
         

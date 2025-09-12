@@ -28,13 +28,13 @@ export function CartItems() {
                   className="w-full h-full object-cover"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none'
-                    const placeholder = e.currentTarget.nextElementSibling
+                    const placeholder = e.currentTarget.nextElementSibling as HTMLElement
                     if (placeholder) {
                       placeholder.style.display = 'contents'
                     }
                   }}
                   onLoad={(e) => {
-                    const placeholder = e.currentTarget.nextElementSibling
+                    const placeholder = e.currentTarget.nextElementSibling as HTMLElement
                     if (placeholder) {
                       placeholder.style.display = 'none'
                     }
