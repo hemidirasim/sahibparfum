@@ -107,10 +107,12 @@ export default function WishlistPage() {
     try {
       addItem({
         id: product.id,
+        productId: product.id,
         name: product.name,
         price: product.salePrice || product.price,
         image: product.images[0] || '/placeholder.jpg',
-        quantity: 1
+        quantity: 1,
+        sku: product.id // Using product ID as SKU for now
       })
       toast.success('Məhsul səbətə əlavə edildi')
     } catch (error) {
