@@ -45,6 +45,7 @@ export async function GET(request: NextRequest) {
     } else if (status === 'inactive') {
       where.isActive = false
     }
+    // If no status filter is provided, show all products (both active and inactive)
 
     // Get products with category and variants
     const products = await prisma.product.findMany({
