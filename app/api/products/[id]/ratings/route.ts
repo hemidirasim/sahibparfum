@@ -94,7 +94,10 @@ export async function GET(
   } catch (error) {
     console.error('Error fetching ratings:', error)
     return NextResponse.json(
-      { error: 'Daxili server xətası' },
+      { 
+        error: 'Daxili server xətası', 
+        details: error instanceof Error ? error.message : 'Unknown error' 
+      },
       { status: 500 }
     )
   }
@@ -117,10 +120,27 @@ export async function POST(
       return NextResponse.json({ error: 'Məhsul tapılmadı' }, { status: 404 })
     }
 
-    // Sadə rating və comment qəbul et
-    const { rating, comment, userId, guestSessionId } = body
+    // Rating məlumatlarını qəbul et
+    const { 
+      rating, 
+      comment, 
+      userId, 
+      guestSessionId,
+      relationship,
+      longevity,
+      sillage,
+      ageGroup,
+      season,
+      timeOfDay
+    } = body
 
-    if (!rating || rating < 1 || rating > 5) {
+    // Ən azı bir rating field-i olmalıdır
+    if (!rating && !relationship && !longevity && !sillage && !ageGroup && !season && !timeOfDay) {
+      return NextResponse.json({ error: 'Ən azı bir dəyərləndirmə məlumatı tələb olunur' }, { status: 400 })
+    }
+
+    // Əgər sadə rating varsa, 1-5 arasında olmalıdır
+    if (rating && (rating < 1 || rating > 5)) {
       return NextResponse.json({ error: 'Etibarlı qiymətləndirmə tələb olunur (1-5)' }, { status: 400 })
     }
 
@@ -140,20 +160,34 @@ export async function POST(
 
     if (productRating) {
       // Mövcud dəyərləndirməni yenilə
+      const updateData: any = {}
+      if (rating !== undefined) updateData.rating = rating
+      if (comment !== undefined) updateData.comment = comment
+      if (relationship !== undefined) updateData.relationship = relationship
+      if (longevity !== undefined) updateData.longevity = longevity
+      if (sillage !== undefined) updateData.sillage = sillage
+      if (ageGroup !== undefined) updateData.ageGroup = ageGroup
+      if (season !== undefined) updateData.season = season
+      if (timeOfDay !== undefined) updateData.timeOfDay = timeOfDay
+
       productRating = await prisma.productRating.update({
         where: { id: productRating.id },
-        data: {
-          rating: rating,
-          comment: comment || null
-        }
+        data: updateData
       })
     } else {
       // Yeni dəyərləndirmə yarad
       const createData: any = {
-        productId,
-        rating: rating,
-        comment: comment || null
+        productId
       }
+      
+      if (rating !== undefined) createData.rating = rating
+      if (comment !== undefined) createData.comment = comment
+      if (relationship !== undefined) createData.relationship = relationship
+      if (longevity !== undefined) createData.longevity = longevity
+      if (sillage !== undefined) createData.sillage = sillage
+      if (ageGroup !== undefined) createData.ageGroup = ageGroup
+      if (season !== undefined) createData.season = season
+      if (timeOfDay !== undefined) createData.timeOfDay = timeOfDay
       
       if (userId) {
         createData.userId = userId
@@ -174,7 +208,10 @@ export async function POST(
   } catch (error) {
     console.error('Error creating rating:', error)
     return NextResponse.json(
-      { error: 'Daxili server xətası' },
+      { 
+        error: 'Daxili server xətası', 
+        details: error instanceof Error ? error.message : 'Unknown error' 
+      },
       { status: 500 }
     )
   }

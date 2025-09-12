@@ -70,20 +70,27 @@ export default function ProductRating({ productId }: { productId: string }) {
 
     // Avtomatik olaraq bazaya yaz
     try {
+      const requestBody: any = {
+        guestSessionId
+      }
+      
+      // Yalnız seçilmiş field-i göndər
+      requestBody[category] = option
+
       const response = await fetch(`/api/products/${productId}/ratings`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          [category]: option,
-          guestSessionId
-        }),
+        body: JSON.stringify(requestBody),
       })
 
       if (response.ok) {
         // Statistikaları yenilə
         fetchRatings()
+      } else {
+        const errorData = await response.json()
+        console.error('Rating API error:', errorData)
       }
     } catch (error) {
       console.error('Dəyərləndirmə yadda saxlanıla bilmədi:', error)
