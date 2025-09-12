@@ -49,6 +49,7 @@ export default function AdminProductsPage() {
       if (searchTerm) params.append('search', searchTerm)
       if (selectedCategory) params.append('category', selectedCategory)
       if (selectedStatus) params.append('status', selectedStatus)
+      params.append('limit', '50') // Show more products
       
       const response = await fetch(`/api/admin/products?${params.toString()}`)
       if (response.ok) {
