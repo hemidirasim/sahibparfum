@@ -10,8 +10,8 @@ export default function ProductsPage() {
   const search = searchParams.get('search')
   const category = searchParams.get('category')
   const filter = searchParams.get('filter') // Alphabetical filter
-  const newProducts = searchParams.get('new')
-  const sale = searchParams.get('sale')
+  const newProducts = searchParams.get('new') === 'true'
+  const sale = searchParams.get('sale') === 'true'
 
   const [activeFilters, setActiveFilters] = useState({
     categories: [] as string[],
