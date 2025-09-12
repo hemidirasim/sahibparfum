@@ -63,7 +63,7 @@ export async function PATCH(
     const {
       name,
       description,
-      brand,
+      brandId,
       categoryId,
       price,
       salePrice,
@@ -103,7 +103,7 @@ export async function PATCH(
       data: {
         name,
         description,
-        brand,
+        brandId,
         categoryId,
         price: parseFloat(price),
         salePrice: salePrice ? parseFloat(salePrice) : null,
