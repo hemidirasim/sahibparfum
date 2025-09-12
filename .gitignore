@@ -4,14 +4,6 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Large binary files
-*.node
-*.so
-*.dylib
-*.dll
-*.exe
-*.bin
-
 # Environment variables
 .env
 .env.local
@@ -19,79 +11,18 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
-# Next.js
+# Next.js build output
 .next/
 out/
 build/
 
-# Database
+# Database files (local development only)
 *.db
 *.sqlite
 
 # Logs
 logs
 *.log
-
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
-
-# Coverage directory used by tools like istanbul
-coverage/
-
-# nyc test coverage
-.nyc_output
-
-# Dependency directories
-jspm_packages/
-
-# Optional npm cache directory
-.npm
-
-# Optional REPL history
-.node_repl_history
-
-# Output of 'npm pack'
-*.tgz
-
-# Yarn Integrity file
-.yarn-integrity
-
-# dotenv environment variables file
-.env
-
-# parcel-bundler cache (https://parceljs.org/)
-.cache
-.parcel-cache
-
-# next.js build output
-.next
-
-# nuxt.js build output
-.nuxt
-
-# vuepress build output
-.vuepress/dist
-
-# Serverless directories
-.serverless
-
-# FuseBox cache
-.fusebox/
-
-# DynamoDB Local files
-.dynamodb/
-
-# TernJS port file
-.tern-port
-
-# Stores VSCode versions used for testing VSCode extensions
-.vscode-test
-
-# Uploads
-public/uploads/
 
 # OS generated files
 .DS_Store
@@ -100,5 +31,7 @@ public/uploads/
 .Spotlight-V100
 .Trashes
 ehthumbs.db
-Thumbs.db.next/
-.DS_Store
+Thumbs.db
+
+# Uploads (if they're large)
+public/uploads/
