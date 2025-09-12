@@ -1,97 +1,155 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Heart, ShoppingCart, Trash2, Star } from 'lucide-react'
 import { useCart } from '@/hooks/use-cart'
 import toast from 'react-hot-toast'
 
-// Mock wishlist data
-const wishlistItems = [
-  {
-    id: '1',
-    name: 'Chanel N°5',
-    brand: 'Chanel',
-    price: 299.99,
-    salePrice: 249.99,
-    image: 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=400&h=400&fit=crop',
-    rating: 4.8,
-    reviewCount: 124,
-    inStock: true
-  },
-  {
-    id: '2',
-    name: 'Dior Sauvage',
-    brand: 'Dior',
-    price: 189.99,
-    image: 'https://images.unsplash.com/photo-1592945403244-b3faa74b2c9a?w=400&h=400&fit=crop',
-    rating: 4.9,
-    reviewCount: 89,
-    inStock: true
-  },
-  {
-    id: '3',
-    name: 'Yves Saint Laurent Black Opium',
-    brand: 'YSL',
-    price: 159.99,
-    salePrice: 129.99,
-    image: 'https://images.unsplash.com/photo-1587017539504-67cfbddac569?w=400&h=400&fit=crop',
-    rating: 4.7,
-    reviewCount: 156,
-    inStock: false
+interface Product {
+  id: string
+  name: string
+  description: string
+  price: number
+  salePrice?: number
+  images: string[]
+  inStock: boolean
+  stockCount: number
+  sku: string
+  volume?: string
+  isNew: boolean
+  isOnSale: boolean
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+  category: {
+    id: string
+    name: string
+    slug: string
   }
-]
+  brand?: {
+    id: string
+    name: string
+  }
+  averageRating: number
+  reviewCount: number
+}
+
+interface Favorite {
+  id: string
+  product: Product
+  createdAt: string
+}
 
 export default function WishlistPage() {
-  const { addToCart } = useCart()
-  const [items, setItems] = useState(wishlistItems)
-  const [loading, setLoading] = useState<string | null>(null)
+  const { data: session, status } = useSession()
+  const router = useRouter()
+  const [favorites, setFavorites] = useState<Favorite[]>([])
+  const [loading, setLoading] = useState(true)
+  const [removingFromFavorites, setRemovingFromFavorites] = useState<string | null>(null)
+  const { addItem } = useCart()
 
-  const handleAddToCart = async (item: typeof wishlistItems[0]) => {
+  useEffect(() => {
+    if (status === 'loading') return
+    
+    if (!session) {
+      router.push('/auth/signin')
+      return
+    }
+
+    fetchFavorites()
+  }, [session, status, router])
+
+  const fetchFavorites = async () => {
     try {
-      setLoading(item.id)
-      addToCart({
-        id: item.id,
-        name: item.name,
-        price: item.salePrice || item.price,
-        image: item.image,
+      const response = await fetch('/api/favorites')
+      const data = await response.json()
+      
+      if (data.success) {
+        setFavorites(data.favorites)
+      } else {
+        toast.error(data.message || 'Favorit məhsullar yüklənərkən xəta baş verdi')
+      }
+    } catch (error) {
+      console.error('Error fetching favorites:', error)
+      toast.error('Favorit məhsullar yüklənərkən xəta baş verdi')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const removeFromFavorites = async (productId: string) => {
+    setRemovingFromFavorites(productId)
+    try {
+      const response = await fetch(`/api/favorites?productId=${productId}`, {
+        method: 'DELETE'
+      })
+      const data = await response.json()
+      
+      if (data.success) {
+        setFavorites(prev => prev.filter(fav => fav.product.id !== productId))
+        toast.success('Məhsul favoritlərdən silindi')
+      } else {
+        toast.error(data.message || 'Favoritlərdən silərkən xəta baş verdi')
+      }
+    } catch (error) {
+      console.error('Error removing from favorites:', error)
+      toast.error('Favoritlərdən silərkən xəta baş verdi')
+    } finally {
+      setRemovingFromFavorites(null)
+    }
+  }
+
+  const addToCart = async (product: Product) => {
+    try {
+      addItem({
+        id: product.id,
+        name: product.name,
+        price: product.salePrice || product.price,
+        image: product.images[0] || '/placeholder.jpg',
         quantity: 1
       })
       toast.success('Məhsul səbətə əlavə edildi')
     } catch (error) {
-      toast.error('Səbətə əlavə edilərkən xəta baş verdi')
-    } finally {
-      setLoading(null)
+      console.error('Error adding to cart:', error)
+      toast.error('Səbətə əlavə edərkən xəta baş verdi')
     }
-  }
-
-  const handleRemoveFromWishlist = (itemId: string) => {
-    setItems(items.filter(item => item.id !== itemId))
-    toast.success('Məhsul favorilərdən silindi')
   }
 
   const handleMoveAllToCart = async () => {
     try {
-      setLoading('all')
-      for (const item of items.filter(item => item.inStock)) {
-        addToCart({
-          id: item.id,
-          name: item.name,
-          price: item.salePrice || item.price,
-          image: item.image,
+      for (const favorite of favorites.filter(fav => fav.product.inStock)) {
+        addItem({
+          id: favorite.product.id,
+          name: favorite.product.name,
+          price: favorite.product.salePrice || favorite.product.price,
+          image: favorite.product.images[0] || '/placeholder.jpg',
           quantity: 1
         })
       }
       toast.success('Bütün məhsullar səbətə əlavə edildi')
     } catch (error) {
-      toast.error('Səbətə əlavə edilərkən xəta baş verdi')
-    } finally {
-      setLoading(null)
+      console.error('Error adding all to cart:', error)
+      toast.error('Səbətə əlavə edərkən xəta baş verdi')
     }
   }
 
-  if (items.length === 0) {
+  if (status === 'loading' || loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>
+      </div>
+    )
+  }
+
+  if (!session) {
+    return null
+  }
+
+  if (favorites.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -122,7 +180,7 @@ export default function WishlistPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Favorilərim ({items.length})
+            Favorilərim ({favorites.length})
           </h1>
           <p className="text-gray-600">
             Sevimli məhsullarınızı burada saxlayın və istədiyiniz zaman səbətə əlavə edin.
@@ -134,10 +192,10 @@ export default function WishlistPage() {
           <div className="flex space-x-4">
             <button
               onClick={handleMoveAllToCart}
-              disabled={loading === 'all' || !items.some(item => item.inStock)}
+              disabled={!favorites.some(fav => fav.product.inStock)}
               className="btn btn-primary"
             >
-              {loading === 'all' ? 'Əlavə edilir...' : 'Hamısını Səbətə Əlavə Et'}
+              Hamısını Səbətə At
             </button>
           </div>
           
@@ -151,27 +209,33 @@ export default function WishlistPage() {
 
         {/* Wishlist Items */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {items.map((item) => (
+          {favorites.map((favorite) => (
             <div 
-              key={item.id} 
+              key={favorite.id} 
               className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden group"
             >
               <div className="relative">
                 <Image
-                  src={item.image}
-                  alt={item.name}
+                  src={favorite.product.images[0] || '/placeholder.jpg'}
+                  alt={favorite.product.name}
                   width={400}
                   height={400}
                   className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
                 />
-                {item.salePrice && (
+                {favorite.product.isOnSale && (
                   <div className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded">
                     Endirim
                   </div>
                 )}
+                {favorite.product.isNew && (
+                  <div className="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded">
+                    Yeni
+                  </div>
+                )}
                 <button 
-                  onClick={() => handleRemoveFromWishlist(item.id)}
-                  className="absolute top-2 right-2 p-2 bg-white rounded-full shadow-md hover:bg-red-50 hover:text-red-600 transition-colors"
+                  onClick={() => removeFromFavorites(favorite.product.id)}
+                  disabled={removingFromFavorites === favorite.product.id}
+                  className="absolute top-2 right-2 p-2 bg-white rounded-full shadow-md hover:bg-red-50 hover:text-red-600 transition-colors disabled:opacity-50"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -179,12 +243,12 @@ export default function WishlistPage() {
 
               <div className="p-4">
                 <div className="mb-2">
-                  <p className="text-sm text-gray-500">{item.brand}</p>
+                  <p className="text-sm text-gray-500">{favorite.product.brand?.name || 'Brend məlumatı yoxdur'}</p>
                   <Link 
-                    href={`/products/${item.id}`}
+                    href={`/products/${favorite.product.id}`}
                     className="text-lg font-semibold text-gray-900 hover:text-primary-600 transition-colors"
                   >
-                    {item.name}
+                    {favorite.product.name}
                   </Link>
                 </div>
 
@@ -194,7 +258,7 @@ export default function WishlistPage() {
                       <Star
                         key={i}
                         className={`h-4 w-4 ${
-                          i < Math.floor(item.rating)
+                          i < Math.floor(favorite.product.averageRating)
                             ? 'text-yellow-400 fill-current'
                             : 'text-gray-300'
                         }`}
@@ -202,46 +266,46 @@ export default function WishlistPage() {
                     ))}
                   </div>
                   <span className="text-sm text-gray-500 ml-2">
-                    ({item.reviewCount})
+                    ({favorite.product.reviewCount})
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-2">
-                    {item.salePrice ? (
+                    {favorite.product.salePrice ? (
                       <>
                         <span className="text-lg font-bold text-primary-600">
-                          {item.salePrice.toFixed(2)} ₼
+                          ₼{favorite.product.salePrice.toFixed(2)}
                         </span>
                         <span className="text-sm text-gray-500 line-through">
-                          {item.price.toFixed(2)} ₼
+                          ₼{favorite.product.price.toFixed(2)}
                         </span>
                       </>
                     ) : (
                       <span className="text-lg font-bold text-gray-900">
-                        {item.price.toFixed(2)} ₼
+                        ₼{favorite.product.price.toFixed(2)}
                       </span>
                     )}
                   </div>
                   
                   <span className={`text-sm px-2 py-1 rounded ${
-                    item.inStock 
+                    favorite.product.inStock 
                       ? 'bg-green-100 text-green-800' 
                       : 'bg-red-100 text-red-800'
                   }`}>
-                    {item.inStock ? 'Stokda var' : 'Stokda yoxdur'}
+                    {favorite.product.inStock ? 'Stokda var' : 'Stokda yoxdur'}
                   </span>
                 </div>
 
                 <button
-                  onClick={() => handleAddToCart(item)}
-                  disabled={loading === item.id || !item.inStock}
+                  onClick={() => addToCart(favorite.product)}
+                  disabled={!favorite.product.inStock}
                   className={`w-full btn btn-sm flex items-center justify-center gap-2 ${
-                    item.inStock ? 'btn-primary' : 'btn-disabled'
+                    favorite.product.inStock ? 'btn-primary' : 'btn-disabled'
                   }`}
                 >
                   <ShoppingCart className="h-4 w-4" />
-                  {loading === item.id ? 'Əlavə edilir...' : 'Səbətə Əlavə Et'}
+                  Səbətə At
                 </button>
               </div>
             </div>
@@ -251,3 +315,4 @@ export default function WishlistPage() {
     </div>
   )
 }
+

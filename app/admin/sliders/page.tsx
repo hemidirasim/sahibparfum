@@ -47,43 +47,117 @@ export default function AdminSlidersPage() {
     }
   }
 
-  const handleToggleActive = (id: string) => {
-    setSliders(prev => prev.map(slider => 
-      slider.id === id ? { ...slider, isActive: !slider.isActive } : slider
-    ))
+  const handleToggleActive = async (id: string) => {
+    const slider = sliders.find(s => s.id === id)
+    if (!slider) return
+
+    try {
+      const response = await fetch(`/api/admin/sliders/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...slider,
+          isActive: !slider.isActive
+        }),
+      })
+
+      if (response.ok) {
+        setSliders(prev => prev.map(s => 
+          s.id === id ? { ...s, isActive: !s.isActive } : s
+        ))
+      }
+    } catch (error) {
+      console.error('Toggle active error:', error)
+    }
   }
 
-  const handleMoveUp = (id: string) => {
-    setSliders(prev => {
-      const index = prev.findIndex(s => s.id === id)
-      if (index <= 0) return prev
+  const handleMoveUp = async (id: string) => {
+    const index = sliders.findIndex(s => s.id === id)
+    if (index <= 0) return
+    
+    const newSliders = [...sliders]
+    const temp = newSliders[index]
+    newSliders[index] = newSliders[index - 1]
+    newSliders[index - 1] = temp
+    
+    const updatedSliders = newSliders.map((s, i) => ({ ...s, order: i + 1 }))
+    
+    // Update local state immediately
+    setSliders(updatedSliders)
+    
+    // Update server
+    try {
+      const promises = updatedSliders.map(slider => 
+        fetch(`/api/admin/sliders/${slider.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            order: slider.order
+          }),
+        })
+      )
       
-      const newSliders = [...prev]
-      const temp = newSliders[index]
-      newSliders[index] = newSliders[index - 1]
-      newSliders[index - 1] = temp
-      
-      return newSliders.map((s, i) => ({ ...s, order: i + 1 }))
-    })
+      await Promise.all(promises)
+    } catch (error) {
+      console.error('Move up error:', error)
+      // Revert on error
+      fetchSliders()
+    }
   }
 
-  const handleMoveDown = (id: string) => {
-    setSliders(prev => {
-      const index = prev.findIndex(s => s.id === id)
-      if (index >= prev.length - 1) return prev
+  const handleMoveDown = async (id: string) => {
+    const index = sliders.findIndex(s => s.id === id)
+    if (index >= sliders.length - 1) return
+    
+    const newSliders = [...sliders]
+    const temp = newSliders[index]
+    newSliders[index] = newSliders[index + 1]
+    newSliders[index + 1] = temp
+    
+    const updatedSliders = newSliders.map((s, i) => ({ ...s, order: i + 1 }))
+    
+    // Update local state immediately
+    setSliders(updatedSliders)
+    
+    // Update server
+    try {
+      const promises = updatedSliders.map(slider => 
+        fetch(`/api/admin/sliders/${slider.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            order: slider.order
+          }),
+        })
+      )
       
-      const newSliders = [...prev]
-      const temp = newSliders[index]
-      newSliders[index] = newSliders[index + 1]
-      newSliders[index + 1] = temp
-      
-      return newSliders.map((s, i) => ({ ...s, order: i + 1 }))
-    })
+      await Promise.all(promises)
+    } catch (error) {
+      console.error('Move down error:', error)
+      // Revert on error
+      fetchSliders()
+    }
   }
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm('Bu slider-i silmək istədiyinizə əminsiniz?')) {
-      setSliders(prev => prev.filter(s => s.id !== id))
+      try {
+        const response = await fetch(`/api/admin/sliders/${id}`, {
+          method: 'DELETE',
+        })
+
+        if (response.ok) {
+          setSliders(prev => prev.filter(s => s.id !== id))
+        }
+      } catch (error) {
+        console.error('Delete error:', error)
+      }
     }
   }
 
@@ -95,6 +169,8 @@ export default function AdminSlidersPage() {
       setSliders(prev => [...prev, { ...sliderData, order: prev.length + 1 }])
       setShowForm(false)
     }
+    // Refresh the list to get updated data
+    fetchSliders()
   }
 
   const handleCancel = () => {

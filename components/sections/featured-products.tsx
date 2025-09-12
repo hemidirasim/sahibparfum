@@ -4,67 +4,205 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Star, ShoppingCart, Heart } from 'lucide-react'
 import { useCart } from '@/hooks/use-cart'
+import { useSession } from 'next-auth/react'
 import toast from 'react-hot-toast'
+import { useState, useEffect } from 'react'
 
-const featuredProducts = [
-  {
-    id: '1',
-    name: 'Chanel N°5',
-    brand: 'Chanel',
-    price: 299.99,
-    salePrice: 249.99,
-    image: 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=400&h=400&fit=crop',
-    rating: 4.8,
-    reviewCount: 124,
-    sku: 'CHN-001'
-  },
-  {
-    id: '2',
-    name: 'Dior Sauvage',
-    brand: 'Dior',
-    price: 189.99,
-    image: 'https://images.unsplash.com/photo-1592945403244-b3faa74b2c9a?w=400&h=400&fit=crop',
-    rating: 4.9,
-    reviewCount: 89,
-    sku: 'DIR-002'
-  },
-  {
-    id: '3',
-    name: 'Yves Saint Laurent Black Opium',
-    brand: 'YSL',
-    price: 159.99,
-    salePrice: 129.99,
-    image: 'https://images.unsplash.com/photo-1587017539504-67cfbddac569?w=400&h=400&fit=crop',
-    rating: 4.7,
-    reviewCount: 156,
-    sku: 'YSL-003'
-  },
-  {
-    id: '4',
-    name: 'Tom Ford Tobacco Vanille',
-    brand: 'Tom Ford',
-    price: 399.99,
-    image: 'https://images.unsplash.com/photo-1588405748880-12d1d1a6f6a9?w=400&h=400&fit=crop',
-    rating: 4.9,
-    reviewCount: 67,
-    sku: 'TF-004'
+interface FeaturedProduct {
+  id: string
+  name: string
+  brand: {
+    id: string
+    name: string
+    description?: string
+    logo?: string
+    isActive: boolean
+    createdAt: string
+    updatedAt: string
   }
-]
+  price: number
+  salePrice?: number
+  images: string[]
+  rating: number
+  reviewCount: number
+  sku: string
+  createdAt: string
+}
 
 export function FeaturedProducts() {
   const { addItem } = useCart()
+  const [products, setProducts] = useState<FeaturedProduct[]>([])
+  const [loading, setLoading] = useState(true)
+  const [favoriteStatus, setFavoriteStatus] = useState<{[key: string]: boolean}>({})
+  const [updatingFavorites, setUpdatingFavorites] = useState<string | null>(null)
+  const { data: session } = useSession()
 
-  const handleAddToCart = (product: typeof featuredProducts[0]) => {
+  // Check favorite status for all products
+  const checkFavoriteStatus = async (productIds: string[]) => {
+    if (!session?.user?.id) return
+    
+    try {
+      const promises = productIds.map(async (productId) => {
+        const response = await fetch(`/api/favorites/check?productId=${productId}`)
+        const data = await response.json()
+        return { productId, isFavorite: data.isFavorite }
+      })
+      
+      const results = await Promise.all(promises)
+      const statusMap: {[key: string]: boolean} = {}
+      results.forEach(({ productId, isFavorite }) => {
+        statusMap[productId] = isFavorite
+      })
+      setFavoriteStatus(statusMap)
+    } catch (error) {
+      console.error('Error checking favorite status:', error)
+    }
+  }
+
+  // Toggle favorite status
+  const toggleFavorite = async (productId: string) => {
+    if (!session?.user?.id) {
+      toast.error('Favoritlərə əlavə etmək üçün giriş edin')
+      return
+    }
+
+    setUpdatingFavorites(productId)
+    try {
+      const isCurrentlyFavorite = favoriteStatus[productId]
+      
+      if (isCurrentlyFavorite) {
+        // Remove from favorites
+        const response = await fetch(`/api/favorites?productId=${productId}`, {
+          method: 'DELETE'
+        })
+        const data = await response.json()
+        
+        if (data.success) {
+          setFavoriteStatus(prev => ({ ...prev, [productId]: false }))
+          toast.success('Məhsul favoritlərdən silindi')
+        } else {
+          toast.error(data.message || 'Favoritlərdən silərkən xəta baş verdi')
+        }
+      } else {
+        // Add to favorites
+        const response = await fetch('/api/favorites', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ productId })
+        })
+        const data = await response.json()
+        
+        if (data.success) {
+          setFavoriteStatus(prev => ({ ...prev, [productId]: true }))
+          toast.success('Məhsul favoritlərə əlavə edildi')
+        } else {
+          toast.error(data.message || 'Favoritlərə əlavə edərkən xəta baş verdi')
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling favorite:', error)
+      toast.error('Favorit statusu dəyişdirərkən xəta baş verdi')
+    } finally {
+      setUpdatingFavorites(null)
+    }
+  }
+
+  useEffect(() => {
+    const fetchFeaturedProducts = async () => {
+      try {
+        const response = await fetch('/api/products?featured=true')
+        const data = await response.json()
+        
+        if (data.products) {
+          // Get top rated products as featured (or first 4 products if no ratings)
+          const featuredProducts = data.products
+            .sort((a: any, b: any) => {
+              // Sort by rating first, then by review count
+              if (b.rating !== a.rating) {
+                return b.rating - a.rating
+              }
+              return b.reviewCount - a.reviewCount
+            })
+            .slice(0, 4) // First 4 featured products
+          
+          setProducts(featuredProducts)
+          
+          // Check favorite status for all products
+          if (session?.user?.id) {
+            const productIds = featuredProducts.map((p: any) => p.id)
+            checkFavoriteStatus(productIds)
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching featured products:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchFeaturedProducts()
+  }, [])
+
+  const handleAddToCart = (product: FeaturedProduct) => {
     addItem({
       id: product.id,
+      productId: product.id,
       name: product.name,
-      price: product.price,
-      salePrice: product.salePrice,
-      image: product.image,
+      price: product.salePrice || product.price,
+      image: product.images[0] || '/placeholder.jpg',
       quantity: 1,
       sku: product.sku
     })
     toast.success(`${product.name} səbətə əlavə edildi`)
+  }
+
+  if (loading) {
+    return (
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Seçilmiş Məhsullar
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Ən yaxşı qiymətləndirilmiş parfümləri kəşf edin
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden animate-pulse">
+                <div className="h-64 bg-gray-200"></div>
+                <div className="p-4">
+                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                  <div className="h-6 bg-gray-200 rounded mb-3"></div>
+                  <div className="h-4 bg-gray-200 rounded mb-4"></div>
+                  <div className="h-10 bg-gray-200 rounded"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  if (products.length === 0) {
+    return (
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              Seçilmiş Məhsullar
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Hal-hazırda seçilmiş məhsul yoxdur
+            </p>
+          </div>
+        </div>
+      </section>
+    )
   }
 
   return (
@@ -72,37 +210,85 @@ export function FeaturedProducts() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Ən Populyar Məhsullar
+            Seçilmiş Məhsullar
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Müştərilərimizin ən çox bəyəndiyi parfümləri kəşf edin
+            Ən yaxşı qiymətləndirilmiş parfümləri kəşf edin
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {featuredProducts.map((product) => (
+          {products.map((product) => (
             <div key={product.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden group">
-              <div className="relative">
-                <Image
-                  src={product.image}
-                  alt={product.name}
-                  width={400}
-                  height={400}
-                  className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
-                />
+              <div className="relative h-64 w-full">
+                {product.images && product.images.length > 0 ? (
+                  <>
+                    <Image
+                      src={product.images[0]}
+                      alt={product.name}
+                      width={400}
+                      height={400}
+                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none'
+                        const placeholder = e.currentTarget.nextElementSibling as HTMLElement
+                        if (placeholder) {
+                          placeholder.style.display = 'flex'
+                        }
+                      }}
+                      onLoad={(e) => {
+                        const placeholder = e.currentTarget.nextElementSibling as HTMLElement
+                        if (placeholder) {
+                          placeholder.style.display = 'none'
+                        }
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-gray-100 flex items-center justify-center" style={{ display: 'none' }}>
+                      <div className="text-center">
+                        <div className="text-gray-400 mb-2">
+                          <svg className="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                        </div>
+                        <div className="text-sm text-gray-500 font-medium">Şəkil yoxdur</div>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="text-gray-400 mb-2">
+                        <svg className="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <div className="text-sm text-gray-500 font-medium">Şəkil yoxdur</div>
+                    </div>
+                  </div>
+                )}
                 {product.salePrice && (
-                  <div className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded">
+                  <div className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded">
                     Endirim
                   </div>
                 )}
-                <button className="absolute top-2 right-2 p-2 bg-white rounded-full shadow-md hover:bg-gray-100 transition-colors">
-                  <Heart className="h-4 w-4 text-gray-600" />
+                <button 
+                  onClick={() => toggleFavorite(product.id)}
+                  disabled={updatingFavorites === product.id}
+                  className="absolute bottom-2 right-2 p-2 bg-white rounded-full shadow-md hover:bg-gray-100 transition-colors disabled:opacity-50"
+                >
+                  <Heart 
+                    className={`h-4 w-4 ${
+                      favoriteStatus[product.id] 
+                        ? 'text-red-500 fill-current' 
+                        : 'text-gray-600'
+                    }`} 
+                  />
                 </button>
               </div>
 
               <div className="p-4">
                 <div className="mb-2">
-                  <p className="text-sm text-gray-500">{product.brand}</p>
+                  <p className="text-sm text-gray-500">{product.brand?.name || 'Brend məlumatı yoxdur'}</p>
                   <Link 
                     href={`/products/${product.id}`}
                     className="text-lg font-semibold text-gray-900 hover:text-primary-600 transition-colors"
@@ -153,7 +339,7 @@ export function FeaturedProducts() {
                   className="w-full btn btn-primary btn-sm flex items-center justify-center gap-2"
                 >
                   <ShoppingCart className="h-4 w-4" />
-                  Səbətə Əlavə Et
+                  Səbətə At
                 </button>
               </div>
             </div>

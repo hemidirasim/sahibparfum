@@ -2,18 +2,16 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 import { ShoppingCart, User, Search, Menu, X, Heart, Settings, ChevronDown, Phone, Mail, LogOut } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useCart } from '@/hooks/use-cart'
 
-const productCategories = [
-  { name: 'Kişi Parfümləri', href: '/products?category=men' },
-  { name: 'Qadın Parfümləri', href: '/products?category=women' },
-  { name: 'Unisex Parfümlər', href: '/products?category=unisex' },
-  { name: 'Mini Parfümlər', href: '/products?category=mini' },
-  { name: 'Yeni Gələnlər', href: '/products?new=true' },
-  { name: 'Endirimlər', href: '/products?sale=true' },
+// Static categories that don't need API
+const staticCategories = [
+  { name: 'Yeni Gələnlər', href: '/categories?new=true' },
+  { name: 'Endirimlər', href: '/categories?sale=true' },
 ]
 
 const alphabetFilter = [
@@ -22,24 +20,65 @@ const alphabetFilter = [
 ]
 
 export function Header() {
+  const router = useRouter()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isProductsDropdownOpen, setIsProductsDropdownOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [brands, setBrands] = useState<{[key: string]: string[]}>({})
+  const [categories, setCategories] = useState<Array<{name: string, href: string}>>([])
+  const [hoveredLetter, setHoveredLetter] = useState<string | null>(null)
   const { data: session } = useSession()
   const { items } = useCart()
 
   const cartItemsCount = items.reduce((total, item) => total + item.quantity, 0)
 
+  // Fetch categories
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch('/api/categories')
+        if (response.ok) {
+          const data = await response.json()
+          // Only show active categories with products
+          const activeCategories = data
+            .filter((cat: any) => cat.isActive && cat.productCount > 0)
+            .map((cat: any) => ({
+              name: cat.name,
+              href: `/categories?categoryIds=${cat.id}`
+            }))
+          setCategories(activeCategories)
+        }
+      } catch (error) {
+        console.error('Error fetching categories:', error)
+      }
+    }
+    fetchCategories()
+  }, [])
+
+  // Fetch brands by letter
+  useEffect(() => {
+    const fetchBrands = async () => {
+      try {
+        const response = await fetch('/api/brands')
+        if (response.ok) {
+          const data = await response.json()
+          console.log('Header: Fetched brands:', data.brands)
+          setBrands(data.brands || {})
+        }
+      } catch (error) {
+        console.error('Error fetching brands:', error)
+      }
+    }
+    fetchBrands()
+  }, [])
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     if (searchQuery.trim()) {
-      window.location.href = `/products?search=${encodeURIComponent(searchQuery.trim())}`
+      router.push(`/categories?search=${encodeURIComponent(searchQuery.trim())}`)
     }
   }
 
-  const handleAlphabetFilter = (letter: string) => {
-    window.location.href = `/products?filter=${letter}`
-  }
 
   return (
     <header className="bg-white shadow-sm border-b sticky top-0 z-50">
@@ -69,15 +108,16 @@ export function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
           {/* Logo */}
-          <Link href="/" className="flex items-center">
-            <Image
-              src="https://i.ibb.co/cX2Gyv2T/Sahib-Logo-PNG.png"
-              alt="Sahib Parfumeriya"
-              width={140}
-              height={50}
-              className="h-12 w-auto"
-            />
-          </Link>
+            <Link href="/" className="flex items-center">
+              <Image
+                src="https://i.ibb.co/cX2Gyv2T/Sahib-Logo-PNG.png"
+                alt="SAHIB perfumery & cosmetics"
+                width={77}
+                height={77}
+                className="h-[77px] w-auto"
+                priority
+              />
+            </Link>
 
           {/* Center Navigation */}
           <nav className="hidden lg:flex items-center space-x-8">
@@ -181,7 +221,19 @@ export function Header() {
               {isProductsDropdownOpen && (
                 <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
                   <div className="py-2">
-                    {productCategories.map((category) => (
+                    {/* Dynamic categories from API */}
+                    {categories.map((category) => (
+                      <Link
+                        key={category.name}
+                        href={category.href}
+                        className="block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors"
+                        onClick={() => setIsProductsDropdownOpen(false)}
+                      >
+                        {category.name}
+                      </Link>
+                    ))}
+                    {/* Static categories */}
+                    {staticCategories.map((category) => (
                       <Link
                         key={category.name}
                         href={category.href}
@@ -196,17 +248,50 @@ export function Header() {
               )}
             </div>
 
-            {/* Alphabetical Filter */}
-            <div className="flex items-center space-x-1">
-              <span className="text-sm text-gray-600 mr-3">Hərfə görə:</span>
+            {/* Brand Search */}
+            <div className="flex items-center space-x-1 relative">
+              <span className="text-sm text-gray-600 mr-3">Brend axtar:</span>
               {alphabetFilter.map((letter) => (
-                <button
-                  key={letter}
-                  onClick={() => handleAlphabetFilter(letter)}
-                  className="w-8 h-8 flex items-center justify-center text-sm font-medium text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded transition-colors"
+                <div 
+                  key={letter} 
+                  className="relative"
+                  onMouseEnter={() => setHoveredLetter(letter)}
                 >
-                  {letter}
-                </button>
+                  <button
+                    className={`w-8 h-8 flex items-center justify-center text-sm font-medium rounded transition-all duration-200 ${
+                      hoveredLetter === letter 
+                        ? 'text-primary-600 bg-primary-100 scale-110 shadow-md' 
+                        : 'text-gray-600 hover:text-primary-600 hover:bg-primary-50 hover:scale-105'
+                    }`}
+                  >
+                    {letter}
+                  </button>
+                  
+                  {/* Brand Dropdown */}
+                  {hoveredLetter === letter && brands[letter] && brands[letter].length > 0 && (
+                    <div 
+                      className="absolute top-full left-0 mt-2 w-56 bg-white border border-gray-200 rounded-xl shadow-xl z-50 max-h-64 overflow-y-auto animate-in fade-in-0 zoom-in-95 duration-200"
+                    >
+                      <div className="py-2">
+                        <div className="px-3 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wide border-b border-gray-100">
+                          {letter} hərfi ilə başlayan brendlər
+                        </div>
+                        {brands[letter].map((brand) => (
+                          <button
+                            key={brand}
+                            onClick={() => {
+                              router.push(`/categories?brand=${encodeURIComponent(brand)}`)
+                              setHoveredLetter(null)
+                            }}
+                            className="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-all duration-150 hover:translate-x-1"
+                          >
+                            {brand}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           </div>
@@ -241,7 +326,19 @@ export function Header() {
               {/* Mobile Products Dropdown */}
               <div className="space-y-2">
                 <div className="text-gray-700 font-medium">Məhsullar</div>
-                {productCategories.map((category) => (
+                {/* Dynamic categories from API */}
+                {categories.map((category) => (
+                  <Link
+                    key={category.name}
+                    href={category.href}
+                    className="block pl-4 text-gray-600 hover:text-primary-600 transition-colors"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {category.name}
+                  </Link>
+                ))}
+                {/* Static categories */}
+                {staticCategories.map((category) => (
                   <Link
                     key={category.name}
                     href={category.href}
@@ -327,17 +424,14 @@ export function Header() {
               )}
             </div>
 
-            {/* Mobile Alphabetical Filter */}
+            {/* Mobile Brand Search */}
             <div className="mt-6">
-              <div className="text-sm text-gray-600 mb-3">Hərfə görə filtr:</div>
+              <div className="text-sm text-gray-600 mb-3">Brend axtar:</div>
               <div className="grid grid-cols-7 gap-1">
                 {alphabetFilter.map((letter) => (
                   <button
                     key={letter}
-                    onClick={() => {
-                      handleAlphabetFilter(letter)
-                      setIsMenuOpen(false)
-                    }}
+                    onClick={() => setIsMenuOpen(false)}
                     className="w-8 h-8 flex items-center justify-center text-sm font-medium text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded transition-colors"
                   >
                     {letter}

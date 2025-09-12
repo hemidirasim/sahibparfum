@@ -57,14 +57,11 @@ async function main() {
         description: 'Chanel N°5 Eau de Parfum is the world\'s most famous fragrance. A timeless classic that embodies the essence of luxury and femininity.',
         price: 299.99,
         salePrice: 249.99,
-        images: [
-          'https://images.unsplash.com/photo-1588405748880-12d1d1a6f6a9?w=600&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1592945403244-b3faa74b2c9a?w=600&h=600&fit=crop'
-        ],
+        images: 'https://images.unsplash.com/photo-1588405748880-12d1d1a6f6a9?w=600&h=600&fit=crop',
         inStock: true,
         stockCount: 15,
         sku: 'CHN-001',
-        brand: 'Chanel',
+          brandId: null,
         volume: '100ml',
         categoryId: categories[1].id // Qadın Parfümləri
       }
@@ -76,14 +73,11 @@ async function main() {
         name: 'Dior Sauvage Eau de Toilette',
         description: 'Dior Sauvage is a fresh and powerful fragrance that captures the spirit of wide-open spaces.',
         price: 189.99,
-        images: [
-          'https://images.unsplash.com/photo-1592945403244-b3faa74b2c9a?w=600&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1588405748880-12d1d1a6f6a9?w=600&h=600&fit=crop'
-        ],
+        images: 'https://images.unsplash.com/photo-1592945403244-b3faa74b2c9a?w=600&h=600&fit=crop',
         inStock: true,
         stockCount: 25,
         sku: 'DIR-002',
-        brand: 'Dior',
+          brandId: null,
         volume: '100ml',
         categoryId: categories[0].id // Kişi Parfümləri
       }
@@ -96,14 +90,11 @@ async function main() {
         description: 'Black Opium is an addictive gourmand fragrance with notes of coffee, vanilla, and white flowers.',
         price: 159.99,
         salePrice: 129.99,
-        images: [
-          'https://images.unsplash.com/photo-1587017539504-67cfbddac569?w=600&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1588405748880-12d1d1a6f6a9?w=600&h=600&fit=crop'
-        ],
+        images: 'https://images.unsplash.com/photo-1587017539504-67cfbddac569?w=600&h=600&fit=crop',
         inStock: true,
         stockCount: 20,
         sku: 'YSL-003',
-        brand: 'Yves Saint Laurent',
+        brandId: null,
         volume: '90ml',
         categoryId: categories[1].id // Qadın Parfümləri
       }
@@ -115,14 +106,11 @@ async function main() {
         name: 'Tom Ford Tobacco Vanille',
         description: 'A modern take on an old-world men\'s club. A smooth oriental, vanilla-based fragrance.',
         price: 399.99,
-        images: [
-          'https://images.unsplash.com/photo-1588405748880-12d1d1a6f6a9?w=600&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1592945403244-b3faa74b2c9a?w=600&h=600&fit=crop'
-        ],
+        images: 'https://images.unsplash.com/photo-1588405748880-12d1d1a6f6a9?w=600&h=600&fit=crop',
         inStock: true,
         stockCount: 8,
         sku: 'TF-004',
-        brand: 'Tom Ford',
+          brandId: null,
         volume: '100ml',
         categoryId: categories[2].id // Unisex Parfümlər
       }
@@ -134,14 +122,11 @@ async function main() {
         name: 'Jo Malone London Wood Sage & Sea Salt',
         description: 'Escape the everyday along the windswept shore. Waves breaking white, the air fresh with sea salt and spray.',
         price: 129.99,
-        images: [
-          'https://images.unsplash.com/photo-1541643600914-78b084683601?w=600&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1588405748880-12d1d1a6f6a9?w=600&h=600&fit=crop'
-        ],
+        images: 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=600&h=600&fit=crop',
         inStock: true,
         stockCount: 30,
         sku: 'JML-005',
-        brand: 'Jo Malone',
+        brandId: null,
         volume: '100ml',
         categoryId: categories[2].id // Unisex Parfümlər
       }
@@ -154,14 +139,11 @@ async function main() {
         description: 'A fresh, sensual fragrance with a luminous, intense structure that gives way to a Mediterranean character.',
         price: 89.99,
         salePrice: 69.99,
-        images: [
-          'https://images.unsplash.com/photo-1592945403244-b3faa74b2c9a?w=600&h=600&fit=crop',
-          'https://images.unsplash.com/photo-1588405748880-12d1d1a6f6a9?w=600&h=600&fit=crop'
-        ],
+        images: 'https://images.unsplash.com/photo-1592945403244-b3faa74b2c9a?w=600&h=600&fit=crop',
         inStock: true,
         stockCount: 18,
         sku: 'VER-006',
-        brand: 'Versace',
+          brandId: null,
         volume: '100ml',
         categoryId: categories[0].id // Kişi Parfümləri
       }

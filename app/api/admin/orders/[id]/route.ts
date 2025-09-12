@@ -1,7 +1,103 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '../../../auth/[...nextauth]/route'
+import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const session = await getServerSession(authOptions)
+
+    if (!session?.user?.email || session.user.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const order = await prisma.order.findUnique({
+      where: { id: params.id },
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true
+          }
+        },
+        orderItems: {
+          include: {
+            product: {
+              select: {
+                name: true,
+                sku: true,
+                images: true
+              }
+            },
+            productVariant: {
+              select: {
+                volume: true,
+                sku: true
+              }
+            }
+          }
+        },
+        shippingAddress: true,
+        billingAddress: true
+      }
+    })
+
+    if (!order) {
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 })
+    }
+
+    // Format order
+    const formattedOrder = {
+      id: order.id,
+      orderNumber: order.orderNumber,
+      customer: order.user?.name || order.guestName || 'Qonaq',
+      email: order.user?.email || order.guestEmail,
+      phone: order.guestPhone,
+      amount: Number(order.totalAmount),
+      status: order.status,
+      paymentStatus: order.paymentStatus,
+      paymentMethod: order.paymentMethod,
+      items: order.orderItems.map(item => ({
+        id: item.id,
+        quantity: item.quantity,
+        price: Number(item.price),
+        product: {
+          name: item.product.name,
+          sku: item.product.sku,
+          image: item.product.images[0] || '/images/placeholder.jpg'
+        }
+      })),
+      itemCount: order.orderItems.length,
+      shippingAddress: order.shippingAddress ? {
+        id: order.shippingAddress.id,
+        fullName: order.shippingAddress.fullName,
+        address: order.shippingAddress.address,
+        city: order.shippingAddress.city,
+        postalCode: order.shippingAddress.postalCode,
+        phone: order.shippingAddress.phone
+      } : null,
+      billingAddress: order.billingAddress ? {
+        id: order.billingAddress.id,
+        fullName: order.billingAddress.fullName,
+        address: order.billingAddress.address,
+        city: order.billingAddress.city,
+        postalCode: order.billingAddress.postalCode,
+        phone: order.billingAddress.phone
+      } : null,
+      notes: order.notes,
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt
+    }
+
+    return NextResponse.json(formattedOrder)
+  } catch (error) {
+    console.error('Order details fetch error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
 
 export async function PATCH(
   request: NextRequest,
@@ -15,15 +111,19 @@ export async function PATCH(
     }
 
     const body = await request.json()
-    const { status } = body
+    const { status, paymentStatus } = body
 
-    if (!status) {
-      return NextResponse.json({ error: 'Status is required' }, { status: 400 })
+    if (!status && !paymentStatus) {
+      return NextResponse.json({ error: 'Status or paymentStatus is required' }, { status: 400 })
     }
+
+    const updateData: any = {}
+    if (status) updateData.status = status
+    if (paymentStatus) updateData.paymentStatus = paymentStatus
 
     const order = await prisma.order.update({
       where: { id: params.id },
-      data: { status },
+      data: updateData,
       include: {
         user: {
           select: {

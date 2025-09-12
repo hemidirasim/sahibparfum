@@ -5,15 +5,22 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Star, ShoppingCart, Heart, Grid, List } from 'lucide-react'
 import { useCart } from '@/hooks/use-cart'
+import { useSession } from 'next-auth/react'
 import toast from 'react-hot-toast'
 
 interface ProductGridProps {
-  searchQuery?: string | null
-  categoryFilter?: string | null
-  alphabetFilter?: string | null
-  newProducts?: string | null
-  sale?: string | null
-  filters?: {
+  search?: string | null
+  category?: string | null
+  filter?: string | null
+  brandFilter?: string | null
+  brand?: string | null
+  newProducts?: boolean
+  sale?: boolean
+  minPrice?: string | null
+  maxPrice?: string | null
+  volume?: string | null
+  minRating?: string | null
+  activeFilters?: {
     categories: string[]
     brands: string[]
     priceRanges: string[]
@@ -23,17 +30,98 @@ interface ProductGridProps {
 }
 
 export function ProductGrid({ 
-  searchQuery, 
-  categoryFilter, 
-  alphabetFilter, 
+  search, 
+  category, 
+  filter, 
+  brandFilter, 
+  brand, 
   newProducts, 
-  sale,
-  filters 
+  sale, 
+  minPrice,
+  maxPrice,
+  volume,
+  minRating,
+  activeFilters 
 }: ProductGridProps) {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [products, setProducts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [favoriteStatus, setFavoriteStatus] = useState<{[key: string]: boolean}>({})
+  const [updatingFavorites, setUpdatingFavorites] = useState<string | null>(null)
   const { addItem } = useCart()
+  const { data: session } = useSession()
+
+  // Check favorite status for all products
+  const checkFavoriteStatus = async (productIds: string[]) => {
+    if (!session?.user?.id) return
+    
+    try {
+      const promises = productIds.map(async (productId) => {
+        const response = await fetch(`/api/favorites/check?productId=${productId}`)
+        const data = await response.json()
+        return { productId, isFavorite: data.isFavorite }
+      })
+      
+      const results = await Promise.all(promises)
+      const statusMap: {[key: string]: boolean} = {}
+      results.forEach(({ productId, isFavorite }) => {
+        statusMap[productId] = isFavorite
+      })
+      setFavoriteStatus(statusMap)
+    } catch (error) {
+      console.error('Error checking favorite status:', error)
+    }
+  }
+
+  // Toggle favorite status
+  const toggleFavorite = async (productId: string) => {
+    if (!session?.user?.id) {
+      toast.error('Favoritlərə əlavə etmək üçün giriş edin')
+      return
+    }
+
+    setUpdatingFavorites(productId)
+    try {
+      const isCurrentlyFavorite = favoriteStatus[productId]
+      
+      if (isCurrentlyFavorite) {
+        // Remove from favorites
+        const response = await fetch(`/api/favorites?productId=${productId}`, {
+          method: 'DELETE'
+        })
+        const data = await response.json()
+        
+        if (data.success) {
+          setFavoriteStatus(prev => ({ ...prev, [productId]: false }))
+          toast.success('Məhsul favoritlərdən silindi')
+        } else {
+          toast.error(data.message || 'Favoritlərdən silərkən xəta baş verdi')
+        }
+      } else {
+        // Add to favorites
+        const response = await fetch('/api/favorites', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ productId })
+        })
+        const data = await response.json()
+        
+        if (data.success) {
+          setFavoriteStatus(prev => ({ ...prev, [productId]: true }))
+          toast.success('Məhsul favoritlərə əlavə edildi')
+        } else {
+          toast.error(data.message || 'Favoritlərə əlavə edərkən xəta baş verdi')
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling favorite:', error)
+      toast.error('Favorit statusu dəyişdirərkən xəta baş verdi')
+    } finally {
+      setUpdatingFavorites(null)
+    }
+  }
 
   // Fetch products from API
   useEffect(() => {
@@ -42,11 +130,34 @@ export function ProductGrid({
         setLoading(true)
         const params = new URLSearchParams()
         
-        if (searchQuery) params.append('search', searchQuery)
-        if (categoryFilter) params.append('category', categoryFilter)
-        if (alphabetFilter) params.append('filter', alphabetFilter)
-        if (newProducts === 'true') params.append('newProducts', 'true')
-        if (sale === 'true') params.append('sale', 'true')
+        if (search) params.append('search', search)
+        if (category) params.append('category', category)
+        if (filter) params.append('filter', filter)
+        if (brandFilter) params.append('brandFilter', brandFilter)
+        if (brand) params.append('brand', brand)
+        if (newProducts) params.append('newProducts', 'true')
+        if (sale) params.append('sale', 'true')
+        if (minPrice) params.append('minPrice', minPrice)
+        if (maxPrice) params.append('maxPrice', maxPrice)
+        if (volume) params.append('volume', volume)
+        if (minRating) params.append('minRating', minRating)
+        
+        // Add filter parameters
+        if (activeFilters?.categories.length > 0) {
+          activeFilters.categories.forEach(catId => params.append('categoryIds', catId))
+        }
+        if (activeFilters?.brands.length > 0) {
+          activeFilters.brands.forEach(brand => params.append('brands', brand))
+        }
+        if (activeFilters?.priceRanges.length > 0) {
+          activeFilters.priceRanges.forEach(range => params.append('priceRanges', range))
+        }
+        if (activeFilters?.volumes.length > 0) {
+          activeFilters.volumes.forEach(volume => params.append('volumes', volume))
+        }
+        if (activeFilters?.ratings.length > 0) {
+          activeFilters.ratings.forEach(rating => params.append('ratings', rating.toString()))
+        }
         
         const response = await fetch(`/api/products?${params.toString()}`)
         const data = await response.json()
@@ -54,6 +165,12 @@ export function ProductGrid({
         if (response.ok) {
           const fetchedProducts = data.products || []
           setProducts(fetchedProducts)
+          
+          // Check favorite status for all products
+          if (session?.user?.id) {
+            const productIds = fetchedProducts.map((p: any) => p.id)
+            checkFavoriteStatus(productIds)
+          }
         } else {
           console.error('Error fetching products:', data.error)
           toast.error('Məhsullar yüklənərkən xəta baş verdi')
@@ -67,62 +184,13 @@ export function ProductGrid({
     }
 
     fetchProducts()
-  }, [searchQuery, categoryFilter, alphabetFilter, newProducts, sale])
+  }, [search, category, filter, brandFilter, brand, newProducts, sale, minPrice, maxPrice, volume, minRating, activeFilters])
 
-  // Apply filters when they change
-  useEffect(() => {
-    if (filters) {
-      setProducts(prevProducts => {
-        let filteredProducts = [...prevProducts]
-        
-        // Apply category filter
-        if (filters.categories.length > 0) {
-          filteredProducts = filteredProducts.filter((product: any) => 
-            filters.categories.includes(product.category?.id)
-          )
-        }
-        
-        // Apply brand filter
-        if (filters.brands.length > 0) {
-          filteredProducts = filteredProducts.filter((product: any) => 
-            filters.brands.includes(product.brand)
-          )
-        }
-        
-        // Apply price range filter
-        if (filters.priceRanges.length > 0) {
-          filteredProducts = filteredProducts.filter((product: any) => {
-            const price = product.salePrice || product.price
-            return filters.priceRanges.some(range => {
-              const [min, max] = range.split('-').map(Number)
-              if (max === null) return price >= min
-              return price >= min && price <= max
-            })
-          })
-        }
-        
-        // Apply volume filter
-        if (filters.volumes.length > 0) {
-          filteredProducts = filteredProducts.filter((product: any) => 
-            filters.volumes.includes(product.volume)
-          )
-        }
-        
-        // Apply rating filter
-        if (filters.ratings.length > 0) {
-          filteredProducts = filteredProducts.filter((product: any) => 
-            filters.ratings.some(rating => product.averageRating >= rating)
-          )
-        }
-        
-        return filteredProducts
-      })
-    }
-  }, [filters])
 
   const handleAddToCart = (product: any) => {
     addItem({
       id: product.id,
+      productId: product.id,
       name: product.name,
       price: product.salePrice || product.price,
       image: product.images?.[0] || product.image || '/placeholder.jpg',
@@ -146,7 +214,7 @@ export function ProductGrid({
       <div className="flex items-center justify-between">
         <p className="text-gray-600">
           {products.length} məhsul tapıldı
-          {(searchQuery || categoryFilter || alphabetFilter || newProducts || sale) && (
+          {(search || category || filter || brandFilter || brand || newProducts || sale) && (
             <span className="text-primary-600 ml-2">
               (filtrlənmiş)
             </span>
@@ -213,50 +281,92 @@ export function ProductGrid({
                 viewMode === 'list' ? 'flex' : ''
               }`}
             >
-              <div className={`relative bg-gray-100 ${viewMode === 'list' ? 'w-48 flex-shrink-0' : ''}`}>
+              <div className={`relative ${viewMode === 'list' ? 'w-48 flex-shrink-0 h-48' : 'h-64 w-full'}`}>
                 {product.images && product.images.length > 0 ? (
-                  <Image
-                    src={product.images[0]}
-                    alt={product.name}
-                    width={400}
-                    height={400}
-                    className={`object-cover group-hover:scale-105 transition-transform duration-300 ${
-                      viewMode === 'list' ? 'h-48 w-full' : 'w-full h-64'
-                    }`}
-                  />
+                  <>
+                    <Image
+                      src={product.images[0]}
+                      alt={product.name}
+                      width={400}
+                      height={400}
+                      className={`absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${
+                        viewMode === 'list' ? 'h-48 w-full' : 'w-full h-64'
+                      }`}
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none'
+                        const placeholder = e.currentTarget.nextElementSibling as HTMLElement
+                        if (placeholder) {
+                          placeholder.style.display = 'flex'
+                        }
+                      }}
+                      onLoad={(e) => {
+                        const placeholder = e.currentTarget.nextElementSibling as HTMLElement
+                        if (placeholder) {
+                          placeholder.style.display = 'none'
+                        }
+                      }}
+                    />
+                    <div 
+                      className={`absolute inset-0 bg-gray-100 flex items-center justify-center ${
+                        viewMode === 'list' ? 'h-48 w-full' : 'w-full h-64'
+                      }`}
+                      style={{ display: 'none' }}
+                    >
+                      <div className="text-center">
+                        <div className="text-gray-400 mb-2">
+                          <svg className="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                        </div>
+                        <div className="text-sm text-gray-500 font-medium">Şəkil yoxdur</div>
+                      </div>
+                    </div>
+                  </>
                 ) : (
-                  <div className={`flex items-center justify-center ${
+                  <div className={`absolute inset-0 bg-gray-100 flex items-center justify-center ${
                     viewMode === 'list' ? 'h-48 w-full' : 'w-full h-64'
                   }`}>
                     <div className="text-center">
-                      <div className="w-12 h-12 mx-auto mb-2 bg-gray-200 rounded-full flex items-center justify-center">
-                        <span className="text-xl text-gray-400">📷</span>
+                      <div className="text-gray-400 mb-2">
+                        <svg className="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
                       </div>
-                      <p className="text-xs text-gray-500">Şəkil yoxdur</p>
+                      <div className="text-sm text-gray-500 font-medium">Şəkil yoxdur</div>
                     </div>
                   </div>
                 )}
                 {product.onSale && (
-                  <div className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded">
+                  <div className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded">
                     Endirim
                   </div>
                 )}
                 {product.isNew && (
-                  <div className="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded">
+                  <div className="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded">
                     Yeni
                   </div>
                 )}
-                <button className="absolute top-2 right-2 p-2 bg-white rounded-full shadow-md hover:bg-gray-100 transition-colors">
-                  <Heart className="h-4 w-4 text-gray-600" />
+                <button 
+                  onClick={() => toggleFavorite(product.id)}
+                  disabled={updatingFavorites === product.id}
+                  className="absolute bottom-2 right-2 p-2 bg-white rounded-full shadow-md hover:bg-gray-100 transition-colors disabled:opacity-50"
+                >
+                  <Heart 
+                    className={`h-4 w-4 ${
+                      favoriteStatus[product.id] 
+                        ? 'text-red-500 fill-current' 
+                        : 'text-gray-600'
+                    }`} 
+                  />
                 </button>
               </div>
 
               <div className={`p-4 ${viewMode === 'list' ? 'flex-1' : ''}`}>
                 <div className="mb-2">
-                  <p className="text-sm text-gray-500">{product.brand}</p>
+                  <p className="text-sm text-gray-500 mb-1">{product.brand?.name || 'Brend məlumatı yoxdur'}</p>
                   <Link 
                     href={`/products/${product.id}`}
-                    className="text-lg font-semibold text-gray-900 hover:text-primary-600 transition-colors"
+                    className="text-lg font-semibold text-gray-900 hover:text-primary-600 transition-colors block mb-2"
                   >
                     {product.name}
                   </Link>
@@ -269,7 +379,7 @@ export function ProductGrid({
                       .replace(/ş/g, 's')
                       .replace(/ü/g, 'u')
                       .replace(/\s+/g, '-')}-${product.category?.id}`}
-                    className="text-sm text-blue-600 hover:text-blue-700 transition-colors"
+                    className="text-sm text-blue-600 hover:text-blue-700 transition-colors block"
                   >
                     {product.category?.name}
                   </Link>
@@ -317,7 +427,7 @@ export function ProductGrid({
                   className="w-full btn btn-primary btn-sm flex items-center justify-center gap-2"
                 >
                   <ShoppingCart className="h-4 w-4" />
-                  Səbətə Əlavə Et
+                  Səbətə At
                 </button>
               </div>
             </div>

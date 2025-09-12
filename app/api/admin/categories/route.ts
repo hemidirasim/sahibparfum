@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
 export async function GET(request: NextRequest) {
@@ -23,18 +23,22 @@ export async function GET(request: NextRequest) {
 
     if (search) {
       where.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } }
+        { name: { contains: search } },
+        { description: { contains: search } }
       ]
     }
 
-    // Get categories with product count
+    // Get categories with product count (only active products)
     const categories = await prisma.category.findMany({
       where,
       include: {
         _count: {
           select: {
-            products: true
+            products: {
+              where: {
+                isActive: true
+              }
+            }
           }
         }
       },

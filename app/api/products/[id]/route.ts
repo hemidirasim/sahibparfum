@@ -14,24 +14,13 @@ export async function GET(
       },
       include: {
         category: true,
+        brand: true,
         variants: {
           where: {
             isActive: true
           },
           orderBy: {
             price: 'asc'
-          }
-        },
-        reviews: {
-          include: {
-            user: {
-              select: {
-                name: true
-              }
-            }
-          },
-          orderBy: {
-            createdAt: 'desc'
           }
         }
       }
@@ -49,15 +38,14 @@ export async function GET(
       ...product,
       price: parseFloat(product.price.toString()),
       salePrice: product.salePrice ? parseFloat(product.salePrice.toString()) : null,
+      images: product.images ? [product.images] : [],
       variants: product.variants.map(variant => ({
         ...variant,
         price: parseFloat(variant.price.toString()),
         salePrice: variant.salePrice ? parseFloat(variant.salePrice.toString()) : null
       })),
-      averageRating: product.reviews.length > 0 
-        ? product.reviews.reduce((acc, review) => acc + review.rating, 0) / product.reviews.length 
-        : 0,
-      reviewCount: product.reviews.length
+      averageRating: 0, // Reviews table yoxdur, default 0
+      reviewCount: 0 // Reviews table yoxdur, default 0
     }
 
     return NextResponse.json(transformedProduct)

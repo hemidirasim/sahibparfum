@@ -1,5 +1,6 @@
 import { HeroSection } from '@/components/sections/hero-section'
-import { FeaturedProducts } from '@/components/sections/featured-products'
+import { SaleProducts } from '@/components/sections/sale-products'
+import { NewProducts } from '@/components/sections/new-products'
 import { CategoriesSection } from '@/components/sections/categories-section'
 
 export default function HomePage() {
@@ -7,7 +8,8 @@ export default function HomePage() {
     <div className="min-h-screen bg-gray-50">
       <HeroSection />
       <CategoriesSection />
-      <FeaturedProducts />
+      <SaleProducts />
+      <NewProducts />
     </div>
   )
 }

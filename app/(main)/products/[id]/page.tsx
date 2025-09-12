@@ -5,6 +5,8 @@ import { useParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { Star, Heart, ShoppingCart, ChevronLeft, ChevronRight, Minus, Plus } from 'lucide-react'
 import { useCart } from '@/hooks/use-cart'
+import ProductRating from '@/components/products/product-rating'
+import ProductReviews from '@/components/products/product-reviews'
 import toast from 'react-hot-toast'
 
 interface ProductVariant {
@@ -27,8 +29,13 @@ interface Product {
   inStock: boolean
   stockCount: number
   sku: string
-  brand?: string
+  brand?: {
+    name: string
+  }
   volume?: string
+  averageRating: number
+  reviewCount: number
+  isOnSale?: boolean
   category: {
     name: string
   }
@@ -55,6 +62,7 @@ export default function ProductDetail() {
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null)
   const [quantities, setQuantities] = useState<{[key: string]: number}>({})
   const [addingToCart, setAddingToCart] = useState(false)
+  const [productRating, setProductRating] = useState({ average: 0, count: 0 })
 
   useEffect(() => {
     if (params.id) {
@@ -70,6 +78,17 @@ export default function ProductDetail() {
       
       if (response.ok) {
         setProduct(data)
+        
+        // Rating məlumatlarını da yüklə
+        const ratingResponse = await fetch(`/api/products/${id}/ratings`)
+        if (ratingResponse.ok) {
+          const ratingData = await ratingResponse.json()
+          const ratings = ratingData.ratings.filter((r: any) => r.rating).map((r: any) => r.rating)
+          if (ratings.length > 0) {
+            const avg = ratings.reduce((sum: number, rating: number) => sum + rating, 0) / ratings.length
+            setProductRating({ average: avg, count: ratings.length })
+          }
+        }
       } else {
         console.error('Error fetching product:', data.error)
         toast.error('Məhsul yüklənərkən xəta baş verdi')
@@ -89,10 +108,11 @@ export default function ProductDetail() {
       setAddingToCart(true)
       addItem({
         id: product.id,
+        productId: product.id,
         name: product.name,
         price: product.salePrice || product.price,
         image: product.images[0],
-        quantity,
+        quantity: 1,
         sku: product.sku
       })
       toast.success('Məhsul səbətə əlavə edildi')
@@ -123,6 +143,8 @@ export default function ProductDetail() {
       setAddingToCart(true)
       addItem({
         id: `${product.id}-${variant.id}`,
+        productId: product.id,
+        productVariantId: variant.id,
         name: `${product.name} - ${variant.volume}`,
         price: variant.salePrice || variant.price,
         image: product.images[0],
@@ -137,9 +159,7 @@ export default function ProductDetail() {
     }
   }
 
-  const averageRating = product?.reviews.length 
-    ? product.reviews.reduce((acc, review) => acc + review.rating, 0) / product.reviews.length 
-    : 0
+  const averageRating = product?.averageRating || 0
 
   if (loading) {
     return (
@@ -206,19 +226,46 @@ export default function ProductDetail() {
           <div className="space-y-4">
             <div className="relative aspect-square bg-gray-100 rounded-lg overflow-hidden">
               {product.images && product.images.length > 0 ? (
-                <Image
-                  src={product.images[selectedImage]}
-                  alt={product.name}
-                  fill
-                  className="object-cover"
-                />
+                <>
+                  <Image
+                    src={product.images[selectedImage]}
+                    alt={product.name}
+                    fill
+                    className="object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none'
+                      const placeholder = e.currentTarget.nextElementSibling as HTMLElement
+                      if (placeholder) {
+                        placeholder.style.display = 'flex'
+                      }
+                    }}
+                    onLoad={(e) => {
+                      const placeholder = e.currentTarget.nextElementSibling as HTMLElement
+                      if (placeholder) {
+                        placeholder.style.display = 'none'
+                      }
+                    }}
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center h-full" style={{ display: 'none' }}>
+                    <div className="text-center">
+                      <div className="text-gray-400 mb-2">
+                        <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <p className="text-gray-500 font-medium">Şəkil yoxdur</p>
+                    </div>
+                  </div>
+                </>
               ) : (
                 <div className="flex items-center justify-center h-full">
                   <div className="text-center">
-                    <div className="w-16 h-16 mx-auto mb-4 bg-gray-200 rounded-full flex items-center justify-center">
-                      <span className="text-2xl text-gray-400">📷</span>
+                    <div className="text-gray-400 mb-2">
+                      <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
                     </div>
-                    <p className="text-gray-500">Şəkil yoxdur</p>
+                    <p className="text-gray-500 font-medium">Şəkil yoxdur</p>
                   </div>
                 </div>
               )}
@@ -239,7 +286,30 @@ export default function ProductDetail() {
                       alt={`${product.name} ${index + 1}`}
                       fill
                       className="object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none'
+                        const placeholder = e.currentTarget.nextElementSibling as HTMLElement
+                        if (placeholder) {
+                          placeholder.style.display = 'flex'
+                        }
+                      }}
+                      onLoad={(e) => {
+                        const placeholder = e.currentTarget.nextElementSibling as HTMLElement
+                        if (placeholder) {
+                          placeholder.style.display = 'none'
+                        }
+                      }}
                     />
+                    <div className="absolute inset-0 flex items-center justify-center bg-gray-100" style={{ display: 'none' }}>
+                      <div className="text-center">
+                        <div className="text-gray-400 mb-1">
+                          <svg className="w-6 h-6 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                        </div>
+                        <div className="text-xs text-gray-500">Yoxdur</div>
+                      </div>
+                    </div>
                   </button>
                 ))}
               </div>
@@ -250,7 +320,7 @@ export default function ProductDetail() {
           <div className="space-y-6">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">{product.name}</h1>
-              <p className="text-lg text-gray-600 mb-4">{product.brand}</p>
+              <p className="text-lg text-gray-600 mb-4">{product.brand?.name || 'Brend məlumatı yoxdur'}</p>
               
               {/* Rating */}
               <div className="flex items-center space-x-2 mb-4">
@@ -259,13 +329,13 @@ export default function ProductDetail() {
                     <Star
                       key={star}
                       className={`w-5 h-5 ${
-                        star <= (product.averageRating || 0) ? 'text-yellow-400 fill-current' : 'text-gray-300'
+                        star <= productRating.average ? 'text-yellow-400 fill-current' : 'text-gray-300'
                       }`}
                     />
                   ))}
                 </div>
                 <span className="text-sm text-gray-600">
-                  ({product.reviews.length} rəy)
+                  {productRating.average > 0 ? `${productRating.average.toFixed(1)} (${productRating.count} rəy)` : 'Hələ qiymətləndirilməyib'}
                 </span>
               </div>
             </div>
@@ -288,6 +358,66 @@ export default function ProductDetail() {
               <p className="text-gray-600 leading-relaxed">{product.description}</p>
             </div>
 
+            {/* Main Product - Always show */}
+            <div className="pt-4 border-t border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Əsas Məhsul</h3>
+              <div className="border border-gray-200 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    {/* Product Icon */}
+                    <div className="w-8 h-8 bg-gradient-to-b from-primary-600 to-primary-400 rounded flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">P</span>
+                    </div>
+                    
+                    {/* Product Info */}
+                    <div className="flex-1">
+                      <span className="text-sm font-medium text-gray-900">
+                        {product.name}
+                      </span>
+                      <div className="text-xs text-gray-500">
+                        SKU: {product.sku}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-4">
+                    {/* Price */}
+                    <div className="text-right">
+                      {product.isOnSale && product.salePrice ? (
+                        <div>
+                          <span className="text-lg font-bold text-primary-600">
+                            {product.salePrice.toFixed(2)} ₼
+                          </span>
+                          <div className="text-sm text-gray-500 line-through">
+                            {product.price.toFixed(2)} ₼
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-lg font-bold text-gray-900">
+                          {product.price.toFixed(2)} ₼
+                        </span>
+                      )}
+                    </div>
+                    
+                    {/* Add to Cart Button */}
+                    <button
+                      onClick={handleAddToCart}
+                      disabled={addingToCart || !product.inStock}
+                      className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                      <ShoppingCart className="h-4 w-4" />
+                      {!product.inStock ? 'Stokda yoxdur' : 'Səbətə At'}
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Stock Info */}
+                <div className="mt-2 text-sm text-gray-600">
+                  Stok: {product.stockCount} ədəd
+                </div>
+              </div>
+            </div>
+
             {/* Product Variants */}
             {product.variants && product.variants.length > 0 && (
               <div className="space-y-4">
@@ -299,7 +429,7 @@ export default function ProductDetail() {
                         <div className="flex items-center space-x-3">
                           {/* Product Icon */}
                           <div className="w-8 h-8 bg-gradient-to-b from-blue-900 to-blue-400 rounded flex items-center justify-center">
-                            <span className="text-white text-xs font-bold">P</span>
+                            <span className="text-white text-xs font-bold">V</span>
                           </div>
                           
                           {/* Volume */}
@@ -307,6 +437,9 @@ export default function ProductDetail() {
                             <span className="text-sm font-medium text-gray-900">
                               {variant.volume}
                             </span>
+                            <div className="text-xs text-gray-500">
+                              SKU: {variant.sku}
+                            </div>
                           </div>
                         </div>
                         
@@ -354,9 +487,10 @@ export default function ProductDetail() {
                           <button
                             onClick={() => handleAddToCartVariant(variant)}
                             disabled={addingToCart || variant.stock === 0}
-                            className="bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                           >
-                            {variant.stock === 0 ? 'Stokda yoxdur' : 'AL'}
+                            <ShoppingCart className="h-4 w-4" />
+                            {variant.stock === 0 ? 'Stokda yoxdur' : 'Səbətə At'}
                           </button>
                         </div>
                       </div>
@@ -389,61 +523,22 @@ export default function ProductDetail() {
               </div>
             </div>
 
-            {/* One-Click Order */}
-            <div className="pt-4 border-t border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">Bir kliklə sifariş</h3>
-              <div className="space-y-3">
-                <input
-                  type="tel"
-                  placeholder="+994 (___) ___-____"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <button className="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors">
-                  SİFARİŞ ET
-                </button>
-              </div>
-            </div>
           </div>
         </div>
 
-        {/* Reviews Section */}
-        {product.reviews.length > 0 && (
-          <div className="mt-16">
-            <h2 className="text-2xl font-bold text-gray-900 mb-8">Müştəri Rəyləri</h2>
-            <div className="space-y-6">
-              {product.reviews.map((review) => (
-                <div key={review.id} className="bg-white rounded-lg p-6 shadow-sm">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center space-x-2">
-                      <div className="flex items-center">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <Star
-                            key={star}
-                            className={`w-4 h-4 ${
-                              star <= review.rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      <span className="text-sm text-gray-600">{review.rating}/5</span>
-                    </div>
-                    <span className="text-sm text-gray-500">
-                      {new Date(review.createdAt).toLocaleDateString('az-AZ')}
-                    </span>
-                  </div>
-                  
-                  <div className="mb-2">
-                    <span className="font-medium text-gray-900">{review.user.name}</span>
-                  </div>
-                  
-                  {review.comment && (
-                    <p className="text-gray-600">{review.comment}</p>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+        {/* Product Rating Section */}
+        <div className="mt-16">
+          <ProductRating productId={product.id} />
+        </div>
+
+        {/* Product Reviews Section */}
+        <div className="mt-8">
+          <ProductReviews 
+            productId={product.id}
+            productName={product.name}
+            productImage={product.images[0] || '/placeholder-product.jpg'}
+          />
+        </div>
       </div>
     </div>
   )

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
 export async function GET(request: NextRequest) {
@@ -30,9 +30,9 @@ export async function GET(request: NextRequest) {
 
     if (search) {
       where.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { brand: { contains: search, mode: 'insensitive' } },
-        { sku: { contains: search, mode: 'insensitive' } }
+        { name: { contains: search } },
+        { brand: { contains: search } },
+        { sku: { contains: search } }
       ]
     }
 
@@ -77,9 +77,10 @@ export async function GET(request: NextRequest) {
       salePrice: product.salePrice ? Number(product.salePrice) : null,
       stock: product.stockCount,
       status: product.isActive ? 'active' : 'inactive',
-      image: product.images[0] || '/images/placeholder.jpg',
+      image: product.images || '/images/placeholder.jpg',
+      images: product.images ? [product.images] : [],
       sku: product.sku,
-      brand: product.brand,
+      brand: typeof product.brand === 'string' ? product.brand : product.brand?.name || 'Brend məlumatı yoxdur',
       category: product.category.name,
       isNew: product.isNew,
       isOnSale: product.isOnSale,
@@ -172,7 +173,7 @@ export async function POST(request: NextRequest) {
         isNew: isNew || false,
         isOnSale: isOnSale || false,
         isActive: isActive !== false,
-        images: images || []
+        images: JSON.stringify(images || [])
       }
     })
 

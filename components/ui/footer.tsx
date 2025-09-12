@@ -13,9 +13,9 @@ export function Footer() {
               <Image
                 src="https://i.ibb.co/cX2Gyv2T/Sahib-Logo-PNG.png"
                 alt="Sahib Parfumeriya"
-                width={120}
-                height={40}
-                className="h-10 w-auto"
+                width={80}
+                height={80}
+                className="h-20 w-auto"
               />
             </Link>
             <p className="text-gray-400 mb-4">

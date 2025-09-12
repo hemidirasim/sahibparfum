@@ -14,7 +14,8 @@ import {
   LogOut,
   Home,
   Menu,
-  X
+  X,
+  Tag
 } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
@@ -29,15 +30,6 @@ export default function AdminLayout({
   const pathname = usePathname()
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  // Login səhifəsi üçün layout tətbiq etmə
-  if (pathname === '/admin/login') {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        {children}
-      </div>
-    )
-  }
-
   useEffect(() => {
     if (status === 'loading') return
 
@@ -51,6 +43,15 @@ export default function AdminLayout({
       return
     }
   }, [session, status, router])
+
+  // Login səhifəsi üçün layout tətbiq etmə
+  if (pathname === '/admin/login') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        {children}
+      </div>
+    )
+  }
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: '/admin/login' })
@@ -113,6 +114,7 @@ export default function AdminLayout({
     { name: 'Sifarişlər', href: '/admin/orders', icon: ShoppingBag },
     { name: 'Məhsullar', href: '/admin/products', icon: Package },
     { name: 'Kateqoriyalar', href: '/admin/categories', icon: BarChart3 },
+    { name: 'Markalar', href: '/admin/brands', icon: Tag },
     { name: 'Slayderlər', href: '/admin/sliders', icon: TrendingUp },
     { name: 'Tənzimləmələr', href: '/admin/settings', icon: Settings },
   ]

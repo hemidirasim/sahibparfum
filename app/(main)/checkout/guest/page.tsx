@@ -73,11 +73,27 @@ export default function GuestCheckoutPage() {
         totalAmount: total,
         paymentMethod: formData.paymentMethod,
         notes: formData.notes,
-        orderItems: items.map(item => ({
-          productId: item.id,
-          quantity: item.quantity,
-          price: item.price
-        })),
+        orderItems: items.map(item => {
+          // Extract productId from item.id if it contains variant info
+          let productId = item.productId || item.id
+          let productVariantId = item.productVariantId || null
+          
+          // If item.id contains variant info (format: productId-variantId)
+          if (item.id.includes('-') && !item.productId) {
+            const parts = item.id.split('-')
+            if (parts.length >= 2) {
+              productId = parts[0]
+              productVariantId = parts.slice(1).join('-')
+            }
+          }
+          
+          return {
+            productId,
+            productVariantId,
+            quantity: item.quantity,
+            price: item.price
+          }
+        }),
         shippingAddress: formData.shippingAddress,
         billingAddress: formData.useSameAddress ? formData.shippingAddress : formData.billingAddress
       }

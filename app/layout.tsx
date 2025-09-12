@@ -13,6 +13,9 @@ export const metadata: Metadata = {
   description: 'Sahib Parfumeriya - Ən yaxşı parfüm markaları, sərfəli qiymətlər və keyfiyyətli xidmət. Online parfüm alış-verişi üçün etibarlı platforma.',
   keywords: 'parfüm, ətir, sahib parfumeriya, online mağaza, parfüm alış-verişi',
   authors: [{ name: 'Sahib Parfumeriya' }],
+  icons: {
+    icon: '/favicon.svg',
+  },
   openGraph: {
     title: 'Sahib Parfumeriya - Premium Parfüm Mağazası',
     description: 'Ən yaxşı parfüm markaları, sərfəli qiymətlər və keyfiyyətli xidmət.',

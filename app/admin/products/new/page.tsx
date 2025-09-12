@@ -28,6 +28,7 @@ export default function NewProductPage() {
   const [variants, setVariants] = useState<Variant[]>([])
   const [attributes, setAttributes] = useState<Attribute[]>([])
   const [images, setImages] = useState<string[]>([])
+  const [mainImageIndex, setMainImageIndex] = useState(0)
   
   const [formData, setFormData] = useState({
     name: '',
@@ -44,9 +45,12 @@ export default function NewProductPage() {
   })
 
   const [categories, setCategories] = useState<Array<{id: string, name: string}>>([])
+  const [brands, setBrands] = useState<string[]>([])
+  const [brandsLoading, setBrandsLoading] = useState(true)
 
   useEffect(() => {
     fetchCategories()
+    fetchBrands()
   }, [])
 
   const fetchCategories = async () => {
@@ -63,6 +67,28 @@ export default function NewProductPage() {
       console.error('Categories fetch error:', error)
     } finally {
       setCategoriesLoading(false)
+    }
+  }
+
+  const fetchBrands = async () => {
+    try {
+      setBrandsLoading(true)
+      const response = await fetch('/api/brands')
+      if (response.ok) {
+        const data = await response.json()
+        // Flatten all brands from all letters
+        const allBrands: string[] = []
+        Object.values(data.brands || {}).forEach((brandList: any) => {
+          allBrands.push(...brandList)
+        })
+        setBrands([...new Set(allBrands)].sort()) // Remove duplicates and sort
+      } else {
+        console.error('Failed to fetch brands')
+      }
+    } catch (error) {
+      console.error('Brands fetch error:', error)
+    } finally {
+      setBrandsLoading(false)
     }
   }
 
@@ -162,6 +188,13 @@ export default function NewProductPage() {
 
   const removeImage = (index: number) => {
     setImages(prev => prev.filter((_, i) => i !== index))
+    
+    // Əgər silinən şəkil əsas şəkil idisə, əsas şəkli yenilə
+    if (mainImageIndex === index) {
+      setMainImageIndex(0)
+    } else if (mainImageIndex > index) {
+      setMainImageIndex(mainImageIndex - 1)
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -241,13 +274,31 @@ export default function NewProductPage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Marka
               </label>
-              <input
-                type="text"
-                value={formData.brand}
-                onChange={(e) => handleInputChange('brand', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Marka adını daxil edin"
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  value={formData.brand}
+                  onChange={(e) => handleInputChange('brand', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Marka adını daxil edin və ya seçin"
+                  list="brands-list"
+                />
+                <datalist id="brands-list">
+                  {brands.map((brand) => (
+                    <option key={brand} value={brand} />
+                  ))}
+                </datalist>
+                {brandsLoading && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                  </div>
+                )}
+              </div>
+              {brands.length > 0 && (
+                <p className="text-xs text-gray-500 mt-1">
+                  {brands.length} mövcud marka. Yuxarıda yazaraq axtarın və ya yeni marka əlavə edin.
+                </p>
+              )}
             </div>
 
             <div>
@@ -377,23 +428,73 @@ export default function NewProductPage() {
 
           {/* Image Preview */}
           {images.length > 0 && (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {images.map((image, index) => (
-                <div key={index} className="relative group">
-                  <img
-                    src={image}
-                    alt={`Məhsul şəkli ${index + 1}`}
-                    className="w-full h-32 object-cover rounded-lg border border-gray-200"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => removeImage(index)}
-                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
+            <div>
+              <h3 className="text-sm font-medium text-gray-700 mb-3">Yüklənmiş şəkillər</h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {images.map((image, index) => (
+                  <div key={index} className="relative group">
+                    <img
+                      src={image}
+                      alt={`Məhsul şəkli ${index + 1}`}
+                      className={`w-full h-32 object-cover rounded-lg border-2 ${
+                        mainImageIndex === index ? 'border-blue-500' : 'border-gray-200'
+                      }`}
+                    />
+                    
+                    {/* Main Image Badge */}
+                    {mainImageIndex === index && (
+                      <div className="absolute top-2 left-2 bg-blue-600 text-white text-xs px-2 py-1 rounded">
+                        Əsas
+                      </div>
+                    )}
+                    
+                    {/* Set as Main Button */}
+                    {mainImageIndex !== index && (
+                      <button
+                        type="button"
+                        onClick={() => setMainImageIndex(index)}
+                        className="absolute top-2 left-2 bg-green-600 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        Əsas et
+                      </button>
+                    )}
+                    
+                    <button
+                      type="button"
+                      onClick={() => removeImage(index)}
+                      className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Reorder Images */}
+              {images.length > 1 && (
+                <div className="mt-4">
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">Şəkil sırasını dəyişdir</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {images.map((image, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => {
+                          const newImages = [...images]
+                          const [movedImage] = newImages.splice(index, 1)
+                          newImages.splice(0, 0, movedImage)
+                          setImages(newImages)
+                          setMainImageIndex(0)
+                        }}
+                        className="flex items-center space-x-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition-colors"
+                      >
+                        <span>#{index + 1}</span>
+                        <span>Əsas et</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              ))}
+              )}
             </div>
           )}
 

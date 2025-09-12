@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 
 interface FilterData {
@@ -18,9 +18,16 @@ interface ProductFiltersProps {
     volumes: string[]
     ratings: number[]
   }) => void
+  activeFilters?: {
+    categories: string[]
+    brands: string[]
+    priceRanges: string[]
+    volumes: string[]
+    ratings: number[]
+  }
 }
 
-export function ProductFilters({ onFiltersChange }: ProductFiltersProps) {
+export function ProductFilters({ onFiltersChange, activeFilters }: ProductFiltersProps) {
   const [expandedSections, setExpandedSections] = useState({
     categories: true,
     brands: true,
@@ -59,54 +66,38 @@ export function ProductFilters({ onFiltersChange }: ProductFiltersProps) {
         const categoriesResponse = await fetch('/api/categories')
         const categoriesData = await categoriesResponse.json()
         
-        // Fetch products for counts
-        const productsResponse = await fetch('/api/products')
-        const productsData = await productsResponse.json()
-        const products = productsData.products || []
+        // Fetch brands
+        const brandsResponse = await fetch('/api/brands')
+        const brandsData = await brandsResponse.json()
 
-        // Calculate counts
-        const brandCounts: { [key: string]: number } = {}
-        const volumeCounts: { [key: string]: number } = {}
-        const priceCounts: { [key: string]: number } = {
-          '0-50': 0,
-          '50-100': 0,
-          '100-200': 0,
-          '200-500': 0,
-          '500+': 0
+        // Transform brands data from API format
+        const allBrands: { name: string; count: number }[] = []
+        if (brandsData.brands) {
+          Object.values(brandsData.brands).forEach((brandArray: any) => {
+            brandArray.forEach((brandName: string) => {
+              allBrands.push({ name: brandName, count: 0 })
+            })
+          })
         }
-
-        products.forEach((product: any) => {
-          // Count brands
-          brandCounts[product.brand] = (brandCounts[product.brand] || 0) + 1
-
-          // Count volumes
-          if (product.volume) {
-            volumeCounts[product.volume] = (volumeCounts[product.volume] || 0) + 1
-          }
-
-          // Count price ranges
-          const price = product.salePrice || product.price
-          if (price <= 50) priceCounts['0-50'] = (priceCounts['0-50'] || 0) + 1
-          else if (price <= 100) priceCounts['50-100'] = (priceCounts['50-100'] || 0) + 1
-          else if (price <= 200) priceCounts['100-200'] = (priceCounts['100-200'] || 0) + 1
-          else if (price <= 500) priceCounts['200-500'] = (priceCounts['200-500'] || 0) + 1
-          else priceCounts['500+'] = (priceCounts['500+'] || 0) + 1
-        })
 
         setFilterData({
           categories: categoriesData.map((cat: any) => ({
             id: cat.id,
             name: cat.name,
-            count: products.filter((p: any) => p.category?.id === cat.id).length
+            count: 0
           })),
-          brands: Object.entries(brandCounts).map(([name, count]) => ({ name, count })),
-          volumes: Object.entries(volumeCounts).map(([volume, count]) => ({ volume, count })),
+          brands: allBrands,
+          volumes: [
+            { volume: '50ml', count: 0 },
+            { volume: '100ml', count: 0 },
+            { volume: '150ml', count: 0 }
+          ],
           priceRanges: [
-            { min: 0, max: 50, count: priceCounts['0-50'] },
-            { min: 50, max: 100, count: priceCounts['50-100'] },
-            { min: 100, max: 200, count: priceCounts['100-200'] },
-            { min: 200, max: 500, count: priceCounts['200-500'] },
-            { min: 500, max: null, count: priceCounts['500+'] }
+            { min: 0, max: 50, count: 0 },
+            { min: 50, max: 100, count: 0 },
+            { min: 100, max: 200, count: 0 },
+            { min: 200, max: 500, count: 0 },
+            { min: 500, max: null, count: 0 }
           ]
         })
       } catch (error) {
@@ -119,6 +110,43 @@ export function ProductFilters({ onFiltersChange }: ProductFiltersProps) {
     fetchFilterData()
   }, [])
 
+  // Memoize activeFilters to prevent unnecessary re-renders
+  const memoizedActiveFilters = useMemo(() => activeFilters, [
+    activeFilters?.categories,
+    activeFilters?.brands,
+    activeFilters?.priceRanges,
+    activeFilters?.volumes,
+    activeFilters?.ratings
+  ])
+
+
+  // Sync with activeFilters prop - only when it actually changes
+  useEffect(() => {
+    if (memoizedActiveFilters) {
+      setSelectedFilters(prevFilters => {
+        // Only update if the filters are actually different
+        const isDifferent = JSON.stringify(prevFilters) !== JSON.stringify(memoizedActiveFilters)
+        return isDifferent ? memoizedActiveFilters : prevFilters
+      })
+    }
+  }, [memoizedActiveFilters])
+
+
+
+  const handleFiltersChange = useCallback((newFilters?: typeof selectedFilters) => {
+    if (onFiltersChange) {
+      const filtersToUse = newFilters || selectedFilters
+      onFiltersChange({
+        categories: filtersToUse.categories,
+        brands: filtersToUse.brands,
+        priceRanges: filtersToUse.priceRanges,
+        volumes: filtersToUse.volumes,
+        ratings: filtersToUse.ratings
+      })
+    }
+  }, [onFiltersChange])
+
+  // Update parent component when selectedFilters changes
   useEffect(() => {
     if (onFiltersChange) {
       onFiltersChange({
@@ -139,12 +167,16 @@ export function ProductFilters({ onFiltersChange }: ProductFiltersProps) {
   }
 
   const handleCategoryChange = (categoryId: string) => {
-    setSelectedFilters(prev => ({
-      ...prev,
-      categories: prev.categories.includes(categoryId)
-        ? prev.categories.filter(id => id !== categoryId)
-        : [...prev.categories, categoryId]
-    }))
+    setSelectedFilters(prev => {
+      const newFilters = {
+        ...prev,
+        categories: prev.categories.includes(categoryId)
+          ? prev.categories.filter(id => id !== categoryId)
+          : [...prev.categories, categoryId]
+      }
+      
+      return newFilters
+    })
   }
 
   const handleBrandChange = (brand: string) => {
@@ -156,41 +188,55 @@ export function ProductFilters({ onFiltersChange }: ProductFiltersProps) {
     }))
   }
 
+
   const handlePriceRangeChange = (range: string) => {
-    setSelectedFilters(prev => ({
-      ...prev,
-      priceRanges: prev.priceRanges.includes(range)
-        ? prev.priceRanges.filter(r => r !== range)
-        : [...prev.priceRanges, range]
-    }))
+    setSelectedFilters(prev => {
+      const newFilters = {
+        ...prev,
+        priceRanges: prev.priceRanges.includes(range)
+          ? prev.priceRanges.filter(r => r !== range)
+          : [...prev.priceRanges, range]
+      }
+      
+      return newFilters
+    })
   }
 
   const handleVolumeChange = (volume: string) => {
-    setSelectedFilters(prev => ({
-      ...prev,
-      volumes: prev.volumes.includes(volume)
-        ? prev.volumes.filter(v => v !== volume)
-        : [...prev.volumes, volume]
-    }))
+    setSelectedFilters(prev => {
+      const newFilters = {
+        ...prev,
+        volumes: prev.volumes.includes(volume)
+          ? prev.volumes.filter(v => v !== volume)
+          : [...prev.volumes, volume]
+      }
+      
+      return newFilters
+    })
   }
 
   const handleRatingChange = (rating: number) => {
-    setSelectedFilters(prev => ({
-      ...prev,
-      ratings: prev.ratings.includes(rating)
-        ? prev.ratings.filter(r => r !== rating)
-        : [...prev.ratings, rating]
-    }))
+    setSelectedFilters(prev => {
+      const newFilters = {
+        ...prev,
+        ratings: prev.ratings.includes(rating)
+          ? prev.ratings.filter(r => r !== rating)
+          : [...prev.ratings, rating]
+      }
+      
+      return newFilters
+    })
   }
 
   const clearFilters = () => {
-    setSelectedFilters({
+    const emptyFilters = {
       categories: [],
       brands: [],
       priceRanges: [],
       volumes: [],
       ratings: []
-    })
+    }
+    setSelectedFilters(emptyFilters)
   }
 
   if (loading) {
@@ -244,7 +290,7 @@ export function ProductFilters({ onFiltersChange }: ProductFiltersProps) {
                   className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
                 <span className="ml-2 text-sm text-gray-700">
-                  {category.name} ({category.count})
+                  {category.name}
                 </span>
               </label>
             ))}
@@ -276,7 +322,7 @@ export function ProductFilters({ onFiltersChange }: ProductFiltersProps) {
                   className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
                 <span className="ml-2 text-sm text-gray-700">
-                  {brand.name} ({brand.count})
+                  {brand.name}
                 </span>
               </label>
             ))}
@@ -312,7 +358,7 @@ export function ProductFilters({ onFiltersChange }: ProductFiltersProps) {
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
                   <span className="ml-2 text-sm text-gray-700">
-                    {rangeName} ({range.count})
+                    {rangeName}
                   </span>
                 </label>
               )
@@ -346,7 +392,7 @@ export function ProductFilters({ onFiltersChange }: ProductFiltersProps) {
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
                   <span className="ml-2 text-sm text-gray-700">
-                    {volume.volume} ({volume.count})
+                    {volume.volume}
                   </span>
                 </label>
               ))}

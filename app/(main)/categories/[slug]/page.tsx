@@ -6,6 +6,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Star, ShoppingCart, Heart, ArrowLeft, ChevronDown, ChevronUp } from 'lucide-react'
 import { useCart } from '@/hooks/use-cart'
+import { useSession } from 'next-auth/react'
 import toast from 'react-hot-toast'
 
 interface Product {
@@ -18,7 +19,10 @@ interface Product {
   inStock: boolean
   stockCount: number
   sku: string
-  brand: string
+  brand?: {
+    id: string
+    name: string
+  }
   volume?: string
   category: {
     id: string
@@ -73,6 +77,81 @@ export default function CategoryPage() {
     sort: true
   })
   const { addItem } = useCart()
+  const { data: session } = useSession()
+  const [favoriteStatus, setFavoriteStatus] = useState<{[key: string]: boolean}>({})
+  const [updatingFavorites, setUpdatingFavorites] = useState<string | null>(null)
+
+  // Check favorite status for all products
+  const checkFavoriteStatus = async (productIds: string[]) => {
+    if (!session?.user?.id) return
+    
+    try {
+      const promises = productIds.map(async (productId) => {
+        const response = await fetch(`/api/favorites/check?productId=${productId}`)
+        const data = await response.json()
+        return { productId, isFavorite: data.isFavorite }
+      })
+      
+      const results = await Promise.all(promises)
+      const statusMap: {[key: string]: boolean} = {}
+      results.forEach(({ productId, isFavorite }) => {
+        statusMap[productId] = isFavorite
+      })
+      setFavoriteStatus(statusMap)
+    } catch (error) {
+      console.error('Error checking favorite status:', error)
+    }
+  }
+
+  // Toggle favorite status
+  const toggleFavorite = async (productId: string) => {
+    if (!session?.user?.id) {
+      toast.error('Favoritlərə əlavə etmək üçün giriş edin')
+      return
+    }
+
+    setUpdatingFavorites(productId)
+    try {
+      const isCurrentlyFavorite = favoriteStatus[productId]
+      
+      if (isCurrentlyFavorite) {
+        // Remove from favorites
+        const response = await fetch(`/api/favorites?productId=${productId}`, {
+          method: 'DELETE'
+        })
+        const data = await response.json()
+        
+        if (data.success) {
+          setFavoriteStatus(prev => ({ ...prev, [productId]: false }))
+          toast.success('Məhsul favoritlərdən silindi')
+        } else {
+          toast.error(data.message || 'Favoritlərdən silərkən xəta baş verdi')
+        }
+      } else {
+        // Add to favorites
+        const response = await fetch('/api/favorites', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ productId })
+        })
+        const data = await response.json()
+        
+        if (data.success) {
+          setFavoriteStatus(prev => ({ ...prev, [productId]: true }))
+          toast.success('Məhsul favoritlərə əlavə edildi')
+        } else {
+          toast.error(data.message || 'Favoritlərə əlavə edərkən xəta baş verdi')
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling favorite:', error)
+      toast.error('Favorit statusu dəyişdirərkən xəta baş verdi')
+    } finally {
+      setUpdatingFavorites(null)
+    }
+  }
 
   useEffect(() => {
     const fetchCategoryData = async () => {
@@ -106,11 +185,17 @@ export default function CategoryPage() {
           setCategory(foundCategory)
           
           // Fetch products for this category
-          const productsResponse = await fetch(`/api/products?category=${foundCategory.name}`)
+          const productsResponse = await fetch(`/api/products?category=${encodeURIComponent(foundCategory.name)}`)
           const data = await productsResponse.json()
           const categoryProducts = data.products || []
           setProducts(categoryProducts)
           setFilteredProducts(categoryProducts)
+          
+          // Check favorite status for all products
+          if (session?.user?.id) {
+            const productIds = categoryProducts.map((p: any) => p.id)
+            checkFavoriteStatus(productIds)
+          }
           
           // Generate filter data from products
           generateFilterData(categoryProducts)
@@ -139,7 +224,9 @@ export default function CategoryPage() {
 
     products.forEach(product => {
       // Count brands
-      brandCounts[product.brand] = (brandCounts[product.brand] || 0) + 1
+      if (product.brand?.name) {
+        brandCounts[product.brand.name] = (brandCounts[product.brand.name] || 0) + 1
+      }
       
       // Count volumes
       if (product.volume) {
@@ -174,7 +261,7 @@ export default function CategoryPage() {
     // Apply brand filter
     if (selectedFilters.brands.length > 0) {
       filtered = filtered.filter(product => 
-        selectedFilters.brands.includes(product.brand)
+        selectedFilters.brands.includes(product.brand?.name || '')
       )
     }
 
@@ -193,7 +280,7 @@ export default function CategoryPage() {
     // Apply volume filter
     if (selectedFilters.volumes.length > 0) {
       filtered = filtered.filter(product => 
-        selectedFilters.volumes.includes(product.volume)
+        product.volume && selectedFilters.volumes.includes(product.volume)
       )
     }
 
@@ -228,10 +315,11 @@ export default function CategoryPage() {
 
   const handleAddToCart = (product: Product) => {
     addItem({
+      productId: product.id,
       id: product.id,
       name: product.name,
       price: product.salePrice || product.price,
-      image: product.images?.[0] || '/placeholder.jpg',
+      image: product.images?.[0] || '/placeholder-product.jpg',
       quantity: 1,
       sku: product.sku
     })
@@ -601,34 +689,93 @@ export default function CategoryPage() {
                   >
                     <div className={`relative ${viewMode === 'list' ? 'w-48 flex-shrink-0' : ''}`}>
                       <Link href={`/products/${product.id}`}>
-                        <Image
-                          src={product.images?.[0] || '/placeholder.jpg'}
-                          alt={product.name}
-                          width={400}
-                          height={400}
-                          className={`object-cover group-hover:scale-105 transition-transform duration-300 ${
-                            viewMode === 'list' ? 'h-48 w-full' : 'w-full h-64'
-                          }`}
-                        />
+                        <div className={`relative ${viewMode === 'list' ? 'h-48 w-full' : 'h-64 w-full'}`}>
+                          {product.images && product.images.length > 0 ? (
+                            <>
+                              <Image
+                                src={product.images[0]}
+                                alt={product.name}
+                                width={400}
+                                height={400}
+                                className={`absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 ${
+                                  viewMode === 'list' ? 'h-48 w-full' : 'w-full h-64'
+                                }`}
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none'
+                                  const placeholder = e.currentTarget.nextElementSibling as HTMLElement
+                                  if (placeholder) {
+                                    placeholder.style.display = 'flex'
+                                  }
+                                }}
+                                onLoad={(e) => {
+                                  const placeholder = e.currentTarget.nextElementSibling as HTMLElement
+                                  if (placeholder) {
+                                    placeholder.style.display = 'none'
+                                  }
+                                }}
+                              />
+                              <div 
+                                className={`absolute inset-0 bg-gray-100 flex items-center justify-center text-sm text-gray-500 font-medium ${
+                                  viewMode === 'list' ? 'h-48 w-full' : 'w-full h-64'
+                                }`}
+                                style={{ display: 'none' }}
+                              >
+                                <div className="text-center">
+                                  <div className="text-gray-400 mb-2">
+                                    <svg className="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                  </div>
+                                  <div>Şəkil yoxdur</div>
+                                </div>
+                              </div>
+                            </>
+                          ) : (
+                            <div 
+                              className={`absolute inset-0 bg-gray-100 flex items-center justify-center text-sm text-gray-500 font-medium ${
+                                viewMode === 'list' ? 'h-48 w-full' : 'w-full h-64'
+                              }`}
+                            >
+                              <div className="text-center">
+                                <div className="text-gray-400 mb-2">
+                                  <svg className="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                  </svg>
+                                </div>
+                                <div>Şəkil yoxdur</div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </Link>
                       {product.onSale && (
-                        <div className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded">
+                        <div className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded">
                           Endirim
                         </div>
                       )}
                       {product.isNew && (
-                        <div className="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded">
+                        <div className="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded">
                           Yeni
                         </div>
                       )}
-                      <button className="absolute top-2 right-2 p-2 bg-white rounded-full shadow-md hover:bg-gray-100 transition-colors">
-                        <Heart className="h-4 w-4 text-gray-600" />
+                      <button 
+                        onClick={() => toggleFavorite(product.id)}
+                        disabled={updatingFavorites === product.id}
+                        className="absolute bottom-2 right-2 p-2 bg-white rounded-full shadow-md hover:bg-gray-100 transition-colors disabled:opacity-50"
+                      >
+                        <Heart 
+                          className={`h-4 w-4 ${
+                            favoriteStatus[product.id] 
+                              ? 'text-red-500 fill-current' 
+                              : 'text-gray-600'
+                          }`} 
+                        />
                       </button>
                     </div>
 
                     <div className={`p-4 ${viewMode === 'list' ? 'flex-1' : ''}`}>
                       <div className="mb-2">
-                        <p className="text-sm text-gray-500">{product.brand}</p>
+                        <p className="text-sm text-gray-500">{product.brand?.name || 'Brend məlumatı yoxdur'}</p>
                         <Link 
                           href={`/products/${product.id}`}
                           className="text-lg font-semibold text-gray-900 hover:text-blue-600 transition-colors"

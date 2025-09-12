@@ -3,7 +3,7 @@
 import { useSearchParams } from 'next/navigation'
 import { ProductGrid } from '@/components/products/product-grid'
 import { ProductFilters } from '@/components/products/product-filters'
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 
 export default function ProductsPage() {
   const searchParams = useSearchParams()
@@ -21,7 +21,7 @@ export default function ProductsPage() {
     ratings: [] as number[]
   })
 
-  const handleFiltersChange = (filters: {
+  const handleFiltersChange = useCallback((filters: {
     categories: string[]
     brands: string[]
     priceRanges: string[]
@@ -29,7 +29,7 @@ export default function ProductsPage() {
     ratings: number[]
   }) => {
     setActiveFilters(filters)
-  }
+  }, [])
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">

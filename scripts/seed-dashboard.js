@@ -83,7 +83,7 @@ async function seedDashboard() {
           isOnSale: product.isOnSale,
           isActive: product.isActive,
           stockCount: product.stockCount,
-          images: [],
+          images: "[]",
           categoryId: category.id
         }
       })

@@ -17,7 +17,8 @@ export function SliderForm({ slider, onSave, onCancel }: SliderFormProps) {
     image: slider?.image || '',
     link: slider?.link || '',
     buttonText: slider?.buttonText || '',
-    isActive: slider?.isActive ?? true
+    isActive: slider?.isActive ?? true,
+    order: slider?.order || 1
   })
 
   const [imagePreview, setImagePreview] = useState(slider?.image || '')
@@ -32,26 +33,65 @@ export function SliderForm({ slider, onSave, onCancel }: SliderFormProps) {
     }))
   }
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [uploading, setUploading] = useState(false)
+
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        const result = e.target?.result as string
-        setFormData(prev => ({ ...prev, image: result }))
-        setImagePreview(result)
+      setUploading(true)
+      try {
+        const formData = new FormData()
+        formData.append('file', file)
+
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          setFormData(prev => ({ ...prev, image: data.url }))
+          setImagePreview(data.url)
+        } else {
+          console.error('Upload failed')
+        }
+      } catch (error) {
+        console.error('Upload error:', error)
+      } finally {
+        setUploading(false)
       }
-      reader.readAsDataURL(file)
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [saving, setSaving] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    onSave({
-      ...formData,
-      id: slider?.id || Date.now().toString(),
-      order: slider?.order || 1
-    })
+    setSaving(true)
+    
+    try {
+      const url = slider ? `/api/admin/sliders/${slider.id}` : '/api/admin/sliders'
+      const method = slider ? 'PATCH' : 'POST'
+      
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        onSave(data.slider || data)
+      } else {
+        console.error('Save failed')
+      }
+    } catch (error) {
+      console.error('Save error:', error)
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -128,10 +168,12 @@ export function SliderForm({ slider, onSave, onCancel }: SliderFormProps) {
             </label>
             <div className="space-y-4">
               <div className="flex items-center space-x-4">
-                <label className="flex items-center justify-center w-32 h-20 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-primary-500 transition-colors">
+                <label className={`flex items-center justify-center w-32 h-20 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-primary-500 transition-colors ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
                   <div className="text-center">
                     <Upload className="mx-auto h-6 w-6 text-gray-400" />
-                    <p className="text-xs text-gray-500 mt-1">Şəkil yüklə</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {uploading ? 'Yüklənir...' : 'Şəkil yüklə'}
+                    </p>
                   </div>
                   <input
                     type="file"
@@ -139,6 +181,7 @@ export function SliderForm({ slider, onSave, onCancel }: SliderFormProps) {
                     name="image"
                     accept="image/*"
                     onChange={handleImageChange}
+                    disabled={uploading}
                     className="hidden"
                   />
                 </label>
@@ -195,6 +238,23 @@ export function SliderForm({ slider, onSave, onCancel }: SliderFormProps) {
             />
           </div>
 
+          {/* Order */}
+          <div>
+            <label htmlFor="order" className="block text-sm font-medium text-gray-700 mb-2">
+              Sıra Nömrəsi
+            </label>
+            <input
+              type="number"
+              id="order"
+              name="order"
+              value={formData.order}
+              onChange={handleInputChange}
+              min="1"
+              className="input w-full"
+              placeholder="Slider sırası"
+            />
+          </div>
+
           {/* Active Status */}
           <div className="flex items-center">
             <input
@@ -247,9 +307,10 @@ export function SliderForm({ slider, onSave, onCancel }: SliderFormProps) {
             </button>
             <button
               type="submit"
+              disabled={saving}
               className="btn btn-primary"
             >
-              {slider ? 'Yadda Saxla' : 'Əlavə Et'}
+              {saving ? 'Yadda Saxlanır...' : (slider ? 'Yadda Saxla' : 'Əlavə Et')}
             </button>
           </div>
         </form>

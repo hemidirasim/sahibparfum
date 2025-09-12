@@ -1,0 +1,673 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { Plus, Trash2, Edit2, Search, X, Upload, Image as ImageIcon } from 'lucide-react'
+import Link from 'next/link'
+import Image from 'next/image'
+
+interface Brand {
+  id: string
+  name: string
+  description?: string
+  logo?: string
+  productCount: number
+  createdAt: string
+}
+
+export default function BrandsPage() {
+  const [brands, setBrands] = useState<Brand[]>([])
+  const [loading, setLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [editingBrand, setEditingBrand] = useState<Brand | null>(null)
+  const [newBrandName, setNewBrandName] = useState('')
+  const [newBrandDescription, setNewBrandDescription] = useState('')
+  const [newBrandLogo, setNewBrandLogo] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [logoFile, setLogoFile] = useState<File | null>(null)
+  const [logoPreview, setLogoPreview] = useState<string>('')
+
+  useEffect(() => {
+    fetchBrands()
+  }, [])
+
+  const fetchBrands = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/admin/brands')
+      if (response.ok) {
+        const data = await response.json()
+        setBrands(data.brands || [])
+      } else {
+        console.error('Failed to fetch brands')
+      }
+    } catch (error) {
+      console.error('Error fetching brands:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleFileUpload = async (file: File) => {
+    try {
+      setUploading(true)
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setNewBrandLogo(data.url)
+        setLogoPreview(data.url)
+        return data.url
+      } else {
+        throw new Error('Upload failed')
+      }
+    } catch (error) {
+      console.error('Upload error:', error)
+      alert('Şəkil yüklənərkən xəta baş verdi')
+      return null
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      setLogoFile(file)
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        setLogoPreview(e.target?.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  const handleAddBrand = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!newBrandName.trim()) return
+
+    try {
+      setSaving(true)
+      
+      let logoUrl = newBrandLogo.trim()
+      
+      // Əgər fayl seçilibsə, onu upload et
+      if (logoFile) {
+        logoUrl = await handleFileUpload(logoFile)
+        if (!logoUrl) {
+          setSaving(false)
+          return
+        }
+      }
+
+      const response = await fetch('/api/admin/brands', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          name: newBrandName.trim(),
+          description: newBrandDescription.trim(),
+          logo: logoUrl
+        }),
+      })
+
+      if (response.ok) {
+        setNewBrandName('')
+        setNewBrandDescription('')
+        setNewBrandLogo('')
+        setLogoFile(null)
+        setLogoPreview('')
+        setShowAddModal(false)
+        fetchBrands()
+      } else {
+        const error = await response.json()
+        alert(`Marka əlavə edərkən xəta: ${error.error}`)
+      }
+    } catch (error) {
+      console.error('Error adding brand:', error)
+      alert('Marka əlavə edərkən xəta baş verdi')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleEditBrand = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!editingBrand || !newBrandName.trim()) return
+
+    try {
+      setSaving(true)
+      
+      let logoUrl = newBrandLogo.trim()
+      
+      // Əgər fayl seçilibsə, onu upload et
+      if (logoFile) {
+        logoUrl = await handleFileUpload(logoFile)
+        if (!logoUrl) {
+          setSaving(false)
+          return
+        }
+      }
+
+      const response = await fetch(`/api/admin/brands/${editingBrand.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          name: newBrandName.trim(),
+          description: newBrandDescription.trim(),
+          logo: logoUrl
+        }),
+      })
+
+      if (response.ok) {
+        setNewBrandName('')
+        setNewBrandDescription('')
+        setNewBrandLogo('')
+        setLogoFile(null)
+        setLogoPreview('')
+        setEditingBrand(null)
+        setShowEditModal(false)
+        fetchBrands()
+      } else {
+        const error = await response.json()
+        alert(`Marka redaktə edərkən xəta: ${error.error}`)
+      }
+    } catch (error) {
+      console.error('Error editing brand:', error)
+      alert('Marka redaktə edərkən xəta baş verdi')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleDeleteBrand = async (id: string) => {
+    if (!confirm('Bu markanı silmək istədiyinizə əminsiniz?')) return
+
+    try {
+      const response = await fetch(`/api/admin/brands/${id}`, {
+        method: 'DELETE'
+      })
+
+      if (response.ok) {
+        fetchBrands()
+      } else {
+        const error = await response.json()
+        alert(`Marka silərkən xəta: ${error.error}`)
+      }
+    } catch (error) {
+      console.error('Error deleting brand:', error)
+      alert('Marka silərkən xəta baş verdi')
+    }
+  }
+
+  const openEditModal = (brand: Brand) => {
+    setEditingBrand(brand)
+    setNewBrandName(brand.name)
+    setNewBrandDescription(brand.description || '')
+    setNewBrandLogo(brand.logo || '')
+    setLogoFile(null)
+    setLogoPreview('')
+    setShowEditModal(true)
+  }
+
+  const filteredBrands = brands.filter(brand =>
+    brand.name.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Markalar</h1>
+            <p className="text-gray-600 mt-1">
+              Məhsul markalarını idarə edin
+            </p>
+          </div>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Yeni Marka
+          </button>
+        </div>
+      </div>
+
+      {/* Search */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <input
+            type="text"
+            placeholder="Marka axtar..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+      </div>
+
+      {/* Brands List */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        {filteredBrands.length === 0 ? (
+          <div className="p-8 text-center">
+            <ImageIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              {searchQuery ? 'Marka tapılmadı' : 'Hələ marka yoxdur'}
+            </h3>
+            <p className="text-gray-600 mb-4">
+              {searchQuery 
+                ? 'Axtarış sorğunuza uyğun marka tapılmadı'
+                : 'İlk markanızı əlavə edin'
+              }
+            </p>
+            {!searchQuery && (
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors mx-auto"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Yeni Marka
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Loqo
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Marka Adı
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Təsvir
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Məhsul Sayı
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Tarix
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Əməliyyatlar
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {filteredBrands.map((brand) => (
+                  <tr key={brand.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {brand.logo ? (
+                        <Image
+                          src={brand.logo}
+                          alt={brand.name}
+                          width={40}
+                          height={40}
+                          className="rounded-lg object-cover"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center">
+                          <ImageIcon className="h-5 w-5 text-gray-400" />
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">
+                        {brand.name}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-gray-500 max-w-xs truncate">
+                        {brand.description || '-'}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        {brand.productCount} məhsul
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {new Date(brand.createdAt).toLocaleDateString('az-AZ')}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <div className="flex items-center justify-end space-x-2">
+                        <button
+                          onClick={() => openEditModal(brand)}
+                          className="text-blue-600 hover:text-blue-900"
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteBrand(brand.id)}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Add Brand Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-medium text-gray-900">Yeni Marka</h3>
+              <button
+                onClick={() => {
+                  setShowAddModal(false)
+                  setNewBrandName('')
+                  setNewBrandDescription('')
+                  setNewBrandLogo('')
+                  setLogoFile(null)
+                  setLogoPreview('')
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            <form onSubmit={handleAddBrand}>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Marka Adı *
+                </label>
+                <input
+                  type="text"
+                  value={newBrandName}
+                  onChange={(e) => setNewBrandName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Marka adını daxil edin"
+                  required
+                />
+              </div>
+              
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Təsvir
+                </label>
+                <textarea
+                  value={newBrandDescription}
+                  onChange={(e) => setNewBrandDescription(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Marka təsvirini daxil edin"
+                  rows={3}
+                />
+              </div>
+              
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Loqo
+                </label>
+                
+                {/* Şəkil Upload */}
+                <div className="mb-3">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Şəkil Yüklə
+                  </label>
+                  <div className="flex items-center space-x-4">
+                    <label className="flex items-center px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors">
+                      <Upload className="h-4 w-4 mr-2" />
+                      {uploading ? 'Yüklənir...' : 'Fayl Seç'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        className="hidden"
+                        disabled={uploading}
+                      />
+                    </label>
+                    {logoFile && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setLogoFile(null)
+                          setLogoPreview('')
+                        }}
+                        className="text-red-600 hover:text-red-800"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+                  
+                  {logoPreview && (
+                    <div className="mt-2">
+                      <Image
+                        src={logoPreview}
+                        alt="Logo preview"
+                        width={100}
+                        height={100}
+                        className="rounded-lg border border-gray-300"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* URL Input */}
+                <div className="text-sm text-gray-500 mb-2">və ya</div>
+                <input
+                  type="url"
+                  value={newBrandLogo}
+                  onChange={(e) => setNewBrandLogo(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="https://example.com/logo.png"
+                />
+                {newBrandLogo && !logoPreview && (
+                  <div className="mt-2">
+                    <img 
+                      src={newBrandLogo} 
+                      alt="Logo preview" 
+                      className="w-20 h-20 object-cover rounded-lg border border-gray-300"
+                    />
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddModal(false)
+                    setNewBrandName('')
+                    setNewBrandDescription('')
+                    setNewBrandLogo('')
+                    setLogoFile(null)
+                    setLogoPreview('')
+                  }}
+                  className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+                >
+                  Ləğv et
+                </button>
+                <button
+                  type="submit"
+                  disabled={saving || uploading}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {saving ? 'Saxlanılır...' : 'Əlavə et'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Brand Modal */}
+      {showEditModal && editingBrand && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-medium text-gray-900">Marka Redaktə Et</h3>
+              <button
+                onClick={() => {
+                  setShowEditModal(false)
+                  setEditingBrand(null)
+                  setNewBrandName('')
+                  setNewBrandDescription('')
+                  setNewBrandLogo('')
+                  setLogoFile(null)
+                  setLogoPreview('')
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            <form onSubmit={handleEditBrand}>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Marka Adı *
+                </label>
+                <input
+                  type="text"
+                  value={newBrandName}
+                  onChange={(e) => setNewBrandName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Marka adını daxil edin"
+                  required
+                />
+              </div>
+              
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Təsvir
+                </label>
+                <textarea
+                  value={newBrandDescription}
+                  onChange={(e) => setNewBrandDescription(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Marka təsvirini daxil edin"
+                  rows={3}
+                />
+              </div>
+              
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Loqo
+                </label>
+                
+                {/* Şəkil Upload */}
+                <div className="mb-3">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Şəkil Yüklə
+                  </label>
+                  <div className="flex items-center space-x-4">
+                    <label className="flex items-center px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors">
+                      <Upload className="h-4 w-4 mr-2" />
+                      {uploading ? 'Yüklənir...' : 'Fayl Seç'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        className="hidden"
+                        disabled={uploading}
+                      />
+                    </label>
+                    {logoFile && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setLogoFile(null)
+                          setLogoPreview('')
+                        }}
+                        className="text-red-600 hover:text-red-800"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    )}
+                  </div>
+                  
+                  {logoPreview && (
+                    <div className="mt-2">
+                      <Image
+                        src={logoPreview}
+                        alt="Logo preview"
+                        width={100}
+                        height={100}
+                        className="rounded-lg border border-gray-300"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* URL Input */}
+                <div className="text-sm text-gray-500 mb-2">və ya</div>
+                <input
+                  type="url"
+                  value={newBrandLogo}
+                  onChange={(e) => setNewBrandLogo(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="https://example.com/logo.png"
+                />
+                {newBrandLogo && !logoPreview && (
+                  <div className="mt-2">
+                    <img 
+                      src={newBrandLogo} 
+                      alt="Logo preview" 
+                      className="w-20 h-20 object-cover rounded-lg border border-gray-300"
+                    />
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowEditModal(false)
+                    setEditingBrand(null)
+                    setNewBrandName('')
+                    setNewBrandDescription('')
+                    setNewBrandLogo('')
+                    setLogoFile(null)
+                    setLogoPreview('')
+                  }}
+                  className="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition-colors"
+                >
+                  Ləğv et
+                </button>
+                <button
+                  type="submit"
+                  disabled={saving || uploading}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {saving ? 'Saxlanılır...' : 'Yadda Saxla'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

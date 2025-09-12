@@ -1,26 +1,56 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import { Plus, Search, Edit, Trash2, Eye, Grid, List, Filter, Package, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function AdminProductsPage() {
+  const { data: session, status } = useSession()
+  const searchParams = useSearchParams()
+  const categoryParam = searchParams.get('category')
+  
   const [searchTerm, setSearchTerm] = useState('')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
-  const [selectedCategory, setSelectedCategory] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState(categoryParam || '')
   const [selectedStatus, setSelectedStatus] = useState('')
   const [products, setProducts] = useState<any[]>([])
+  const [categories, setCategories] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
+  const [deleting, setDeleting] = useState<string | null>(null)
 
   useEffect(() => {
-    fetchProducts()
-  }, [])
+    if (status === 'loading') return
+    if (session?.user?.role === 'ADMIN') {
+      fetchProducts()
+      fetchCategories()
+    }
+  }, [session, status])
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch('/api/admin/categories')
+      if (response.ok) {
+        const data = await response.json()
+        setCategories(data)
+      }
+    } catch (error) {
+      console.error('Categories fetch error:', error)
+    }
+  }
 
   const fetchProducts = async () => {
     try {
       setRefreshing(true)
-      const response = await fetch('/api/admin/products')
+      const params = new URLSearchParams()
+      if (searchTerm) params.append('search', searchTerm)
+      if (selectedCategory) params.append('category', selectedCategory)
+      if (selectedStatus) params.append('status', selectedStatus)
+      
+      const response = await fetch(`/api/admin/products?${params.toString()}`)
       if (response.ok) {
         const data = await response.json()
         setProducts(data.products || [])
@@ -38,8 +68,11 @@ export default function AdminProductsPage() {
   }
 
   useEffect(() => {
-    fetchProducts()
-  }, [])
+    if (status === 'loading') return
+    if (session?.user?.role === 'ADMIN') {
+      fetchProducts()
+    }
+  }, [searchTerm, selectedCategory, selectedStatus, session, status])
 
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -57,13 +90,47 @@ export default function AdminProductsPage() {
       : 'bg-red-100 text-red-800'
   }
 
+  const clearFilters = () => {
+    setSearchTerm('')
+    setSelectedCategory('')
+    setSelectedStatus('')
+  }
+
+  const handleDeleteProduct = async (productId: string, productName: string) => {
+    if (!confirm(`"${productName}" məhsulunu silmək istədiyinizə əminsiniz? Bu əməliyyat geri alına bilməz.`)) {
+      return
+    }
+
+    setDeleting(productId)
+    try {
+      const response = await fetch(`/api/admin/products/${productId}`, {
+        method: 'DELETE'
+      })
+
+      if (response.ok) {
+        // Remove product from local state
+        setProducts(prev => prev.filter(p => p.id !== productId))
+        alert('Məhsul uğurla silindi')
+      } else {
+        const error = await response.json()
+        console.error('Delete error:', error)
+        alert('Məhsul silinərkən xəta baş verdi')
+      }
+    } catch (error) {
+      console.error('Error deleting product:', error)
+      alert('Məhsul silinərkən xəta baş verdi')
+    } finally {
+      setDeleting(null)
+    }
+  }
+
   const getStockColor = (stock: number) => {
     if (stock === 0) return 'text-red-600'
     if (stock < 10) return 'text-yellow-600'
     return 'text-green-600'
   }
 
-  if (loading) {
+  if (status === 'loading' || loading) {
     return (
       <div className="space-y-6">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -151,9 +218,11 @@ export default function AdminProductsPage() {
             className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="">Bütün kateqoriyalar</option>
-            <option value="Kadın Parfümü">Kadın Parfümü</option>
-            <option value="Kişi Parfümü">Kişi Parfümü</option>
-            <option value="Unisex Parfümü">Unisex Parfümü</option>
+            {categories.map(category => (
+              <option key={category.id} value={category.name}>
+                {category.name}
+              </option>
+            ))}
           </select>
           <select 
             value={selectedStatus}
@@ -168,14 +237,24 @@ export default function AdminProductsPage() {
         
         {/* Results and View Toggle */}
         <div className="flex items-center justify-between">
-          <p className="text-gray-600">
-            {filteredProducts.length} məhsul tapıldı
+          <div className="flex items-center gap-4">
+            <p className="text-gray-600">
+              {filteredProducts.length} məhsul tapıldı
+              {(searchTerm || selectedCategory || selectedStatus) && (
+                <span className="text-blue-600 ml-2">
+                  (filtrlənmiş)
+                </span>
+              )}
+            </p>
             {(searchTerm || selectedCategory || selectedStatus) && (
-              <span className="text-blue-600 ml-2">
-                (filtrlənmiş)
-              </span>
+              <button
+                onClick={clearFilters}
+                className="text-sm text-blue-600 hover:text-blue-700 underline"
+              >
+                Filtrləri təmizlə
+              </button>
             )}
-          </p>
+          </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setViewMode('grid')}
@@ -208,9 +287,19 @@ export default function AdminProductsPage() {
             <div key={product.id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
               {/* Product Image */}
               <div className="relative h-48 bg-gray-200">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Package className="h-12 w-12 text-gray-400" />
-                </div>
+                {product.images && product.images.length > 0 ? (
+                  <Image
+                    src={product.images[0]}
+                    alt={product.name}
+                    width={300}
+                    height={200}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Package className="h-12 w-12 text-gray-400" />
+                  </div>
+                )}
                 {/* Badges */}
                 <div className="absolute top-2 left-2 flex flex-col gap-1">
                   {product.isNew && (
@@ -299,10 +388,16 @@ export default function AdminProductsPage() {
                       <Edit className="h-4 w-4" />
                     </Link>
                     <button 
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      onClick={() => handleDeleteProduct(product.id, product.name)}
+                      disabled={deleting === product.id}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
                       title="Sil"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      {deleting === product.id ? (
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent"></div>
+                      ) : (
+                        <Trash2 className="h-4 w-4" />
+                      )}
                     </button>
                   </div>
                 </div>
@@ -348,9 +443,19 @@ export default function AdminProductsPage() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="h-10 w-10 flex-shrink-0">
-                          <div className="h-10 w-10 rounded-lg bg-gray-200 flex items-center justify-center">
-                            <Package className="h-5 w-5 text-gray-400" />
-                          </div>
+                          {product.images && product.images.length > 0 ? (
+                            <Image
+                              src={product.images[0]}
+                              alt={product.name}
+                              width={40}
+                              height={40}
+                              className="h-10 w-10 rounded-lg object-cover"
+                            />
+                          ) : (
+                            <div className="h-10 w-10 rounded-lg bg-gray-200 flex items-center justify-center">
+                              <Package className="h-5 w-5 text-gray-400" />
+                            </div>
+                          )}
                         </div>
                         <div className="ml-4">
                           <div className="text-sm font-medium text-gray-900">
@@ -431,8 +536,16 @@ export default function AdminProductsPage() {
                         >
                           <Edit className="h-4 w-4" />
                         </Link>
-                        <button className="text-red-600 hover:text-red-900 p-1">
-                          <Trash2 className="h-4 w-4" />
+                        <button 
+                          onClick={() => handleDeleteProduct(product.id, product.name)}
+                          disabled={deleting === product.id}
+                          className="text-red-600 hover:text-red-900 p-1 disabled:opacity-50"
+                        >
+                          {deleting === product.id ? (
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent"></div>
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
                         </button>
                       </div>
                     </td>

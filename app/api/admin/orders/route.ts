@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
 export async function GET(request: NextRequest) {
@@ -28,11 +28,11 @@ export async function GET(request: NextRequest) {
 
     if (search) {
       where.OR = [
-        { orderNumber: { contains: search, mode: 'insensitive' } },
-        { guestName: { contains: search, mode: 'insensitive' } },
-        { guestEmail: { contains: search, mode: 'insensitive' } },
-        { user: { name: { contains: search, mode: 'insensitive' } } },
-        { user: { email: { contains: search, mode: 'insensitive' } } }
+        { orderNumber: { contains: search } },
+        { guestName: { contains: search } },
+        { guestEmail: { contains: search } },
+        { user: { name: { contains: search } } },
+        { user: { email: { contains: search } } }
       ]
     }
 
@@ -62,9 +62,17 @@ export async function GET(request: NextRequest) {
                 sku: true,
                 images: true
               }
+            },
+            productVariant: {
+              select: {
+                volume: true,
+                sku: true
+              }
             }
           }
-        }
+        },
+        shippingAddress: true,
+        billingAddress: true
       },
       skip,
       take: limit,
@@ -94,10 +102,34 @@ export async function GET(request: NextRequest) {
         product: {
           name: item.product.name,
           sku: item.product.sku,
-          image: item.product.images[0] || '/images/placeholder.jpg'
+          image: (() => {
+            try {
+              const images = typeof item.product.images === 'string' ? JSON.parse(item.product.images) : item.product.images
+              return images && images.length > 0 ? images[0] : '/placeholder-product.jpg'
+            } catch {
+              return '/placeholder-product.jpg'
+            }
+          })()
         }
       })),
       itemCount: order.orderItems.length,
+      shippingAddress: order.shippingAddress ? {
+        id: order.shippingAddress.id,
+        fullName: `${order.shippingAddress.firstName} ${order.shippingAddress.lastName}`,
+        address: order.shippingAddress.address1 + (order.shippingAddress.address2 ? `, ${order.shippingAddress.address2}` : ''),
+        city: order.shippingAddress.city,
+        postalCode: order.shippingAddress.postalCode,
+        phone: order.shippingAddress.phone || ''
+      } : null,
+      billingAddress: order.billingAddress ? {
+        id: order.billingAddress.id,
+        fullName: `${order.billingAddress.firstName} ${order.billingAddress.lastName}`,
+        address: order.billingAddress.address1 + (order.billingAddress.address2 ? `, ${order.billingAddress.address2}` : ''),
+        city: order.billingAddress.city,
+        postalCode: order.billingAddress.postalCode,
+        phone: order.billingAddress.phone || ''
+      } : null,
+      notes: order.notes,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt
     }))

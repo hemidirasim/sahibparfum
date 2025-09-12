@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { Package } from 'lucide-react'
 
 interface Category {
   id: string
@@ -74,29 +75,57 @@ export function CategoriesSection() {
           {categories.map((category) => (
             <Link
               key={category.id}
-              href={`/categories/${category.name.toLowerCase()
-                .replace(/ç/g, 'c')
-                .replace(/ğ/g, 'g')
-                .replace(/ı/g, 'i')
-                .replace(/ö/g, 'o')
-                .replace(/ş/g, 's')
-                .replace(/ü/g, 'u')
-                .replace(/\s+/g, '-')}-${category.id}`}
+              href={`/categories?categoryIds=${category.id}`}
               className="group block"
             >
-              <div className="relative overflow-hidden rounded-lg bg-gray-100 transition-transform group-hover:scale-105">
-                <Image
-                  src={category.image || '/placeholder.jpg'}
-                  alt={category.name}
-                  width={400}
-                  height={300}
-                  className="w-full h-48 object-cover"
-                />
+              <div className="relative overflow-hidden rounded-lg bg-gray-100 transition-transform group-hover:scale-105 h-48">
+                {category.image ? (
+                  <>
+                    <Image
+                      src={category.image}
+                      alt={category.name}
+                      width={400}
+                      height={300}
+                      className="absolute inset-0 w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none'
+                        const placeholder = e.currentTarget.nextElementSibling as HTMLElement
+                        if (placeholder) {
+                          placeholder.style.display = 'flex'
+                        }
+                      }}
+                      onLoad={(e) => {
+                        const placeholder = e.currentTarget.nextElementSibling as HTMLElement
+                        if (placeholder) {
+                          placeholder.style.display = 'none'
+                        }
+                      }}
+                    />
+                    <div className="absolute inset-0 bg-gray-200 flex items-center justify-center" style={{ display: 'none' }}>
+                      <div className="text-center">
+                        <Package className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                        <div className="text-sm text-gray-500 font-medium">Şəkil yoxdur</div>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="absolute inset-0 bg-gray-200 flex items-center justify-center">
+                    <div className="text-center">
+                      <Package className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                      <div className="text-sm text-gray-500 font-medium">Şəkil yoxdur</div>
+                    </div>
+                  </div>
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                 <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
                   <h3 className="text-lg font-semibold mb-1">{category.name}</h3>
                   <p className="text-sm text-gray-200">{category.description || 'Parfüm kateqoriyası'}</p>
                   <p className="text-xs text-gray-300 mt-1">{category.productCount} məhsul</p>
+                  <div className="mt-2">
+                    <span className="inline-block bg-white/20 backdrop-blur-sm text-white text-xs px-3 py-1 rounded-full">
+                      Məhsulları Gör
+                    </span>
+                  </div>
                 </div>
               </div>
             </Link>

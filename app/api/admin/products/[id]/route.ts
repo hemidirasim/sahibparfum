@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
 export async function GET(
@@ -31,7 +31,13 @@ export async function GET(
       return NextResponse.json({ error: 'Product not found' }, { status: 404 })
     }
 
-    return NextResponse.json(product)
+    // Parse images field
+    const transformedProduct = {
+      ...product,
+      images: product.images ? [product.images] : []
+    }
+
+    return NextResponse.json(transformedProduct)
   } catch (error) {
     console.error('Product fetch error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -67,7 +73,8 @@ export async function PATCH(
       isOnSale,
       isActive,
       variants,
-      attributes
+      attributes,
+      images
     } = body
 
     // Check if product exists
@@ -104,7 +111,8 @@ export async function PATCH(
         sku,
         isNew: isNew || false,
         isOnSale: isOnSale || false,
-        isActive: isActive !== false
+        isActive: isActive !== false,
+        images: Array.isArray(images) ? images[0] || '' : images || ''
       }
     })
 
@@ -188,14 +196,24 @@ export async function DELETE(
       return NextResponse.json({ error: 'Product not found' }, { status: 404 })
     }
 
-    // Delete product (cascades to variants and attributes)
-    await prisma.product.delete({
-      where: { id: params.id }
+    // Soft delete product (set isActive to false)
+    await prisma.product.update({
+      where: { id: params.id },
+      data: {
+        isActive: false
+      }
     })
 
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Product deletion error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    })
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 })
   }
 }

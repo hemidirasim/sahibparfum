@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]/route'
+import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
 export async function GET(
@@ -19,7 +19,9 @@ export async function GET(
     }
 
     const slider = await prisma.slider.findUnique({
-      where: { id: params.id }
+      where: {
+        id: params.id
+      }
     })
 
     if (!slider) {
@@ -60,18 +62,16 @@ export async function PATCH(
       order
     } = body
 
-    // Check if slider exists
-    const existingSlider = await prisma.slider.findUnique({
-      where: { id: params.id }
-    })
-
-    if (!existingSlider) {
-      return NextResponse.json({ error: 'Slider not found' }, { status: 404 })
+    // Validate required fields
+    if (!title || !image) {
+      return NextResponse.json({ error: 'Title and image are required' }, { status: 400 })
     }
 
     // Update slider
     const slider = await prisma.slider.update({
-      where: { id: params.id },
+      where: {
+        id: params.id
+      },
       data: {
         title,
         subtitle,
@@ -88,7 +88,16 @@ export async function PATCH(
       success: true, 
       slider: {
         id: slider.id,
-        title: slider.title
+        title: slider.title,
+        subtitle: slider.subtitle,
+        description: slider.description,
+        image: slider.image,
+        link: slider.link,
+        buttonText: slider.buttonText,
+        isActive: slider.isActive,
+        order: slider.order,
+        createdAt: slider.createdAt,
+        updatedAt: slider.updatedAt
       }
     })
   } catch (error) {
@@ -112,23 +121,19 @@ export async function DELETE(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    // Check if slider exists
-    const existingSlider = await prisma.slider.findUnique({
-      where: { id: params.id }
-    })
-
-    if (!existingSlider) {
-      return NextResponse.json({ error: 'Slider not found' }, { status: 404 })
-    }
-
     // Delete slider
     await prisma.slider.delete({
-      where: { id: params.id }
+      where: {
+        id: params.id
+      }
     })
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({ 
+      success: true,
+      message: 'Slider deleted successfully'
+    })
   } catch (error) {
-    console.error('Slider deletion error:', error)
+    console.error('Slider delete error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

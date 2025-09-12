@@ -1,128 +1,220 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
-
-interface Category {
-  id: string
-  name: string
-  description?: string
-  image?: string
-  isActive: boolean
-  productCount: number
-}
+import { useSearchParams, useRouter } from 'next/navigation'
+import { ProductGrid } from '@/components/products/product-grid'
+import { ProductFilters } from '@/components/products/product-filters'
+import { useState, useCallback, useEffect } from 'react'
 
 export default function CategoriesPage() {
-  const [categories, setCategories] = useState<Category[]>([])
-  const [loading, setLoading] = useState(true)
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const search = searchParams.get('search')
+  const category = searchParams.get('category')
+  const filter = searchParams.get('filter') // Alphabetical filter
+  const newProducts = searchParams.get('new')
+  const sale = searchParams.get('sale')
+  const brand = searchParams.get('brand')
 
+  const [activeFilters, setActiveFilters] = useState({
+    categories: [] as string[],
+    brands: [] as string[],
+    priceRanges: [] as string[],
+    volumes: [] as string[],
+    ratings: [] as number[]
+  })
+
+  const [categoriesData, setCategoriesData] = useState<any[]>([])
+
+  // Helper function to get category name by ID
+  const getCategoryName = (categoryId: string) => {
+    const category = categoriesData.find(cat => cat.id === categoryId)
+    return category ? category.name : categoryId
+  }
+
+  // Fetch categories data
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        setLoading(true)
         const response = await fetch('/api/categories')
-        if (response.ok) {
-          const data = await response.json()
-          // Only show active categories
-          const activeCategories = data.filter((cat: Category) => cat.isActive)
-          setCategories(activeCategories)
-        }
+        const data = await response.json()
+        setCategoriesData(data)
       } catch (error) {
         console.error('Error fetching categories:', error)
-      } finally {
-        setLoading(false)
       }
     }
-
     fetchCategories()
   }, [])
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          </div>
-        </div>
-      </div>
-    )
+  // Initialize activeFilters from URL parameters
+  useEffect(() => {
+    const newActiveFilters = {
+      categories: [] as string[],
+      brands: [] as string[],
+      priceRanges: [] as string[],
+      volumes: [] as string[],
+      ratings: [] as number[]
+    }
+
+    // Parse categories from URL
+    const categoryIds = searchParams.getAll('categoryIds')
+    if (categoryIds.length > 0) {
+      newActiveFilters.categories = categoryIds
+    } else if (category) {
+      // If single category parameter exists, add it
+      newActiveFilters.categories = [category]
+    }
+
+    // Parse brands from URL
+    const brands = searchParams.getAll('brands')
+    const brandFilter = searchParams.get('brandFilter')
+    if (brands.length > 0) {
+      newActiveFilters.brands = brands
+    } else if (brand) {
+      // If single brand parameter exists, add it
+      newActiveFilters.brands = [brand]
+    } else if (brandFilter) {
+      // If brandFilter parameter exists, we'll handle it in the filter component
+      // For now, just set it as a special case
+      newActiveFilters.brands = []
+    }
+
+    // Parse price ranges from URL
+    const priceRanges = searchParams.getAll('priceRanges')
+    if (priceRanges.length > 0) {
+      newActiveFilters.priceRanges = priceRanges
+    } else {
+      // Parse from minPrice/maxPrice parameters
+      const minPrice = searchParams.get('minPrice')
+      const maxPrice = searchParams.get('maxPrice')
+      if (minPrice && maxPrice) {
+        newActiveFilters.priceRanges = [`${minPrice}-${maxPrice}`]
+      } else if (minPrice) {
+        newActiveFilters.priceRanges = [`${minPrice}+`]
+      } else if (maxPrice) {
+        newActiveFilters.priceRanges = [`0-${maxPrice}`]
+      }
+    }
+
+    // Parse volumes from URL
+    const volumes = searchParams.getAll('volumes')
+    if (volumes.length > 0) {
+      newActiveFilters.volumes = volumes
+    } else if (searchParams.get('volume')) {
+      newActiveFilters.volumes = [searchParams.get('volume')!]
+    }
+
+    // Parse ratings from URL
+    const minRating = searchParams.get('minRating')
+    if (minRating) {
+      newActiveFilters.ratings = [parseInt(minRating)]
+    }
+
+    setActiveFilters(newActiveFilters)
+  }, [searchParams, category, brand])
+
+  const handleFiltersChange = useCallback((filters: {
+    categories: string[]
+    brands: string[]
+    priceRanges: string[]
+    volumes: string[]
+    ratings: number[]
+  }) => {
+    setActiveFilters(filters)
+    
+    // Update URL parameters based on filters
+    const newParams = new URLSearchParams(searchParams.toString())
+    
+    // Clear existing filter parameters
+    newParams.delete('category')
+    newParams.delete('brand')
+    newParams.delete('minPrice')
+    newParams.delete('maxPrice')
+    newParams.delete('volume')
+    newParams.delete('minRating')
+    newParams.delete('categoryIds')
+    newParams.delete('brands')
+    newParams.delete('priceRanges')
+    newParams.delete('volumes')
+    
+    // Add new filter parameters
+    if (filters.categories.length > 0) {
+      filters.categories.forEach(catId => newParams.append('categoryIds', catId))
+    }
+    if (filters.brands.length > 0) {
+      filters.brands.forEach(brand => newParams.append('brands', brand))
+    }
+    if (filters.priceRanges.length > 0) {
+      filters.priceRanges.forEach(range => newParams.append('priceRanges', range))
+    }
+    if (filters.volumes.length > 0) {
+      filters.volumes.forEach(volume => newParams.append('volumes', volume))
+    }
+    if (filters.ratings.length > 0) {
+      const minRating = Math.min(...filters.ratings)
+      newParams.set('minRating', minRating.toString())
+    }
+    
+    // Navigate to new URL
+    const newUrl = newParams.toString() ? `/categories?${newParams.toString()}` : '/categories'
+    router.push(newUrl)
+  }, [searchParams, router])
+
+
+  // Generate page title based on active filters
+  const getPageTitle = () => {
+    if (search) return `"${search}" üçün nəticələr`
+    if (filter) return `"${filter}" hərfi ilə başlayan məhsullar`
+    if (brand) return `"${brand}" markası üçün məhsullar`
+    if (newProducts === 'true') return 'Yeni Məhsullar'
+    if (sale === 'true') return 'Endirimli Məhsullar'
+    if (category) return `${category} kateqoriyası`
+    return 'Bütün Məhsullar'
+  }
+
+  const getPageDescription = () => {
+    if (search || filter || brand || newProducts === 'true' || sale === 'true' || category) {
+      return 'Axtarış nəticələriniz'
+    }
+    return 'Bütün parfüm kolleksiyamızı kəşf edin'
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Bütün Kateqoriyalar
-          </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Hər zövqə uyğun parfüm kateqoriyalarımızı kəşf edin
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">{getPageTitle()}</h1>
+          <p className="text-gray-600 mt-2">
+            {getPageDescription()}
           </p>
+          
         </div>
 
-        {/* Categories Grid */}
-        {categories.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {categories.map((category) => (
-              <Link
-                key={category.id}
-                href={`/categories/${category.name.toLowerCase()
-                  .replace(/ç/g, 'c')
-                  .replace(/ğ/g, 'g')
-                  .replace(/ı/g, 'i')
-                  .replace(/ö/g, 'o')
-                  .replace(/ş/g, 's')
-                  .replace(/ü/g, 'u')
-                  .replace(/\s+/g, '-')}-${category.id}`}
-                className="group block"
-              >
-                <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden transition-transform group-hover:scale-105 group-hover:shadow-md">
-                  <div className="relative h-48 bg-gray-100">
-                    <Image
-                      src={category.image || '/placeholder.jpg'}
-                      alt={category.name}
-                      width={400}
-                      height={300}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                    <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-                      <h3 className="text-lg font-semibold mb-1">{category.name}</h3>
-                      <p className="text-sm text-gray-200">{category.description || 'Parfüm kateqoriyası'}</p>
-                    </div>
-                  </div>
-                  <div className="p-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-500">
-                        {category.productCount} məhsul
-                      </span>
-                      <span className="text-sm text-blue-600 group-hover:text-blue-700">
-                        Bax →
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            ))}
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Filters Sidebar */}
+          <div className="lg:w-1/4">
+            <ProductFilters 
+              onFiltersChange={handleFiltersChange}
+              activeFilters={activeFilters}
+            />
           </div>
-        ) : (
-          <div className="text-center py-12">
-            <div className="text-gray-400 mb-4">
-              <svg className="mx-auto h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              Kateqoriya yoxdur
-            </h3>
-            <p className="text-gray-600">
-              Hələ heç bir kateqoriya əlavə edilməyib.
-            </p>
+
+          {/* Products Grid */}
+          <div className="lg:w-3/4">
+            <ProductGrid 
+              search={search}
+              category={category}
+              filter={filter}
+              brand={brand}
+              newProducts={newProducts === 'true'}
+              sale={sale === 'true'}
+              minPrice={searchParams.get('minPrice')}
+              maxPrice={searchParams.get('maxPrice')}
+              volume={searchParams.get('volume')}
+              minRating={searchParams.get('minRating')}
+              activeFilters={activeFilters}
+            />
           </div>
-        )}
+        </div>
       </div>
     </div>
   )

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import { Save, X, Plus, Trash2, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
@@ -35,9 +36,11 @@ interface Product {
   isActive: boolean
   variants: Variant[]
   attributes: Attribute[]
+  images: string[]
 }
 
 export default function EditProductPage() {
+  const { data: session, status } = useSession()
   const router = useRouter()
   const params = useParams()
   const productId = params.id as string
@@ -47,6 +50,12 @@ export default function EditProductPage() {
   const [product, setProduct] = useState<Product | null>(null)
   const [variants, setVariants] = useState<Variant[]>([])
   const [attributes, setAttributes] = useState<Attribute[]>([])
+  const [images, setImages] = useState<string[]>([])
+  const [uploading, setUploading] = useState(false)
+  const [categories, setCategories] = useState<{id: string, name: string}[]>([])
+  const [brands, setBrands] = useState<string[]>([])
+  const [brandsLoading, setBrandsLoading] = useState(true)
+  const [mainImageIndex, setMainImageIndex] = useState(0)
   
   const [formData, setFormData] = useState({
     name: '',
@@ -62,17 +71,15 @@ export default function EditProductPage() {
     isActive: true
   })
 
-  const categories = [
-    { id: '1', name: 'Kadın Parfümü' },
-    { id: '2', name: 'Kişi Parfümü' },
-    { id: '3', name: 'Unisex Parfümü' }
-  ]
 
   useEffect(() => {
-    if (productId) {
+    if (status === 'loading') return
+    if (session?.user?.role === 'ADMIN' && productId) {
       fetchProduct()
+      fetchCategories()
+      fetchBrands()
     }
-  }, [productId])
+  }, [productId, session, status])
 
   const fetchProduct = async () => {
     try {
@@ -96,6 +103,7 @@ export default function EditProductPage() {
         })
         setVariants(productData.variants || [])
         setAttributes(productData.attributes || [])
+        setImages(productData.images || [])
       } else {
         console.error('Failed to fetch product')
         router.push('/admin/products')
@@ -105,6 +113,40 @@ export default function EditProductPage() {
       router.push('/admin/products')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchCategories = async () => {
+    try {
+      const response = await fetch('/api/admin/categories')
+      if (response.ok) {
+        const data = await response.json()
+        setCategories(data || [])
+      }
+    } catch (error) {
+      console.error('Categories fetch error:', error)
+    }
+  }
+
+  const fetchBrands = async () => {
+    try {
+      setBrandsLoading(true)
+      const response = await fetch('/api/brands')
+      if (response.ok) {
+        const data = await response.json()
+        // Flatten all brands from all letters
+        const allBrands: string[] = []
+        Object.values(data.brands || {}).forEach((brandList: any) => {
+          allBrands.push(...brandList)
+        })
+        setBrands([...new Set(allBrands)].sort()) // Remove duplicates and sort
+      } else {
+        console.error('Failed to fetch brands')
+      }
+    } catch (error) {
+      console.error('Brands fetch error:', error)
+    } finally {
+      setBrandsLoading(false)
     }
   }
 
@@ -156,6 +198,50 @@ export default function EditProductPage() {
     setAttributes(prev => prev.filter(attr => attr.id !== id))
   }
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+
+    setUploading(true)
+    try {
+      const uploadPromises = Array.from(files).map(async (file) => {
+        const formData = new FormData()
+        formData.append('file', file)
+
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        })
+
+        if (!response.ok) {
+          throw new Error('Upload failed')
+        }
+
+        const result = await response.json()
+        return result.url
+      })
+
+      const uploadedUrls = await Promise.all(uploadPromises)
+      setImages(prev => [...prev, ...uploadedUrls])
+    } catch (error) {
+      console.error('Upload error:', error)
+      alert('Şəkil yüklənərkən xəta baş verdi')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const removeImage = (index: number) => {
+    setImages(prev => prev.filter((_, i) => i !== index))
+    
+    // Əgər silinən şəkil əsas şəkil idisə, əsas şəkli yenilə
+    if (mainImageIndex === index) {
+      setMainImageIndex(0)
+    } else if (mainImageIndex > index) {
+      setMainImageIndex(mainImageIndex - 1)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSaving(true)
@@ -169,7 +255,8 @@ export default function EditProductPage() {
         body: JSON.stringify({
           ...formData,
           variants,
-          attributes
+          attributes,
+          images
         })
       })
 
@@ -188,7 +275,7 @@ export default function EditProductPage() {
     }
   }
 
-  if (loading) {
+  if (status === 'loading' || loading) {
     return (
       <div className="space-y-6">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -283,13 +370,31 @@ export default function EditProductPage() {
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Marka
               </label>
-              <input
-                type="text"
-                value={formData.brand}
-                onChange={(e) => handleInputChange('brand', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Marka adını daxil edin"
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  value={formData.brand}
+                  onChange={(e) => handleInputChange('brand', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Marka adını daxil edin və ya seçin"
+                  list="brands-list"
+                />
+                <datalist id="brands-list">
+                  {brands.map((brand) => (
+                    <option key={brand} value={brand} />
+                  ))}
+                </datalist>
+                {brandsLoading && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                  </div>
+                )}
+              </div>
+              {brands.length > 0 && (
+                <p className="text-xs text-gray-500 mt-1">
+                  {brands.length} mövcud marka. Yuxarıda yazaraq axtarın və ya yeni marka əlavə edin.
+                </p>
+              )}
             </div>
 
             <div>
@@ -309,6 +414,11 @@ export default function EditProductPage() {
                   </option>
                 ))}
               </select>
+              {formData.categoryId && (
+                <p className="text-sm text-green-600 mt-1">
+                  Seçili kateqoriya: {categories.find(c => c.id === formData.categoryId)?.name}
+                </p>
+              )}
             </div>
 
             <div>
@@ -338,6 +448,125 @@ export default function EditProductPage() {
               />
             </div>
           </div>
+        </div>
+
+        {/* Images */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Şəkillər</h2>
+          
+          {/* Upload Area */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Şəkil Yüklə
+            </label>
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
+              <input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleImageUpload}
+                disabled={uploading}
+                className="hidden"
+                id="image-upload"
+              />
+              <label
+                htmlFor="image-upload"
+                className="cursor-pointer flex flex-col items-center"
+              >
+                {uploading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-2"></div>
+                    <p className="text-sm text-gray-600">Yüklənir...</p>
+                  </>
+                ) : (
+                  <>
+                    <svg className="h-12 w-12 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    <p className="text-sm text-gray-600">
+                      Şəkilləri buraya sürükləyin və ya <span className="text-blue-600">seçmək üçün klikləyin</span>
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      PNG, JPG, GIF formatları dəstəklənir
+                    </p>
+                  </>
+                )}
+              </label>
+            </div>
+          </div>
+
+          {/* Image Preview */}
+          {images.length > 0 && (
+            <div>
+              <h3 className="text-sm font-medium text-gray-700 mb-3">Yüklənmiş şəkillər</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {images.map((image, index) => (
+                  <div key={index} className="relative group">
+                    <img
+                      src={image}
+                      alt={`Məhsul şəkli ${index + 1}`}
+                      className={`w-full h-32 object-cover rounded-lg border-2 ${
+                        mainImageIndex === index ? 'border-blue-500' : 'border-gray-200'
+                      }`}
+                    />
+                    
+                    {/* Main Image Badge */}
+                    {mainImageIndex === index && (
+                      <div className="absolute top-2 left-2 bg-blue-600 text-white text-xs px-2 py-1 rounded">
+                        Əsas
+                      </div>
+                    )}
+                    
+                    {/* Set as Main Button */}
+                    {mainImageIndex !== index && (
+                      <button
+                        type="button"
+                        onClick={() => setMainImageIndex(index)}
+                        className="absolute top-2 left-2 bg-green-600 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        Əsas et
+                      </button>
+                    )}
+                    
+                    {/* Remove Button */}
+                    <button
+                      type="button"
+                      onClick={() => removeImage(index)}
+                      className="absolute top-2 right-2 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Reorder Images */}
+              {images.length > 1 && (
+                <div className="mt-4">
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">Şəkil sırasını dəyişdir</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {images.map((image, index) => (
+                      <button
+                        key={index}
+                        type="button"
+                        onClick={() => {
+                          const newImages = [...images]
+                          const [movedImage] = newImages.splice(index, 1)
+                          newImages.splice(0, 0, movedImage)
+                          setImages(newImages)
+                          setMainImageIndex(0)
+                        }}
+                        className="flex items-center space-x-2 px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition-colors"
+                      >
+                        <span>#{index + 1}</span>
+                        <span>Əsas et</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Variants */}

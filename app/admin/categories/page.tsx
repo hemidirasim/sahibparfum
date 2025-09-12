@@ -21,6 +21,7 @@ export default function AdminCategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
+  const [deleting, setDeleting] = useState<string | null>(null)
 
   const fetchCategories = async () => {
     try {
@@ -28,6 +29,7 @@ export default function AdminCategoriesPage() {
       const response = await fetch('/api/admin/categories')
       if (response.ok) {
         const data = await response.json()
+        console.log('Categories data:', data)
         setCategories(data)
       } else {
         console.error('Failed to fetch categories')
@@ -45,6 +47,32 @@ export default function AdminCategoriesPage() {
   useEffect(() => {
     fetchCategories()
   }, [])
+
+  const handleDelete = async (categoryId: string, categoryName: string) => {
+    if (!confirm(`"${categoryName}" kateqoriyasını silmək istədiyinizə əminsiniz?`)) {
+      return
+    }
+
+    try {
+      setDeleting(categoryId)
+      const response = await fetch(`/api/admin/categories/${categoryId}`, {
+        method: 'DELETE'
+      })
+
+      if (response.ok) {
+        setCategories(prev => prev.filter(cat => cat.id !== categoryId))
+        alert('Kateqoriya uğurla silindi')
+      } else {
+        const error = await response.json()
+        alert(error.error || 'Kateqoriya silinərkən xəta baş verdi')
+      }
+    } catch (error) {
+      console.error('Delete error:', error)
+      alert('Kateqoriya silinərkən xəta baş verdi')
+    } finally {
+      setDeleting(null)
+    }
+  }
 
   const filteredCategories = categories.filter(category =>
     category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -144,8 +172,18 @@ export default function AdminCategoriesPage() {
           <div key={category.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
             <div className="flex items-start justify-between">
               <div className="flex items-center">
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <Package className="h-6 w-6 text-blue-600" />
+                <div className="w-12 h-12 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+                  {category.image ? (
+                    <img
+                      src={category.image}
+                      alt={category.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-blue-100">
+                      <Package className="h-6 w-6 text-blue-600" />
+                    </div>
+                  )}
                 </div>
                 <div className="ml-3">
                   <h3 className="text-lg font-semibold text-gray-900">{category.name}</h3>
@@ -159,8 +197,16 @@ export default function AdminCategoriesPage() {
                 >
                   <Edit className="h-4 w-4" />
                 </Link>
-                <button className="text-red-600 hover:text-red-900 p-1">
-                  <Trash2 className="h-4 w-4" />
+                <button 
+                  onClick={() => handleDelete(category.id, category.name)}
+                  disabled={deleting === category.id}
+                  className="text-red-600 hover:text-red-900 p-1 disabled:opacity-50"
+                >
+                  {deleting === category.id ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-600"></div>
+                  ) : (
+                    <Trash2 className="h-4 w-4" />
+                  )}
                 </button>
               </div>
             </div>
@@ -181,7 +227,7 @@ export default function AdminCategoriesPage() {
 
             <div className="mt-4">
               <Link
-                href={`/admin/products?category=${category.name}`}
+                href={`/admin/products?category=${encodeURIComponent(category.name)}`}
                 className="text-sm text-blue-600 hover:text-blue-700 font-medium"
               >
                 Məhsulları gör →
