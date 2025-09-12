@@ -36,8 +36,19 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { orderId, amount, currency = 'AZN', description, customerInfo } = body
 
+    // Log request details for debugging
+    console.log('Payment request received:', {
+      orderId,
+      amount,
+      currency,
+      hasCredentials: !!(UNITED_PAYMENT_CONFIG.email && UNITED_PAYMENT_CONFIG.password),
+      isProduction: UNITED_PAYMENT_CONFIG.isProduction,
+      apiUrl: getApiUrl()
+    })
+
     // Validate required fields
     if (!orderId || !amount || !customerInfo) {
+      console.log('Validation failed - missing required fields')
       return NextResponse.json(
         { error: 'Missing required fields: orderId, amount, customerInfo' },
         { status: 400 }
@@ -61,20 +72,29 @@ export async function POST(request: NextRequest) {
     }
 
     // Get valid authentication token
+    console.log('Attempting to get authentication token...')
     const authToken = await getValidToken()
     
     if (!authToken) {
       console.error('Failed to get valid authentication token')
+      console.error('Credentials check:', {
+        email: UNITED_PAYMENT_CONFIG.email ? 'Present' : 'Missing',
+        password: UNITED_PAYMENT_CONFIG.password ? 'Present' : 'Missing',
+        isProduction: UNITED_PAYMENT_CONFIG.isProduction
+      })
       
       return NextResponse.json(
         { 
           error: 'Authentication failed',
           message: 'Ödəniş sistemi ilə əlaqə qura bilmədi. Administratorla əlaqə saxlayın.',
-          code: 'AUTH_FAILED'
+          code: 'AUTH_FAILED',
+          details: 'Environment variables may not be configured properly'
         },
         { status: 500 }
       )
     }
+    
+    console.log('Authentication token obtained successfully')
 
     // Prepare payment data according to United Payment API format
     const paymentData: any = {
@@ -155,8 +175,15 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Payment creation error:', error)
+    console.error('Error type:', typeof error)
+    console.error('Error message:', error instanceof Error ? error.message : 'Unknown error')
+    
     return NextResponse.json(
-      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
+      { 
+        error: 'Payment creation failed',
+        details: error instanceof Error ? error.message : 'Unknown error',
+        code: 'API_ERROR'
+      },
       { status: 500 }
     )
   }
