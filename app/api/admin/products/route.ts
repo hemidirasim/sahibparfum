@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
     if (search) {
       where.OR = [
         { name: { contains: search } },
-        { brand: { contains: search } },
+        { brandId: { contains: search } },
         { sku: { contains: search } }
       ]
     }
@@ -53,6 +53,7 @@ export async function GET(request: NextRequest) {
       where,
       include: {
         category: true,
+        brand: true,
         variants: {
           where: { isActive: true }
         },
