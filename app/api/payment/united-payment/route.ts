@@ -186,6 +186,8 @@ export async function POST(request: NextRequest) {
       cancelUrl = `${process.env.NEXTAUTH_URL || 'https://sahibparfum.az'}/orders`
     } else if (source === 'checkout') {
       cancelUrl = `${process.env.NEXTAUTH_URL || 'https://sahibparfum.az'}/checkout`
+    } else if (source === 'checkout-guest') {
+      cancelUrl = `${process.env.NEXTAUTH_URL || 'https://sahibparfum.az'}/checkout/guest`
     }
 
     console.log('Payment source and URLs:', {

@@ -4,6 +4,7 @@ import { useCart } from '@/hooks/use-cart'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { CreditCard, Truck, User, Mail, Phone, MapPin } from 'lucide-react'
+import toast from 'react-hot-toast'
 
 export default function GuestCheckoutPage() {
   const { items, getTotal, clearCart } = useCart()
@@ -115,11 +116,82 @@ export default function GuestCheckoutPage() {
 
       if (response.ok) {
         const result = await response.json()
-        clearCart()
-        router.push(`/order-success?orderId=${result.orderNumber}`)
+        
+        // If payment method is CARD, redirect to United Payment
+        if (formData.paymentMethod === 'CARD') {
+          try {
+            const paymentData = {
+              orderId: result.orderNumber,
+              amount: total,
+              currency: 'AZN',
+              description: `Sifariş #${result.orderNumber}`,
+              source: 'checkout-guest', // Specify that payment is initiated from guest checkout page
+              customerInfo: {
+                name: formData.guestName,
+                email: formData.guestEmail,
+                phone: formData.guestPhone
+              }
+            }
+
+            console.log('Sending guest payment request:', paymentData)
+            const paymentResponse = await fetch('/api/payment/united-payment', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(paymentData),
+            })
+            
+            console.log('Guest payment response status:', paymentResponse.status)
+
+            if (paymentResponse.ok) {
+              const paymentResult = await paymentResponse.json()
+              console.log('Guest Payment API Response:', paymentResult)
+              
+              if (paymentResult.isMock) {
+                console.log('Mock payment - redirecting to:', paymentResult.paymentUrl)
+                clearCart()
+                toast.success('Test rejimində ödəniş simulyasiya edilir...')
+                // For mock payments, redirect directly to success page
+                router.push(paymentResult.paymentUrl)
+              } else {
+                console.log('Real payment - redirecting to:', paymentResult.paymentUrl)
+                toast.success('Ödəniş səhifəsinə yönləndirilirsiniz...')
+                // Redirect to United Payment (don't clear cart yet, wait for payment completion)
+                window.location.href = paymentResult.paymentUrl
+              }
+            } else {
+              const paymentError = await paymentResponse.json()
+              console.error('Guest payment creation error:', paymentError)
+              
+              if (paymentError.code === 'CONFIG_MISSING' || paymentError.code === 'AUTH_FAILED') {
+                toast.error('Ödəniş sistemi hazırda əlçatan deyil. Nağd ödəniş seçin.')
+                // Change to cash payment and continue
+                setFormData(prev => ({ ...prev, paymentMethod: 'CASH' }))
+                clearCart()
+                toast.success('Sifarişiniz nağd ödəniş ilə uğurla yaradıldı!')
+                router.push(`/order-success?orderId=${result.orderNumber}`)
+              } else {
+                toast.error('Ödəniş səhifəsinə yönləndirilərkən xəta: ' + (paymentError.message || 'Naməlum xəta'))
+                // Still redirect to success page for cash payment
+                router.push(`/order-success?orderId=${result.orderNumber}`)
+              }
+            }
+          } catch (paymentError) {
+            console.error('Guest payment creation error:', paymentError)
+            toast.error('Ödəniş səhifəsinə yönləndirilərkən xəta')
+            // Still redirect to success page for cash payment
+            router.push(`/order-success?orderId=${result.orderNumber}`)
+          }
+        } else {
+          // Cash payment - direct success
+          clearCart()
+          toast.success('Sifarişiniz uğurla yaradıldı!')
+          router.push(`/order-success?orderId=${result.orderNumber}`)
+        }
       } else {
         const error = await response.json()
-        alert('Xəta: ' + (error.message || 'Sifariş yaradılarkən xəta baş verdi'))
+        toast.error('Xəta: ' + (error.message || 'Sifariş yaradılarkən xəta baş verdi'))
       }
     } catch (error) {
       console.error('Sifariş xətası:', error)
