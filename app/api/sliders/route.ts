@@ -3,6 +3,9 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('=== SLIDERS API REQUEST START ===')
+    console.log('Request URL:', request.url)
+    
     // Get only active sliders, ordered by order field
     const sliders = await prisma.slider.findMany({
       where: {
@@ -11,6 +14,11 @@ export async function GET(request: NextRequest) {
       orderBy: {
         order: 'asc'
       }
+    })
+
+    console.log('Sliders from database:', {
+      count: sliders.length,
+      orders: sliders.map(s => ({ id: s.id, order: s.order, title: s.title }))
     })
 
     // Format sliders for public use
@@ -25,7 +33,20 @@ export async function GET(request: NextRequest) {
       order: slider.order
     }))
 
-    return NextResponse.json(formattedSliders)
+    console.log('Formatted sliders response:', {
+      count: formattedSliders.length,
+      orders: formattedSliders.map(s => ({ id: s.id, order: s.order, title: s.title }))
+    })
+
+    const response = NextResponse.json(formattedSliders)
+
+    // Disable caching for dynamic content
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
+    response.headers.set('Pragma', 'no-cache')
+    response.headers.set('Expires', '0')
+    response.headers.set('Surrogate-Control', 'no-store')
+
+    return response
   } catch (error) {
     console.error('Sliders API error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
