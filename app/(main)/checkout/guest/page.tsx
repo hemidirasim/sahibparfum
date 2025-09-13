@@ -21,7 +21,6 @@ export default function GuestCheckoutPage() {
       city: '',
       state: '',
       postalCode: '',
-      country: 'Azerbaijan',
       phone: ''
     },
     billingAddress: {
@@ -32,7 +31,6 @@ export default function GuestCheckoutPage() {
       city: '',
       state: '',
       postalCode: '',
-      country: 'Azerbaijan',
       phone: ''
     },
     useSameAddress: true,
@@ -94,8 +92,17 @@ export default function GuestCheckoutPage() {
             price: item.price
           }
         }),
-        shippingAddress: formData.shippingAddress,
-        billingAddress: formData.useSameAddress ? formData.shippingAddress : formData.billingAddress
+        shippingAddress: {
+          ...formData.shippingAddress,
+          country: 'Azerbaijan' // Default country for Azerbaijan
+        },
+        billingAddress: formData.useSameAddress ? {
+          ...formData.shippingAddress,
+          country: 'Azerbaijan'
+        } : {
+          ...formData.billingAddress,
+          country: 'Azerbaijan'
+        }
       }
 
       const response = await fetch('/api/orders/guest', {
@@ -291,21 +298,6 @@ export default function GuestCheckoutPage() {
                   />
                 </div>
                 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Ölkə *
-                  </label>
-                  <select
-                    required
-                    value={formData.shippingAddress.country}
-                    onChange={(e) => handleAddressChange('shipping', 'country', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  >
-                    <option value="Azerbaijan">Azərbaycan</option>
-                    <option value="Turkey">Türkiyə</option>
-                    <option value="Georgia">Gürcüstan</option>
-                  </select>
-                </div>
               </div>
             </div>
 
