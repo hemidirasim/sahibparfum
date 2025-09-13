@@ -168,12 +168,24 @@ export default function NewProductPage() {
           body: formData
         })
 
+        console.log('Upload response for', file.name, ':', {
+          status: response.status,
+          statusText: response.statusText,
+          ok: response.ok
+        })
+
         if (response.ok) {
           const result = await response.json()
+          console.log('Upload success for', file.name, ':', result)
           uploadedUrls.push(result.url)
         } else {
-          const error = await response.json()
-          alert(`${file.name} yüklənərkən xəta: ${error.error}`)
+          const error = await response.json().catch(() => ({ error: 'Unknown error' }))
+          console.error('Upload failed for', file.name, ':', {
+            status: response.status,
+            statusText: response.statusText,
+            error: error
+          })
+          alert(`${file.name} yüklənərkən xəta: ${error.error || error.details || 'Unknown error'}`)
         }
       }
 

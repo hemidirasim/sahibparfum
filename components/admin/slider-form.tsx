@@ -48,12 +48,25 @@ export function SliderForm({ slider, onSave, onCancel }: SliderFormProps) {
           body: formData,
         })
 
+        console.log('Upload response:', {
+          status: response.status,
+          statusText: response.statusText,
+          ok: response.ok
+        })
+
         if (response.ok) {
           const data = await response.json()
+          console.log('Upload success:', data)
           setFormData(prev => ({ ...prev, image: data.url }))
           setImagePreview(data.url)
         } else {
-          console.error('Upload failed')
+          const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+          console.error('Upload failed:', {
+            status: response.status,
+            statusText: response.statusText,
+            error: errorData
+          })
+          alert(`Upload failed: ${errorData.error || errorData.details || 'Unknown error'}`)
         }
       } catch (error) {
         console.error('Upload error:', error)

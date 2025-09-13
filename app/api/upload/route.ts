@@ -100,14 +100,46 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
+    console.error('=== UPLOAD ERROR START ===')
     console.error('Upload error:', error)
     console.error('Error details:', {
       message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined
+      stack: error instanceof Error ? error.stack : undefined,
+      name: error instanceof Error ? error.name : undefined
     })
+    
+    // Environment check
+    console.error('Environment check:', {
+      hasBlobToken: !!process.env.BLOB_READ_WRITE_TOKEN,
+      blobTokenLength: process.env.BLOB_READ_WRITE_TOKEN?.length,
+      nodeEnv: process.env.NODE_ENV,
+      nextAuthUrl: process.env.NEXTAUTH_URL
+    })
+    
+    // Check if it's a Vercel Blob error
+    if (error instanceof Error) {
+      if (error.message.includes('BLOB_READ_WRITE_TOKEN')) {
+        console.error('BLOB_READ_WRITE_TOKEN error detected')
+        return NextResponse.json({ 
+          error: 'Blob token configuration error',
+          details: 'BLOB_READ_WRITE_TOKEN is missing or invalid'
+        }, { status: 500 })
+      }
+      
+      if (error.message.includes('Unauthorized')) {
+        console.error('Unauthorized error detected')
+        return NextResponse.json({ 
+          error: 'Unauthorized access',
+          details: 'Admin authentication required'
+        }, { status: 401 })
+      }
+    }
+    
+    console.error('=== UPLOAD ERROR END ===')
     return NextResponse.json({ 
       error: 'Upload failed',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      details: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
     }, { status: 500 })
   }
 }
