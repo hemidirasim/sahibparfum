@@ -7,6 +7,17 @@ export async function POST(request: NextRequest) {
   try {
     console.log('=== UPLOAD API REQUEST START ===')
     
+    // Environment variables check
+    console.log('Environment variables check:', {
+      hasBlobToken: !!process.env.BLOB_READ_WRITE_TOKEN,
+      blobTokenLength: process.env.BLOB_READ_WRITE_TOKEN?.length,
+      blobTokenPrefix: process.env.BLOB_READ_WRITE_TOKEN?.substring(0, 20) + '...',
+      nextAuthUrl: process.env.NEXTAUTH_URL,
+      nodeEnv: process.env.NODE_ENV,
+      databaseUrl: !!process.env.DATABASE_URL,
+      nextAuthSecret: !!process.env.NEXTAUTH_SECRET
+    })
+    
     // Domain validation
     const allowedDomains = [
       'sahibparfum.az',
@@ -33,17 +44,28 @@ export async function POST(request: NextRequest) {
     }
     
     // Admin authentication check
+    console.log('Starting session check...')
     const session = await getServerSession(authOptions)
-    console.log('Session check:', {
+    console.log('Session check result:', {
       hasSession: !!session,
       userEmail: session?.user?.email,
       userRole: session?.user?.role,
-      isAdmin: session?.user?.role === 'ADMIN'
+      isAdmin: session?.user?.role === 'ADMIN',
+      sessionKeys: session ? Object.keys(session) : [],
+      userKeys: session?.user ? Object.keys(session.user) : []
     })
     
     if (!session?.user?.email || session.user?.role !== 'ADMIN') {
-      console.log('Unauthorized access attempt')
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      console.log('Unauthorized access attempt - redirecting to login')
+      return NextResponse.json({ 
+        error: 'Unauthorized',
+        details: 'Admin authentication required',
+        session: {
+          hasSession: !!session,
+          userEmail: session?.user?.email,
+          userRole: session?.user?.role
+        }
+      }, { status: 401 })
     }
 
     const data = await request.formData()
