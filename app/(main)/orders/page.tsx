@@ -3,7 +3,7 @@
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { ArrowLeft, Package, Calendar, MapPin, CreditCard, CheckCircle, Clock, XCircle, X, Eye, Phone, Mail, Star } from 'lucide-react'
+import { ArrowLeft, Package, Calendar, MapPin, CreditCard, CheckCircle, Clock, XCircle, X, Eye, Phone, Mail, Star, RefreshCw } from 'lucide-react'
 import { ProductRatingModal } from '@/components/products/product-rating-modal'
 import toast from 'react-hot-toast'
 import Link from 'next/link'
@@ -64,6 +64,7 @@ export default function OrdersPage() {
     product: { id: string; name: string; image: string } | null
   }>({ isOpen: false, product: null })
   const [productRatings, setProductRatings] = useState<Record<string, boolean>>({})
+  const [retryingPayment, setRetryingPayment] = useState<string | null>(null)
 
   // Guest session ID-ni localStorage-dən al və ya yarad
   const getGuestSessionId = () => {
@@ -211,6 +212,43 @@ export default function OrdersPage() {
         image: imageSrc
       }
     })
+  }
+
+  const handleRetryPayment = async (orderId: string) => {
+    setRetryingPayment(orderId)
+    try {
+      const response = await fetch(`/api/payment/united-payment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          orderId: orderId,
+          retry: true
+        }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.paymentUrl) {
+        // Redirect to payment page
+        window.location.href = data.paymentUrl
+      } else {
+        toast.error(data.message || 'Ödəniş səhifəsinə yönləndirilmədi')
+      }
+    } catch (error) {
+      console.error('Payment retry error:', error)
+      toast.error('Ödəniş yenidən cəhdində xəta baş verdi')
+    } finally {
+      setRetryingPayment(null)
+    }
+  }
+
+  // Check if order can be retried (unpaid orders)
+  const canRetryPayment = (order: Order) => {
+    return order.paymentStatus === 'PENDING' || 
+           order.paymentStatus === 'PAYMENT_FAILED' ||
+           order.paymentStatus === 'CANCELLED'
   }
 
   const getImageSrc = (images: string[] | string) => {
@@ -453,13 +491,34 @@ export default function OrdersPage() {
                         </span>
                       </div>
                     </div>
-                    <button
-                      onClick={() => fetchOrderDetails(order.id)}
-                      className="flex items-center space-x-1 text-primary-600 hover:text-primary-700 font-medium text-sm"
-                    >
-                      <Eye className="h-4 w-4" />
-                      <span>Ətraflı bax</span>
-                    </button>
+                    <div className="flex items-center space-x-3">
+                      {canRetryPayment(order) && (
+                        <button
+                          onClick={() => handleRetryPayment(order.id)}
+                          disabled={retryingPayment === order.id}
+                          className="flex items-center space-x-1 px-3 py-1 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                        >
+                          {retryingPayment === order.id ? (
+                            <>
+                              <div className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                              <span>Yönləndirilir...</span>
+                            </>
+                          ) : (
+                            <>
+                              <RefreshCw className="h-3 w-3" />
+                              <span>Ödənişi Tamamla</span>
+                            </>
+                          )}
+                        </button>
+                      )}
+                      <button
+                        onClick={() => fetchOrderDetails(order.id)}
+                        className="flex items-center space-x-1 text-primary-600 hover:text-primary-700 font-medium text-sm"
+                      >
+                        <Eye className="h-4 w-4" />
+                        <span>Ətraflı bax</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
