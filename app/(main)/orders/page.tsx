@@ -222,7 +222,8 @@ export default function OrdersPage() {
       
       const requestBody = {
         orderId: orderId,
-        retry: true
+        retry: true,
+        source: 'orders' // Specify that payment is initiated from orders page
       }
       
       console.log('Request body:', requestBody)

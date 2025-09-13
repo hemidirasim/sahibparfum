@@ -217,6 +217,7 @@ export default function CheckoutPage() {
               amount: total,
               currency: 'AZN',
               description: `Sifariş #${result.orderNumber}`,
+              source: 'checkout', // Specify that payment is initiated from checkout page
               customerInfo: {
                 name: session?.user?.name || `${selectedAddress.firstName} ${selectedAddress.lastName}`,
                 email: session?.user?.email || '',

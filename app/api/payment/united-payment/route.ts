@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     console.log('Request body received:', body)
     
-    const { orderId, amount, currency = 'AZN', description, customerInfo, retry } = body
+    const { orderId, amount, currency = 'AZN', description, customerInfo, retry, source } = body
 
     // Log request details for debugging
     console.log('Payment request parsed:', {
@@ -180,13 +180,28 @@ export async function POST(request: NextRequest) {
     
     console.log('Authentication token obtained successfully')
 
+    // Determine cancel URL based on payment source
+    let cancelUrl = UNITED_PAYMENT_CONFIG.cancelUrl
+    if (source === 'orders') {
+      cancelUrl = `${process.env.NEXTAUTH_URL || 'https://sahibparfum.az'}/orders`
+    } else if (source === 'checkout') {
+      cancelUrl = `${process.env.NEXTAUTH_URL || 'https://sahibparfum.az'}/checkout`
+    }
+
+    console.log('Payment source and URLs:', {
+      source,
+      cancelUrl,
+      successUrl: UNITED_PAYMENT_CONFIG.successUrl,
+      declineUrl: UNITED_PAYMENT_CONFIG.declineUrl
+    })
+
     // Prepare payment data according to United Payment API format
     const paymentData: any = {
       orderId: finalOrderId, // United Payment API expects 'orderId' not 'clientOrderId'
       amount: finalAmount, // Keep amount in AZN (no conversion needed)
       language: "AZ", // Azerbaijani
       successUrl: UNITED_PAYMENT_CONFIG.successUrl,
-      cancelUrl: UNITED_PAYMENT_CONFIG.cancelUrl,
+      cancelUrl: cancelUrl,
       declineUrl: UNITED_PAYMENT_CONFIG.declineUrl,
       description: description || `Sifariş #${finalOrderId}`,
       memberId: finalCustomerInfo.phone || finalCustomerInfo.email || 'Guest',
