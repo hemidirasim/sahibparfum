@@ -85,9 +85,27 @@ export async function POST(request: NextRequest) {
       Object.assign(body, retryData)
     }
 
-    // Validate required fields
-    if (!orderId || !amount || !customerInfo) {
-      console.log('Validation failed - missing required fields')
+    // Validate required fields (use updated body after retry logic)
+    const finalOrderId = body.orderId || orderId
+    const finalAmount = body.amount || amount
+    const finalCustomerInfo = body.customerInfo || customerInfo
+    
+    console.log('Validation check:', {
+      finalOrderId: !!finalOrderId,
+      finalAmount: !!finalAmount,
+      finalCustomerInfo: !!finalCustomerInfo,
+      originalOrderId: !!orderId,
+      originalAmount: !!amount,
+      originalCustomerInfo: !!customerInfo,
+      isRetry: retry
+    })
+    
+    if (!finalOrderId || !finalAmount || !finalCustomerInfo) {
+      console.log('Validation failed - missing required fields:', {
+        orderId: finalOrderId,
+        amount: finalAmount,
+        customerInfo: finalCustomerInfo
+      })
       return NextResponse.json(
         { error: 'Missing required fields: orderId, amount, customerInfo' },
         { status: 400 }
@@ -137,18 +155,18 @@ export async function POST(request: NextRequest) {
 
     // Prepare payment data according to United Payment API format
     const paymentData: any = {
-      clientOrderId: orderId,
-      amount: amount, // Keep amount in AZN (no conversion needed)
+      clientOrderId: finalOrderId,
+      amount: finalAmount, // Keep amount in AZN (no conversion needed)
       language: "AZ", // Azerbaijani
       successUrl: UNITED_PAYMENT_CONFIG.successUrl,
       cancelUrl: UNITED_PAYMENT_CONFIG.cancelUrl,
       declineUrl: UNITED_PAYMENT_CONFIG.declineUrl,
-      description: description || `Sifariş #${orderId}`,
-      memberId: customerInfo.phone || customerInfo.email || 'Guest',
-      additionalInformation: `Order: ${orderId}`,
-      email: customerInfo.email || '',
-      phoneNumber: customerInfo.phone || '',
-      clientName: customerInfo.name || 'Guest',
+      description: description || `Sifariş #${finalOrderId}`,
+      memberId: finalCustomerInfo.phone || finalCustomerInfo.email || 'Guest',
+      additionalInformation: `Order: ${finalOrderId}`,
+      email: finalCustomerInfo.email || '',
+      phoneNumber: finalCustomerInfo.phone || '',
+      clientName: finalCustomerInfo.name || 'Guest',
       currency: "944", // AZN currency code
       addcard: false // Don't save card by default
     }
@@ -233,8 +251,8 @@ export async function POST(request: NextRequest) {
       success: true,
       paymentUrl: result.url,
       transactionId: result.transactionId,
-      orderId: orderId,
-      amount: amount,
+      orderId: finalOrderId,
+      amount: finalAmount,
       currency: currency,
       status: result.status,
       isMock: false, // Real payment
