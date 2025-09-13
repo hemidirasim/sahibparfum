@@ -217,42 +217,67 @@ export default function OrdersPage() {
   const handleRetryPayment = async (orderId: string) => {
     setRetryingPayment(orderId)
     try {
+      console.log('=== PAYMENT RETRY START ===')
       console.log('Starting payment retry for order:', orderId)
+      
+      const requestBody = {
+        orderId: orderId,
+        retry: true
+      }
+      
+      console.log('Request body:', requestBody)
+      console.log('Request URL:', '/api/payment/united-payment')
       
       const response = await fetch(`/api/payment/united-payment`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          orderId: orderId,
-          retry: true
-        }),
+        body: JSON.stringify(requestBody),
       })
 
-      console.log('Payment API response status:', response.status)
-      const data = await response.json()
-      console.log('Payment API response data:', data)
+      console.log('=== PAYMENT API RESPONSE ===')
+      console.log('Response status:', response.status)
+      console.log('Response statusText:', response.statusText)
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()))
+      
+      let data
+      try {
+        data = await response.json()
+        console.log('Response JSON data:', data)
+      } catch (jsonError) {
+        console.error('Failed to parse response as JSON:', jsonError)
+        const textResponse = await response.text()
+        console.log('Response as text:', textResponse)
+        throw new Error(`Invalid JSON response: ${textResponse}`)
+      }
 
       if (response.ok && data.paymentUrl) {
+        console.log('=== PAYMENT SUCCESS ===')
         console.log('Redirecting to payment URL:', data.paymentUrl)
         // Redirect to payment page
         window.location.href = data.paymentUrl
       } else {
+        console.error('=== PAYMENT FAILED ===')
         console.error('Payment redirect failed:', {
           responseOk: response.ok,
           hasPaymentUrl: !!data.paymentUrl,
           data: data,
           error: data.error,
-          details: data.details
+          details: data.details,
+          message: data.message
         })
         toast.error(data.details || data.message || 'Ödəniş səhifəsinə yönləndirilmədi')
       }
     } catch (error) {
+      console.error('=== PAYMENT ERROR ===')
       console.error('Payment retry error:', error)
+      console.error('Error type:', typeof error)
+      console.error('Error message:', error instanceof Error ? error.message : 'Unknown error')
       toast.error('Ödəniş yenidən cəhdində xəta baş verdi')
     } finally {
       setRetryingPayment(null)
+      console.log('=== PAYMENT RETRY END ===')
     }
   }
 

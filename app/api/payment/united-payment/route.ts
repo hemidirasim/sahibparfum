@@ -34,14 +34,23 @@ function getApiUrl(): string {
 // Create payment session
 export async function POST(request: NextRequest) {
   try {
+    console.log('=== PAYMENT API REQUEST START ===')
+    console.log('Request URL:', request.url)
+    console.log('Request method:', request.method)
+    console.log('Request headers:', Object.fromEntries(request.headers.entries()))
+    
     const body = await request.json()
+    console.log('Request body received:', body)
+    
     const { orderId, amount, currency = 'AZN', description, customerInfo, retry } = body
 
     // Log request details for debugging
-    console.log('Payment request received:', {
+    console.log('Payment request parsed:', {
       orderId,
       amount,
       currency,
+      description,
+      customerInfo,
       retry,
       hasCredentials: !!(UNITED_PAYMENT_CONFIG.email && UNITED_PAYMENT_CONFIG.password),
       isProduction: UNITED_PAYMENT_CONFIG.isProduction,
