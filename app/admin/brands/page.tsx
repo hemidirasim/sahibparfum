@@ -510,24 +510,6 @@ export default function BrandsPage() {
                   )}
                 </div>
 
-                {/* URL Input */}
-                <div className="text-sm text-gray-500 mb-2">və ya</div>
-                <input
-                  type="url"
-                  value={newBrandLogo}
-                  onChange={(e) => setNewBrandLogo(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="https://example.com/logo.png"
-                />
-                {newBrandLogo && !logoPreview && (newBrandLogo.startsWith('http') || newBrandLogo.startsWith('/')) && (
-                  <div className="mt-2">
-                    <img 
-                      src={newBrandLogo} 
-                      alt="Logo preview" 
-                      className="w-20 h-20 object-cover rounded-lg border border-gray-300"
-                    />
-                  </div>
-                )}
               </div>
               
               <div className="flex justify-end space-x-3">
@@ -677,24 +659,6 @@ export default function BrandsPage() {
                   )}
                 </div>
 
-                {/* URL Input */}
-                <div className="text-sm text-gray-500 mb-2">və ya</div>
-                <input
-                  type="url"
-                  value={newBrandLogo}
-                  onChange={(e) => setNewBrandLogo(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="https://example.com/logo.png"
-                />
-                {newBrandLogo && !logoPreview && (newBrandLogo.startsWith('http') || newBrandLogo.startsWith('/')) && (
-                  <div className="mt-2">
-                    <img 
-                      src={newBrandLogo} 
-                      alt="Logo preview" 
-                      className="w-20 h-20 object-cover rounded-lg border border-gray-300"
-                    />
-                  </div>
-                )}
               </div>
               
               <div className="flex justify-end space-x-3">
