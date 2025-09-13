@@ -3,6 +3,10 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('=== PRODUCTS API REQUEST START ===')
+    console.log('Request URL:', request.url)
+    console.log('Request headers:', Object.fromEntries(request.headers.entries()))
+    
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '12')
@@ -186,7 +190,18 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    return NextResponse.json({
+    console.log('Products API response:', {
+      totalProducts: total,
+      returnedProducts: transformedProducts.length,
+      page,
+      limit,
+      search: searchParams.get('search'),
+      sale: searchParams.get('sale'),
+      category: searchParams.get('category'),
+      brands: searchParams.getAll('brands')
+    })
+
+    const response = NextResponse.json({
       success: true,
       products: transformedProducts,
       pagination: {
@@ -198,6 +213,14 @@ export async function GET(request: NextRequest) {
         hasPrev: page > 1
       }
     })
+
+    // Disable caching for dynamic content
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
+    response.headers.set('Pragma', 'no-cache')
+    response.headers.set('Expires', '0')
+    response.headers.set('Surrogate-Control', 'no-store')
+
+    return response
 
   } catch (error) {
     console.error('Error fetching products:', error)

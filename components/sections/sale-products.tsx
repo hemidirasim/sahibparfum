@@ -111,8 +111,21 @@ export function SaleProducts() {
   useEffect(() => {
     const fetchSaleProducts = async () => {
       try {
-        const response = await fetch('/api/products?sale=true')
+        // Add cache busting parameter
+        const timestamp = Date.now()
+        const response = await fetch(`/api/products?sale=true&_t=${timestamp}`, {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache'
+          }
+        })
         const data = await response.json()
+        
+        console.log('Sale products fetched:', {
+          timestamp: new Date().toISOString(),
+          productsCount: data.products?.length || 0,
+          url: `/api/products?sale=true&_t=${timestamp}`
+        })
         
         if (data.products) {
           // Endirimli məhsulları götür (salePrice olan məhsullar)

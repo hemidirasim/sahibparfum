@@ -26,9 +26,23 @@ export function HeroSection() {
   useEffect(() => {
     const fetchSliders = async () => {
       try {
-        const response = await fetch('/api/sliders')
+        // Add cache busting parameter
+        const timestamp = Date.now()
+        const response = await fetch(`/api/sliders?_t=${timestamp}`, {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache'
+          }
+        })
         if (response.ok) {
           const data = await response.json()
+          
+          console.log('Sliders fetched:', {
+            timestamp: new Date().toISOString(),
+            slidersCount: data?.length || 0,
+            url: `/api/sliders?_t=${timestamp}`
+          })
+          
           setSliderData(data)
         }
       } catch (error) {

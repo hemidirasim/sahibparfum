@@ -112,8 +112,21 @@ export function NewProducts() {
   useEffect(() => {
     const fetchNewProducts = async () => {
       try {
-        const response = await fetch('/api/products?new=true')
+        // Add cache busting parameter
+        const timestamp = Date.now()
+        const response = await fetch(`/api/products?new=true&_t=${timestamp}`, {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache'
+          }
+        })
         const data = await response.json()
+        
+        console.log('New products fetched:', {
+          timestamp: new Date().toISOString(),
+          productsCount: data.products?.length || 0,
+          url: `/api/products?new=true&_t=${timestamp}`
+        })
         
         if (data.products) {
           // Son 30 gün ərzində əlavə edilmiş məhsulları götür
