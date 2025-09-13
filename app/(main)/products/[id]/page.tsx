@@ -64,14 +64,7 @@ async function getProductData(id: string): Promise<Product | null> {
             name: true
           }
         },
-        variants: {
-          where: {
-            isActive: true
-          },
-          orderBy: {
-            price: 'asc'
-          }
-        },
+        variants: true,
         reviews: {
           include: {
             user: {
@@ -97,7 +90,7 @@ async function getProductData(id: string): Promise<Product | null> {
     
     return {
       ...product,
-      images: product.images ? JSON.parse(product.images) : [],
+      images: typeof product.images === 'string' ? [product.images] : (product.images || []),
       reviews: product.reviews.map(review => ({
         ...review,
         comment: review.comment || undefined,
@@ -192,3 +185,6 @@ export default async function ProductDetail({ params }: { params: { id: string }
 
   return <ProductDetailClient initialProduct={product} />
 }
+
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
