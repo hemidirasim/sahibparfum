@@ -59,6 +59,9 @@ export async function POST(request: NextRequest) {
 
     // Handle retry payment - fetch order data from database
     if (retry && orderId) {
+      console.log('=== RETRY PAYMENT LOGIC ===')
+      console.log('Fetching order from database:', orderId)
+      
       const existingOrder = await prisma.order.findUnique({
         where: { id: orderId },
         include: {
@@ -70,7 +73,18 @@ export async function POST(request: NextRequest) {
         }
       })
 
+      console.log('Database order found:', {
+        orderExists: !!existingOrder,
+        orderId: existingOrder?.id,
+        totalAmount: existingOrder?.totalAmount,
+        orderNumber: existingOrder?.orderNumber,
+        guestName: existingOrder?.guestName,
+        guestEmail: existingOrder?.guestEmail,
+        guestPhone: existingOrder?.guestPhone
+      })
+
       if (!existingOrder) {
+        console.log('Order not found in database')
         return NextResponse.json(
           { error: 'Sifariş tapılmadı' },
           { status: 404 }
@@ -90,8 +104,12 @@ export async function POST(request: NextRequest) {
         }
       }
 
+      console.log('Retry data prepared:', retryData)
+
       // Update body with retry data
       Object.assign(body, retryData)
+      
+      console.log('Body after retry data assignment:', body)
     }
 
     // Validate required fields (use updated body after retry logic)
