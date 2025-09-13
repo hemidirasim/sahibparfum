@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
-import { Save, Globe, Mail, Phone, MapPin, CreditCard, Shield } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Save, Globe, Mail, Phone, MapPin, CreditCard, Shield, Truck } from 'lucide-react'
+import toast from 'react-hot-toast'
 
 export default function AdminSettingsPage() {
   const [settings, setSettings] = useState({
@@ -12,12 +13,40 @@ export default function AdminSettingsPage() {
     address: 'Bakı şəhəri, Nərimanov rayonu',
     currency: 'AZN',
     taxRate: 18,
+    deliveryCost: 10,
+    freeDeliveryThreshold: 100,
     maintenanceMode: false,
     allowRegistration: true,
     requireEmailVerification: true
   })
 
   const [activeTab, setActiveTab] = useState('general')
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+
+  // Load settings on component mount
+  useEffect(() => {
+    fetchSettings()
+  }, [])
+
+  const fetchSettings = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/admin/settings')
+      if (response.ok) {
+        const data = await response.json()
+        setSettings(data)
+      } else {
+        console.error('Failed to fetch settings')
+        toast.error('Tənzimləmələr yüklənərkən xəta baş verdi')
+      }
+    } catch (error) {
+      console.error('Settings fetch error:', error)
+      toast.error('Tənzimləmələr yüklənərkən xəta baş verdi')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleInputChange = (field: string, value: any) => {
     setSettings(prev => ({
@@ -26,17 +55,57 @@ export default function AdminSettingsPage() {
     }))
   }
 
-  const handleSave = () => {
-    // TODO: Save settings to database
-    console.log('Settings saved:', settings)
+  const handleSave = async () => {
+    try {
+      setSaving(true)
+      const response = await fetch('/api/admin/settings', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(settings),
+      })
+
+      if (response.ok) {
+        toast.success('Tənzimləmələr uğurla saxlanıldı!')
+      } else {
+        const error = await response.json()
+        toast.error('Tənzimləmələr saxlanarkən xəta: ' + (error.message || 'Naməlum xəta'))
+      }
+    } catch (error) {
+      console.error('Settings save error:', error)
+      toast.error('Tənzimləmələr saxlanarkən xəta baş verdi')
+    } finally {
+      setSaving(false)
+    }
   }
 
   const tabs = [
     { id: 'general', name: 'Ümumi', icon: Globe },
     { id: 'contact', name: 'Əlaqə', icon: Mail },
     { id: 'business', name: 'Biznes', icon: CreditCard },
+    { id: 'delivery', name: 'Çatdırılma', icon: Truck },
     { id: 'security', name: 'Təhlükəsizlik', icon: Shield }
   ]
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+          </div>
+        </div>
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="animate-pulse space-y-4">
+            <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+            <div className="h-10 bg-gray-200 rounded"></div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -51,10 +120,11 @@ export default function AdminSettingsPage() {
           </div>
           <button
             onClick={handleSave}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            disabled={saving || loading}
+            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Save className="h-4 w-4 mr-2" />
-            Saxla
+            {saving ? 'Saxlanılır...' : 'Saxla'}
           </button>
         </div>
       </div>
@@ -225,6 +295,54 @@ export default function AdminSettingsPage() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Delivery Settings */}
+          {activeTab === 'delivery' && (
+            <div className="space-y-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Çatdırılma Tənzimləmələri</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Çatdırılma Xərci (₼)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={settings.deliveryCost}
+                    onChange={(e) => handleInputChange('deliveryCost', parseFloat(e.target.value))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  <p className="text-sm text-gray-500 mt-1">
+                    Standart çatdırılma xərci
+                  </p>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Pulsuz Çatdırılma Həddi (₼)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={settings.freeDeliveryThreshold}
+                    onChange={(e) => handleInputChange('freeDeliveryThreshold', parseFloat(e.target.value))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                  <p className="text-sm text-gray-500 mt-1">
+                    Bu məbləğdən yuxarı sifarişlərdə pulsuz çatdırılma
+                  </p>
+                </div>
+              </div>
+              
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="text-sm font-medium text-blue-900 mb-2">Çatdırılma Qaydaları</h4>
+                <ul className="text-sm text-blue-800 space-y-1">
+                  <li>• Sifariş məbləği {settings.freeDeliveryThreshold}₼-dən azdırsa: {settings.deliveryCost}₼ çatdırılma xərci</li>
+                  <li>• Sifariş məbləği {settings.freeDeliveryThreshold}₼ və ya daha çoxdursa: Pulsuz çatdırılma</li>
+                  <li>• Çatdırılma müddəti: 1-3 iş günü</li>
+                </ul>
               </div>
             </div>
           )}

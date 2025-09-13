@@ -209,6 +209,26 @@ model ProductRating {
   @@map("product_ratings")
 }
 
+model Settings {
+  id                        String   @id @default(cuid())
+  siteName                  String   @default("Sahib Parfumeriya")
+  siteDescription           String   @default("Premium Parfüm Mağazası")
+  contactEmail              String   @default("info@sahibparfumeriya.az")
+  contactPhone              String   @default("+994 50 123 45 67")
+  address                   String   @default("Bakı şəhəri, Nərimanov rayonu")
+  currency                  String   @default("AZN")
+  taxRate                   Float    @default(18.0)
+  deliveryCost              Float    @default(10.0)
+  freeDeliveryThreshold     Float    @default(100.0)
+  maintenanceMode           Boolean  @default(false)
+  allowRegistration         Boolean  @default(true)
+  requireEmailVerification  Boolean  @default(true)
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+
+  @@map("settings")
+}
+
 model Cart {
   id        String     @id @default(cuid())
   userId    String     @unique
