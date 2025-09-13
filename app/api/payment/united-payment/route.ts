@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getValidToken } from '@/lib/united-payment-auth'
+import { prisma } from '@/lib/prisma'
 
 // United Payment API configuration
 const UNITED_PAYMENT_CONFIG = {
@@ -34,17 +35,55 @@ function getApiUrl(): string {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { orderId, amount, currency = 'AZN', description, customerInfo } = body
+    const { orderId, amount, currency = 'AZN', description, customerInfo, retry } = body
 
     // Log request details for debugging
     console.log('Payment request received:', {
       orderId,
       amount,
       currency,
+      retry,
       hasCredentials: !!(UNITED_PAYMENT_CONFIG.email && UNITED_PAYMENT_CONFIG.password),
       isProduction: UNITED_PAYMENT_CONFIG.isProduction,
       apiUrl: getApiUrl()
     })
+
+    // Handle retry payment - fetch order data from database
+    if (retry && orderId) {
+      const existingOrder = await prisma.order.findUnique({
+        where: { id: orderId },
+        include: {
+          orderItems: {
+            include: {
+              product: true
+            }
+          }
+        }
+      })
+
+      if (!existingOrder) {
+        return NextResponse.json(
+          { error: 'Sifariş tapılmadı' },
+          { status: 404 }
+        )
+      }
+
+      // Use existing order data for retry
+      const retryData = {
+        orderId: existingOrder.id,
+        amount: existingOrder.totalAmount,
+        currency: 'AZN',
+        description: `Sifariş #${existingOrder.orderNumber} - Yenidən ödəniş`,
+        customerInfo: {
+          name: existingOrder.guestName || 'Müştəri',
+          email: existingOrder.guestEmail || 'customer@example.com',
+          phone: existingOrder.guestPhone || '+994501234567'
+        }
+      }
+
+      // Update body with retry data
+      Object.assign(body, retryData)
+    }
 
     // Validate required fields
     if (!orderId || !amount || !customerInfo) {

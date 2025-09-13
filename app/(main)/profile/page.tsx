@@ -3,7 +3,7 @@
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { User, Mail, Calendar, ShoppingBag, Heart, MapPin, Edit, Package, TrendingUp, Lock } from 'lucide-react'
+import { User, Mail, Calendar, ShoppingBag, Heart, MapPin, Edit, Package, TrendingUp, Lock, CreditCard, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 import { useCart } from '@/hooks/use-cart'
 import toast from 'react-hot-toast'
@@ -16,6 +16,7 @@ export default function ProfilePage() {
   const [addresses, setAddresses] = useState<any[]>([])
   const [favorites, setFavorites] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [retryingPayment, setRetryingPayment] = useState<string | null>(null)
   const [isEditing, setIsEditing] = useState(false)
   const [editForm, setEditForm] = useState({
     name: '',
@@ -182,6 +183,43 @@ export default function ProfilePage() {
       ...prev,
       [name]: value
     }))
+  }
+
+  // Filter unpaid orders
+  const unpaidOrders = orders.filter(order => 
+    order.paymentStatus === 'PENDING' || 
+    order.paymentStatus === 'PAYMENT_FAILED' ||
+    order.paymentStatus === 'CANCELLED'
+  )
+
+  const handleRetryPayment = async (orderId: string) => {
+    setRetryingPayment(orderId)
+    try {
+      const response = await fetch(`/api/payment/united-payment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          orderId: orderId,
+          retry: true
+        }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.paymentUrl) {
+        // Redirect to payment page
+        window.location.href = data.paymentUrl
+      } else {
+        toast.error(data.message || 'Ödəniş səhifəsinə yönləndirilmədi')
+      }
+    } catch (error) {
+      console.error('Payment retry error:', error)
+      toast.error('Ödəniş yenidən cəhdində xəta baş verdi')
+    } finally {
+      setRetryingPayment(null)
+    }
   }
 
   if (status === 'loading' || loading) {
@@ -385,6 +423,85 @@ export default function ProfilePage() {
               </div>
             </div>
 
+            {/* Unpaid Orders Section */}
+            {unpaidOrders.length > 0 && (
+              <div className="mt-8 bg-white rounded-lg shadow-sm border border-gray-200">
+                <div className="p-6 border-b border-gray-200">
+                  <div className="flex items-center space-x-2">
+                    <AlertCircle className="h-5 w-5 text-orange-600" />
+                    <h2 className="text-lg font-semibold text-gray-900">Tamamlanmamış Ödənişlər</h2>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Aşağıdakı sifarişlərin ödənişi tamamlanmayıb. Ödənişi yenidən etmək üçün "Ödənişi Tamamla" düyməsini basın.
+                  </p>
+                </div>
+                <div className="p-6">
+                  <div className="space-y-4">
+                    {unpaidOrders.map((order) => (
+                      <div key={order.id} className="border border-orange-200 rounded-lg p-4 bg-orange-50">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-3 mb-2">
+                              <div className="flex-shrink-0">
+                                <Package className="h-5 w-5 text-orange-600" />
+                              </div>
+                              <div>
+                                <h3 className="font-medium text-gray-900">
+                                  Sifariş #{order.orderNumber}
+                                </h3>
+                                <p className="text-sm text-gray-600">
+                                  {new Date(order.createdAt).toLocaleDateString('az-AZ')} - {order.totalAmount}₼
+                                </p>
+                              </div>
+                            </div>
+                            <div className="ml-8">
+                              <div className="flex items-center space-x-4 text-sm">
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                  order.paymentStatus === 'PENDING' 
+                                    ? 'bg-yellow-100 text-yellow-800' 
+                                    : order.paymentStatus === 'PAYMENT_FAILED'
+                                    ? 'bg-red-100 text-red-800'
+                                    : 'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {order.paymentStatus === 'PENDING' 
+                                    ? 'Gözləyir' 
+                                    : order.paymentStatus === 'PAYMENT_FAILED'
+                                    ? 'Ödəniş Uğursuz'
+                                    : 'Ləğv Edildi'
+                                  }
+                                </span>
+                                <span className="text-gray-600">
+                                  {order.orderItems?.length || 0} məhsul
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <button
+                              onClick={() => handleRetryPayment(order.id)}
+                              disabled={retryingPayment === order.id}
+                              className="flex items-center space-x-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {retryingPayment === order.id ? (
+                                <>
+                                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                                  <span>Yönləndirilir...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <CreditCard className="h-4 w-4" />
+                                  <span>Ödənişi Tamamla</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Recent Activity */}
             <div className="mt-8 bg-white rounded-lg shadow-sm border border-gray-200">
