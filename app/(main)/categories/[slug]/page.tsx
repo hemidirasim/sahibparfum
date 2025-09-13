@@ -4,8 +4,8 @@ import CategoryPageClient from './category-page-client'
 interface Category {
   id: string
   name: string
-  description?: string
-  image?: string
+  description?: string | null
+  image?: string | null
 }
 
 async function getCategoryData(slug: string): Promise<Category | null> {
