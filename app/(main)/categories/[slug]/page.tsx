@@ -27,31 +27,31 @@ async function getCategoryData(slug: string): Promise<Category | null> {
     })
     
     await prisma.$disconnect()
-    
-    // Try to find by ID first (if slug contains ID)
-    let foundCategory = categories.find((cat: Category) => slug.includes(cat.id))
-    
-    // If not found by ID, try by slug
-    if (!foundCategory) {
-      foundCategory = categories.find((cat: Category) => {
-        const categorySlug = cat.name.toLowerCase()
-          .replace(/ç/g, 'c')
-          .replace(/ğ/g, 'g')
-          .replace(/ı/g, 'i')
-          .replace(/ö/g, 'o')
-          .replace(/ş/g, 's')
-          .replace(/ü/g, 'u')
+        
+        // Try to find by ID first (if slug contains ID)
+        let foundCategory = categories.find((cat: Category) => slug.includes(cat.id))
+        
+        // If not found by ID, try by slug
+        if (!foundCategory) {
+          foundCategory = categories.find((cat: Category) => {
+            const categorySlug = cat.name.toLowerCase()
+              .replace(/ç/g, 'c')
+              .replace(/ğ/g, 'g')
+              .replace(/ı/g, 'i')
+              .replace(/ö/g, 'o')
+              .replace(/ş/g, 's')
+              .replace(/ü/g, 'u')
           .replace(/ə/g, 'e')  // ə -> e
           .replace(/ı/g, 'i')  // ı -> i
-          .replace(/\s+/g, '-')
-        
+              .replace(/\s+/g, '-')
+            
         console.log(`🔍 Comparing: "${categorySlug}" === "${slug}"`)
-        return categorySlug === slug
-      })
-    }
-    
+            return categorySlug === slug
+          })
+        }
+        
     return foundCategory || null
-  } catch (error) {
+      } catch (error) {
     console.error('Error fetching category:', error)
     return null
   }

@@ -1,221 +1,211 @@
-'use client'
+import { Metadata } from 'next'
+import { PrismaClient } from '@prisma/client'
+import CategoriesPageClient from './categories-page-client'
 
-import { useSearchParams, useRouter } from 'next/navigation'
-import { ProductGrid } from '@/components/products/product-grid'
-import { ProductFilters } from '@/components/products/product-filters'
-import { useState, useCallback, useEffect } from 'react'
+const prisma = new PrismaClient()
 
-export default function CategoriesPage() {
-  const searchParams = useSearchParams()
-  const router = useRouter()
-  const search = searchParams.get('search')
-  const category = searchParams.get('category')
-  const filter = searchParams.get('filter') // Alphabetical filter
-  const newProducts = searchParams.get('new')
-  const sale = searchParams.get('sale')
-  const brand = searchParams.get('brand')
+interface Category {
+  id: string
+  name: string
+  description: string | null
+  image: string | null
+  isActive: boolean
+  productCount: number
+}
 
-  const [activeFilters, setActiveFilters] = useState({
-    categories: [] as string[],
-    brands: [] as string[],
-    priceRanges: [] as string[],
-    volumes: [] as string[],
-    ratings: [] as number[]
-  })
+async function getCategoriesData(): Promise<Category[]> {
+  try {
+    const categories = await prisma.category.findMany({
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        image: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+        _count: {
+          select: {
+            products: {
+              where: {
+                isActive: true
+              }
+            }
+          }
+        }
+      },
+      orderBy: {
+        name: 'asc'
+      }
+    })
 
-  const [categoriesData, setCategoriesData] = useState<any[]>([])
+    await prisma.$disconnect()
 
-  // Helper function to get category name by ID
-  const getCategoryName = (categoryId: string) => {
-    const category = categoriesData.find(cat => cat.id === categoryId)
-    return category ? category.name : categoryId
+    return categories.map(category => ({
+      ...category,
+      productCount: category._count.products
+    }))
+  } catch (error) {
+    console.error('Error fetching categories:', error)
+    await prisma.$disconnect()
+    return []
+  }
+}
+
+export async function generateMetadata({ searchParams }: { 
+  searchParams: { [key: string]: string | string[] | undefined } 
+}): Promise<Metadata> {
+  console.log('🔍 Generating metadata for categories page with params:', searchParams)
+  
+  const categories = await getCategoriesData()
+  const categoryIds = searchParams.categoryIds as string | string[]
+  const search = searchParams.search as string
+  const filter = searchParams.filter as string
+  const brand = searchParams.brand as string
+  const newProducts = searchParams.new as string
+  const sale = searchParams.sale as string
+  const category = searchParams.category as string
+
+  let title = 'Bütün Məhsullar - Sahib Parfumeriya'
+  let description = 'Bütün parfüm kolleksiyamızı kəşf edin. Premium parfüm markalarını sərfəli qiymətlərlə təqdim edən etibarlı platforma.'
+  let keywords = 'parfüm, ətir, sahib parfumeriya, online mağaza, parfüm alış-verişi'
+
+  // Handle categoryIds parameter
+  if (categoryIds) {
+    const ids = Array.isArray(categoryIds) ? categoryIds : [categoryIds]
+    const categoryNames = ids
+      .map(id => categories.find(cat => cat.id === id)?.name)
+      .filter(Boolean)
+      .join(', ')
+    
+    if (categoryNames) {
+      title = `${categoryNames} - Kateqoriya Məhsulları | Sahib Parfumeriya`
+      description = `${categoryNames} kateqoriyasında premium parfümlər. ${categoryNames} üçün geniş seçim və sərfəli qiymətlər.`
+      keywords = `${categoryNames}, parfüm, ətir, kateqoriya, sahib parfumeriya, online mağaza`
+    }
+  }
+  // Handle other filters
+  else if (search) {
+    title = `"${search}" üçün nəticələr - Sahib Parfumeriya`
+    description = `"${search}" axtarış nəticələri. Premium parfüm markalarında geniş seçim və sərfəli qiymətlər.`
+    keywords = `${search}, axtarış, parfüm, ətir, sahib parfumeriya`
+  }
+  else if (filter) {
+    title = `"${filter}" hərfi ilə başlayan məhsullar - Sahib Parfumeriya`
+    description = `"${filter}" hərfi ilə başlayan parfümlər. Premium markalarda geniş seçim və sərfəli qiymətlər.`
+    keywords = `${filter}, parfüm, ətir, hərf, sahib parfumeriya`
+  }
+  else if (brand) {
+    title = `"${brand}" markası üçün məhsullar - Sahib Parfumeriya`
+    description = `"${brand}" markasının premium parfümləri. Geniş seçim və sərfəli qiymətlər.`
+    keywords = `${brand}, marka, parfüm, ətir, sahib parfumeriya`
+  }
+  else if (newProducts === 'true') {
+    title = 'Yeni Məhsullar - Sahib Parfumeriya'
+    description = 'Yeni gələn parfümlər və ətirlər. Ən son kolleksiyalar və trend məhsullar.'
+    keywords = 'yeni məhsullar, yeni parfüm, yeni ətir, trend, kolleksiya, sahib parfumeriya'
+  }
+  else if (sale === 'true') {
+    title = 'Endirimli Məhsullar - Sahib Parfumeriya'
+    description = 'Endirimli parfümlər və ətirlər. Premium markalarda böyük endirimlər və sərfəli qiymətlər.'
+    keywords = 'endirimli məhsullar, endirim, parfüm, ətir, sərfəli qiymət, sahib parfumeriya'
+  }
+  else if (category) {
+    title = `${category} kateqoriyası - Sahib Parfumeriya`
+    description = `${category} kateqoriyasında premium parfümlər. Geniş seçim və sərfəli qiymətlər.`
+    keywords = `${category}, kateqoriya, parfüm, ətir, sahib parfumeriya`
   }
 
-  // Fetch categories data
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await fetch('/api/categories')
-        const data = await response.json()
-        setCategoriesData(data)
-      } catch (error) {
-        console.error('Error fetching categories:', error)
-      }
-    }
-    fetchCategories()
-  }, [])
+  const canonicalUrl = `https://sahibparfum.az/categories${Object.keys(searchParams).length > 0 ? '?' + new URLSearchParams(searchParams as Record<string, string>).toString() : ''}`
 
-  // Initialize activeFilters from URL parameters
-  useEffect(() => {
-    const newActiveFilters = {
-      categories: [] as string[],
-      brands: [] as string[],
-      priceRanges: [] as string[],
-      volumes: [] as string[],
-      ratings: [] as number[]
-    }
-
-    // Parse categories from URL
-    const categoryIds = searchParams.getAll('categoryIds')
-    if (categoryIds.length > 0) {
-      newActiveFilters.categories = categoryIds
-    } else if (category) {
-      // If single category parameter exists, add it
-      newActiveFilters.categories = [category]
-    }
-
-    // Parse brands from URL
-    const brands = searchParams.getAll('brands')
-    const brandFilter = searchParams.get('brandFilter')
-    if (brands.length > 0) {
-      newActiveFilters.brands = brands
-    } else if (brand) {
-      // If single brand parameter exists, add it
-      newActiveFilters.brands = [brand]
-    } else if (brandFilter) {
-      // If brandFilter parameter exists, we'll handle it in the filter component
-      // For now, just set it as a special case
-      newActiveFilters.brands = []
-    }
-
-    // Parse price ranges from URL
-    const priceRanges = searchParams.getAll('priceRanges')
-    if (priceRanges.length > 0) {
-      newActiveFilters.priceRanges = priceRanges
-    } else {
-      // Parse from minPrice/maxPrice parameters
-      const minPrice = searchParams.get('minPrice')
-      const maxPrice = searchParams.get('maxPrice')
-      if (minPrice && maxPrice) {
-        newActiveFilters.priceRanges = [`${minPrice}-${maxPrice}`]
-      } else if (minPrice) {
-        newActiveFilters.priceRanges = [`${minPrice}+`]
-      } else if (maxPrice) {
-        newActiveFilters.priceRanges = [`0-${maxPrice}`]
-      }
-    }
-
-    // Parse volumes from URL
-    const volumes = searchParams.getAll('volumes')
-    if (volumes.length > 0) {
-      newActiveFilters.volumes = volumes
-    } else if (searchParams.get('volume')) {
-      newActiveFilters.volumes = [searchParams.get('volume')!]
-    }
-
-    // Parse ratings from URL
-    const minRating = searchParams.get('minRating')
-    if (minRating) {
-      newActiveFilters.ratings = [parseInt(minRating)]
-    }
-
-    setActiveFilters(newActiveFilters)
-  }, [searchParams, category, brand])
-
-  const handleFiltersChange = useCallback((filters: {
-    categories: string[]
-    brands: string[]
-    priceRanges: string[]
-    volumes: string[]
-    ratings: number[]
-  }) => {
-    setActiveFilters(filters)
-    
-    // Update URL parameters based on filters
-    const newParams = new URLSearchParams(searchParams.toString())
-    
-    // Clear existing filter parameters
-    newParams.delete('category')
-    newParams.delete('brand')
-    newParams.delete('minPrice')
-    newParams.delete('maxPrice')
-    newParams.delete('volume')
-    newParams.delete('minRating')
-    newParams.delete('categoryIds')
-    newParams.delete('brands')
-    newParams.delete('priceRanges')
-    newParams.delete('volumes')
-    
-    // Add new filter parameters
-    if (filters.categories.length > 0) {
-      filters.categories.forEach(catId => newParams.append('categoryIds', catId))
-    }
-    if (filters.brands.length > 0) {
-      filters.brands.forEach(brand => newParams.append('brands', brand))
-    }
-    if (filters.priceRanges.length > 0) {
-      filters.priceRanges.forEach(range => newParams.append('priceRanges', range))
-    }
-    if (filters.volumes.length > 0) {
-      filters.volumes.forEach(volume => newParams.append('volumes', volume))
-    }
-    if (filters.ratings.length > 0) {
-      const minRating = Math.min(...filters.ratings)
-      newParams.set('minRating', minRating.toString())
-    }
-    
-    // Navigate to new URL
-    const newUrl = newParams.toString() ? `/categories?${newParams.toString()}` : '/categories'
-    router.push(newUrl)
-  }, [searchParams, router])
-
-
-  // Generate page title based on active filters
-  const getPageTitle = () => {
-    if (search) return `"${search}" üçün nəticələr`
-    if (filter) return `"${filter}" hərfi ilə başlayan məhsullar`
-    if (brand) return `"${brand}" markası üçün məhsullar`
-    if (newProducts === 'true') return 'Yeni Məhsullar'
-    if (sale === 'true') return 'Endirimli Məhsullar'
-    if (category) return `${category} kateqoriyası`
-    return 'Bütün Məhsullar'
+  return {
+    title,
+    description,
+    keywords,
+    authors: [{ name: 'Sahib Parfumeriya' }],
+    openGraph: {
+      title,
+      description,
+      url: canonicalUrl,
+      siteName: 'Sahib Parfumeriya',
+      type: 'website',
+      locale: 'az_AZ',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+    },
+    alternates: {
+      canonical: canonicalUrl,
+    },
   }
+}
 
-  const getPageDescription = () => {
-    if (search || filter || brand || newProducts === 'true' || sale === 'true' || category) {
-      return 'Axtarış nəticələriniz'
+export default async function CategoriesPage({ 
+  searchParams 
+}: { 
+  searchParams: { [key: string]: string | string[] | undefined } 
+}) {
+  const categories = await getCategoriesData()
+  
+  // Generate page title and description
+  const categoryIds = searchParams.categoryIds as string | string[]
+  const search = searchParams.search as string
+  const filter = searchParams.filter as string
+  const brand = searchParams.brand as string
+  const newProducts = searchParams.new as string
+  const sale = searchParams.sale as string
+  const category = searchParams.category as string
+
+  let pageTitle = 'Bütün Məhsullar'
+  let pageDescription = 'Bütün parfüm kolleksiyamızı kəşf edin'
+
+  // Handle categoryIds parameter
+  if (categoryIds) {
+    const ids = Array.isArray(categoryIds) ? categoryIds : [categoryIds]
+    const categoryNames = ids
+      .map(id => categories.find(cat => cat.id === id)?.name)
+      .filter(Boolean)
+      .join(', ')
+    
+    if (categoryNames) {
+      pageTitle = `${categoryNames} kateqoriyası`
+      pageDescription = `${categoryNames} kateqoriyasında premium parfümlər`
     }
-    return 'Bütün parfüm kolleksiyamızı kəşf edin'
+  }
+  else if (search) {
+    pageTitle = `"${search}" üçün nəticələr`
+    pageDescription = 'Axtarış nəticələriniz'
+  }
+  else if (filter) {
+    pageTitle = `"${filter}" hərfi ilə başlayan məhsullar`
+    pageDescription = 'Axtarış nəticələriniz'
+  }
+  else if (brand) {
+    pageTitle = `"${brand}" markası üçün məhsullar`
+    pageDescription = 'Axtarış nəticələriniz'
+  }
+  else if (newProducts === 'true') {
+    pageTitle = 'Yeni Məhsullar'
+    pageDescription = 'Yeni gələn parfümlər və ətirlər'
+  }
+  else if (sale === 'true') {
+    pageTitle = 'Endirimli Məhsullar'
+    pageDescription = 'Endirimli parfümlər və ətirlər'
+  }
+  else if (category) {
+    pageTitle = `${category} kateqoriyası`
+    pageDescription = 'Axtarış nəticələriniz'
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">{getPageTitle()}</h1>
-          <p className="text-gray-600 mt-2">
-            {getPageDescription()}
-          </p>
-          
-        </div>
-
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* Filters Sidebar */}
-          <div className="lg:w-1/4">
-            <ProductFilters 
-              onFiltersChange={handleFiltersChange}
-              activeFilters={activeFilters}
-            />
-          </div>
-
-          {/* Products Grid */}
-          <div className="lg:w-3/4">
-            <ProductGrid 
-              search={search}
-              category={category}
-              filter={filter}
-              brand={brand}
-              newProducts={newProducts === 'true'}
-              sale={sale === 'true'}
-              minPrice={searchParams.get('minPrice')}
-              maxPrice={searchParams.get('maxPrice')}
-              volume={searchParams.get('volume')}
-              minRating={searchParams.get('minRating')}
-              activeFilters={activeFilters}
-            />
-          </div>
-        </div>
-      </div>
-    </div>
+    <CategoriesPageClient 
+      initialCategories={categories}
+      pageTitle={pageTitle}
+      pageDescription={pageDescription}
+    />
   )
 }
+
+export const dynamic = 'force-dynamic'
