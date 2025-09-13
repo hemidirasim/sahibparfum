@@ -83,15 +83,30 @@ export default function BrandsPage() {
     }
   }
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
       setLogoFile(file)
+      
+      // Create preview immediately
       const reader = new FileReader()
       reader.onload = (e) => {
         setLogoPreview(e.target?.result as string)
       }
       reader.readAsDataURL(file)
+      
+      // Auto upload the file
+      try {
+        console.log('Auto uploading brand logo:', file.name)
+        const uploadedUrl = await handleFileUpload(file)
+        if (uploadedUrl) {
+          console.log('Brand logo uploaded successfully:', uploadedUrl)
+          setNewBrandLogo(uploadedUrl)
+          setLogoPreview(uploadedUrl)
+        }
+      } catch (error) {
+        console.error('Auto upload failed:', error)
+      }
     }
   }
 
@@ -102,16 +117,11 @@ export default function BrandsPage() {
     try {
       setSaving(true)
       
-      let logoUrl = newBrandLogo.trim()
-      
-      // Əgər fayl seçilibsə, onu upload et
-      if (logoFile) {
-        logoUrl = await handleFileUpload(logoFile)
-        if (!logoUrl) {
-          setSaving(false)
-          return
-        }
-      }
+      console.log('Adding brand with data:', {
+        name: newBrandName.trim(),
+        description: newBrandDescription.trim(),
+        logo: newBrandLogo.trim()
+      })
 
       const response = await fetch('/api/admin/brands', {
         method: 'POST',
@@ -121,11 +131,12 @@ export default function BrandsPage() {
         body: JSON.stringify({ 
           name: newBrandName.trim(),
           description: newBrandDescription.trim(),
-          logo: logoUrl
+          logo: newBrandLogo.trim()
         }),
       })
 
       if (response.ok) {
+        console.log('Brand added successfully')
         setNewBrandName('')
         setNewBrandDescription('')
         setNewBrandLogo('')
@@ -135,6 +146,7 @@ export default function BrandsPage() {
         fetchBrands()
       } else {
         const error = await response.json()
+        console.error('Brand add error:', error)
         alert(`Marka əlavə edərkən xəta: ${error.error}`)
       }
     } catch (error) {
@@ -152,16 +164,12 @@ export default function BrandsPage() {
     try {
       setSaving(true)
       
-      let logoUrl = newBrandLogo.trim()
-      
-      // Əgər fayl seçilibsə, onu upload et
-      if (logoFile) {
-        logoUrl = await handleFileUpload(logoFile)
-        if (!logoUrl) {
-          setSaving(false)
-          return
-        }
-      }
+      console.log('Editing brand with data:', {
+        id: editingBrand.id,
+        name: newBrandName.trim(),
+        description: newBrandDescription.trim(),
+        logo: newBrandLogo.trim()
+      })
 
       const response = await fetch(`/api/admin/brands/${editingBrand.id}`, {
         method: 'PUT',
@@ -171,11 +179,12 @@ export default function BrandsPage() {
         body: JSON.stringify({ 
           name: newBrandName.trim(),
           description: newBrandDescription.trim(),
-          logo: logoUrl
+          logo: newBrandLogo.trim()
         }),
       })
 
       if (response.ok) {
+        console.log('Brand edited successfully')
         setNewBrandName('')
         setNewBrandDescription('')
         setNewBrandLogo('')
@@ -186,6 +195,7 @@ export default function BrandsPage() {
         fetchBrands()
       } else {
         const error = await response.json()
+        console.error('Brand edit error:', error)
         alert(`Marka redaktə edərkən xəta: ${error.error}`)
       }
     } catch (error) {
