@@ -164,7 +164,7 @@ export async function POST(request: NextRequest) {
 
     // Prepare payment data according to United Payment API format
     const paymentData: any = {
-      clientOrderId: finalOrderId,
+      orderId: finalOrderId, // United Payment API expects 'orderId' not 'clientOrderId'
       amount: finalAmount, // Keep amount in AZN (no conversion needed)
       language: "AZ", // Azerbaijani
       successUrl: UNITED_PAYMENT_CONFIG.successUrl,
@@ -187,7 +187,7 @@ export async function POST(request: NextRequest) {
 
     // Log payment data structure for debugging
     console.log('Payment data structure:', {
-      hasClientOrderId: !!paymentData.clientOrderId,
+      hasOrderId: !!paymentData.orderId,
       hasAmount: !!paymentData.amount,
       hasLanguage: !!paymentData.language,
       hasSuccessUrl: !!paymentData.successUrl,
@@ -267,7 +267,7 @@ export async function POST(request: NextRequest) {
       isMock: false, // Real payment
       // Additional details for debugging
       paymentDetails: {
-        clientOrderId: result.clientOrderId,
+        orderId: result.orderId || result.clientOrderId,
         transactionType: result.transactionType,
         description: paymentData.description,
         customerName: paymentData.clientName,
