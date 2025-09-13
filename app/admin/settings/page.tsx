@@ -1,64 +1,79 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Save, Globe, Mail, Phone, MapPin, CreditCard, Shield, Truck } from 'lucide-react'
-import toast from 'react-hot-toast'
+import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
+import { Save, RefreshCw } from 'lucide-react'
 
-export default function AdminSettingsPage() {
-  const [settings, setSettings] = useState({
+interface Settings {
+  id?: string
+  siteName: string
+  siteDescription: string
+  contactEmail: string
+  contactPhone: string
+  address: string
+  currency: string
+  taxRate: number
+  deliveryCost: number
+  freeDeliveryThreshold: number
+  maintenanceMode: boolean
+  allowRegistration: boolean
+  requireEmailVerification: boolean
+}
+
+export default function SettingsPage() {
+  const { data: session } = useSession()
+  const router = useRouter()
+  const [settings, setSettings] = useState<Settings>({
     siteName: 'Sahib Parfumeriya',
     siteDescription: 'Premium Parfüm Mağazası',
     contactEmail: 'info@sahibparfumeriya.az',
     contactPhone: '+994 50 123 45 67',
     address: 'Bakı şəhəri, Nərimanov rayonu',
     currency: 'AZN',
-    taxRate: 18,
-    deliveryCost: 10,
-    freeDeliveryThreshold: 100,
+    taxRate: 18.0,
+    deliveryCost: 10.0,
+    freeDeliveryThreshold: 100.0,
     maintenanceMode: false,
     allowRegistration: true,
     requireEmailVerification: true
   })
-
-  const [activeTab, setActiveTab] = useState('general')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [message, setMessage] = useState('')
 
-  // Load settings on component mount
+  // Redirect if not admin
   useEffect(() => {
+    if (session?.user?.role !== 'ADMIN') {
+      router.push('/admin')
+    }
+  }, [session, router])
+
+  // Fetch current settings
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await fetch('/api/settings')
+        if (response.ok) {
+          const data = await response.json()
+          setSettings(data)
+        }
+      } catch (error) {
+        console.error('Error fetching settings:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
     fetchSettings()
   }, [])
 
-  const fetchSettings = async () => {
-    try {
-      setLoading(true)
-      const response = await fetch('/api/admin/settings')
-      if (response.ok) {
-        const data = await response.json()
-        setSettings(data)
-      } else {
-        console.error('Failed to fetch settings')
-        toast.error('Tənzimləmələr yüklənərkən xəta baş verdi')
-      }
-    } catch (error) {
-      console.error('Settings fetch error:', error)
-      toast.error('Tənzimləmələr yüklənərkən xəta baş verdi')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleInputChange = (field: string, value: any) => {
-    setSettings(prev => ({
-      ...prev,
-      [field]: value
-    }))
-  }
-
   const handleSave = async () => {
+    setSaving(true)
+    setMessage('')
+
     try {
-      setSaving(true)
-      const response = await fetch('/api/admin/settings', {
+      const response = await fetch('/api/settings', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -67,40 +82,32 @@ export default function AdminSettingsPage() {
       })
 
       if (response.ok) {
-        toast.success('Tənzimləmələr uğurla saxlanıldı!')
+        setMessage('Tənzimləmələr uğurla yeniləndi!')
+        setTimeout(() => setMessage(''), 3000)
       } else {
-        const error = await response.json()
-        toast.error('Tənzimləmələr saxlanarkən xəta: ' + (error.message || 'Naməlum xəta'))
+        setMessage('Xəta baş verdi. Yenidən cəhd edin.')
       }
     } catch (error) {
-      console.error('Settings save error:', error)
-      toast.error('Tənzimləmələr saxlanarkən xəta baş verdi')
+      console.error('Error saving settings:', error)
+      setMessage('Xəta baş verdi. Yenidən cəhd edin.')
     } finally {
       setSaving(false)
     }
   }
 
-  const tabs = [
-    { id: 'general', name: 'Ümumi', icon: Globe },
-    { id: 'contact', name: 'Əlaqə', icon: Mail },
-    { id: 'business', name: 'Biznes', icon: CreditCard },
-    { id: 'delivery', name: 'Çatdırılma', icon: Truck },
-    { id: 'security', name: 'Təhlükəsizlik', icon: Shield }
-  ]
+  const handleInputChange = (field: keyof Settings, value: any) => {
+    setSettings(prev => ({
+      ...prev,
+      [field]: value
+    }))
+  }
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded w-2/3"></div>
-          </div>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="animate-pulse space-y-4">
-            <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-            <div className="h-10 bg-gray-200 rounded"></div>
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
           </div>
         </div>
       </div>
@@ -108,268 +115,219 @@ export default function AdminSettingsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Tənzimləmələr</h1>
-            <p className="text-gray-600 mt-1">
-              Sayt parametrlərini və konfiqurasiyalarını idarə edin
-            </p>
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900">Tənzimləmələr</h1>
+          <p className="text-gray-600 mt-2">
+            Sayt tənzimləmələrini buradan idarə edə bilərsiniz
+          </p>
+        </div>
+
+        {message && (
+          <div className={`mb-6 p-4 rounded-lg ${
+            message.includes('uğurla') 
+              ? 'bg-green-50 text-green-800 border border-green-200' 
+              : 'bg-red-50 text-red-800 border border-red-200'
+          }`}>
+            {message}
           </div>
-          <button
-            onClick={handleSave}
-            disabled={saving || loading}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Save className="h-4 w-4 mr-2" />
-            {saving ? 'Saxlanılır...' : 'Saxla'}
-          </button>
-        </div>
-      </div>
+        )}
 
-      {/* Tabs */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-        <div className="border-b border-gray-200">
-          <nav className="flex space-x-8 px-6">
-            {tabs.map((tab) => {
-              const Icon = tab.icon
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                    activeTab === tab.id
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  <Icon className="h-4 w-4 mr-2" />
-                  {tab.name}
-                </button>
-              )
-            })}
-          </nav>
-        </div>
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Site Information */}
+            <div className="md:col-span-2">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Sayt Məlumatları</h2>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Sayt Adı
+              </label>
+              <input
+                type="text"
+                value={settings.siteName}
+                onChange={(e) => handleInputChange('siteName', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
 
-        <div className="p-6">
-          {/* General Settings */}
-          {activeTab === 'general' && (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Ümumi Məlumatlar</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Sayt Adı
-                    </label>
-                    <input
-                      type="text"
-                      value={settings.siteName}
-                      onChange={(e) => handleInputChange('siteName', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Sayt Təsviri
-                    </label>
-                    <input
-                      type="text"
-                      value={settings.siteDescription}
-                      onChange={(e) => handleInputChange('siteDescription', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Sayt Təsviri
+              </label>
+              <input
+                type="text"
+                value={settings.siteDescription}
+                onChange={(e) => handleInputChange('siteDescription', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Əlaqə Telefonu
+              </label>
+              <input
+                type="text"
+                value={settings.contactPhone}
+                onChange={(e) => handleInputChange('contactPhone', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Əlaqə Email
+              </label>
+              <input
+                type="email"
+                value={settings.contactEmail}
+                onChange={(e) => handleInputChange('contactEmail', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Ünvan
+              </label>
+              <input
+                type="text"
+                value={settings.address}
+                onChange={(e) => handleInputChange('address', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            {/* Shipping Settings */}
+            <div className="md:col-span-2">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 mt-6">Çatdırılma Tənzimləmələri</h2>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Çatdırılma Xərci (₼)
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                value={settings.deliveryCost}
+                onChange={(e) => handleInputChange('deliveryCost', parseFloat(e.target.value))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Pulsuz Çatdırılma Limiti (₼)
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                value={settings.freeDeliveryThreshold}
+                onChange={(e) => handleInputChange('freeDeliveryThreshold', parseFloat(e.target.value))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            {/* Other Settings */}
+            <div className="md:col-span-2">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 mt-6">Digər Tənzimləmələr</h2>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Valyuta
+              </label>
+              <select
+                value={settings.currency}
+                onChange={(e) => handleInputChange('currency', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="AZN">AZN</option>
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                ƏDV Dərəcəsi (%)
+              </label>
+              <input
+                type="number"
+                step="0.1"
+                value={settings.taxRate}
+                onChange={(e) => handleInputChange('taxRate', parseFloat(e.target.value))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+
+            {/* Checkboxes */}
+            <div className="md:col-span-2 space-y-4">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="maintenanceMode"
+                  checked={settings.maintenanceMode}
+                  onChange={(e) => handleInputChange('maintenanceMode', e.target.checked)}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label htmlFor="maintenanceMode" className="ml-2 text-sm text-gray-700">
+                  Texniki xidmət rejimi
+                </label>
               </div>
 
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 mb-4">Sistem Tənzimləmələri</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">Texniki Xidmət Rejimi</p>
-                      <p className="text-sm text-gray-600">Saytı müvəqqəti olaraq bağlayın</p>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={settings.maintenanceMode}
-                        onChange={(e) => handleInputChange('maintenanceMode', e.target.checked)}
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                    </label>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">Qeydiyyat İcazəsi</p>
-                      <p className="text-sm text-gray-600">Yeni istifadəçilərin qeydiyyatına icazə verin</p>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={settings.allowRegistration}
-                        onChange={(e) => handleInputChange('allowRegistration', e.target.checked)}
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                    </label>
-                  </div>
-                </div>
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="allowRegistration"
+                  checked={settings.allowRegistration}
+                  onChange={(e) => handleInputChange('allowRegistration', e.target.checked)}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label htmlFor="allowRegistration" className="ml-2 text-sm text-gray-700">
+                  Yeni qeydiyyata icazə ver
+                </label>
+              </div>
+
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="requireEmailVerification"
+                  checked={settings.requireEmailVerification}
+                  onChange={(e) => handleInputChange('requireEmailVerification', e.target.checked)}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <label htmlFor="requireEmailVerification" className="ml-2 text-sm text-gray-700">
+                  Email təsdiqi tələb et
+                </label>
               </div>
             </div>
-          )}
+          </div>
 
-          {/* Contact Settings */}
-          {activeTab === 'contact' && (
-            <div className="space-y-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Əlaqə Məlumatları</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email Ünvanı
-                  </label>
-                  <input
-                    type="email"
-                    value={settings.contactEmail}
-                    onChange={(e) => handleInputChange('contactEmail', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Telefon Nömrəsi
-                  </label>
-                  <input
-                    type="tel"
-                    value={settings.contactPhone}
-                    onChange={(e) => handleInputChange('contactPhone', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Ünvan
-                  </label>
-                  <input
-                    type="text"
-                    value={settings.address}
-                    onChange={(e) => handleInputChange('address', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Business Settings */}
-          {activeTab === 'business' && (
-            <div className="space-y-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Biznes Tənzimləmələri</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Valyuta
-                  </label>
-                  <select
-                    value={settings.currency}
-                    onChange={(e) => handleInputChange('currency', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="AZN">AZN (₼)</option>
-                    <option value="USD">USD ($)</option>
-                    <option value="EUR">EUR (€)</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    ƏDV Dərəcəsi (%)
-                  </label>
-                  <input
-                    type="number"
-                    value={settings.taxRate}
-                    onChange={(e) => handleInputChange('taxRate', parseInt(e.target.value))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Delivery Settings */}
-          {activeTab === 'delivery' && (
-            <div className="space-y-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Çatdırılma Tənzimləmələri</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Çatdırılma Xərci (₼)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={settings.deliveryCost}
-                    onChange={(e) => handleInputChange('deliveryCost', parseFloat(e.target.value))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  <p className="text-sm text-gray-500 mt-1">
-                    Standart çatdırılma xərci
-                  </p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Pulsuz Çatdırılma Həddi (₼)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={settings.freeDeliveryThreshold}
-                    onChange={(e) => handleInputChange('freeDeliveryThreshold', parseFloat(e.target.value))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                  <p className="text-sm text-gray-500 mt-1">
-                    Bu məbləğdən yuxarı sifarişlərdə pulsuz çatdırılma
-                  </p>
-                </div>
-              </div>
-              
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-blue-900 mb-2">Çatdırılma Qaydaları</h4>
-                <ul className="text-sm text-blue-800 space-y-1">
-                  <li>• Sifariş məbləği {settings.freeDeliveryThreshold}₼-dən azdırsa: {settings.deliveryCost}₼ çatdırılma xərci</li>
-                  <li>• Sifariş məbləği {settings.freeDeliveryThreshold}₼ və ya daha çoxdursa: Pulsuz çatdırılma</li>
-                  <li>• Çatdırılma müddəti: 1-3 iş günü</li>
-                </ul>
-              </div>
-            </div>
-          )}
-
-          {/* Security Settings */}
-          {activeTab === 'security' && (
-            <div className="space-y-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Təhlükəsizlik Tənzimləmələri</h3>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">Email Təsdiqi Tələb Et</p>
-                    <p className="text-sm text-gray-600">İstifadəçilər email ünvanlarını təsdiq etməlidir</p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={settings.requireEmailVerification}
-                      onChange={(e) => handleInputChange('requireEmailVerification', e.target.checked)}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                  </label>
-                </div>
-              </div>
-            </div>
-          )}
+          {/* Save Button */}
+          <div className="mt-8 flex justify-end">
+            <button
+              onClick={handleSave}
+              disabled={saving}
+              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {saving ? (
+                <>
+                  <RefreshCw className="h-4 w-4 animate-spin" />
+                  Yadda saxlanılır...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4" />
+                  Yadda Saxla
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>

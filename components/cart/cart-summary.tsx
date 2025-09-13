@@ -4,13 +4,42 @@ import { useCart } from '@/hooks/use-cart'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { CreditCard, Truck } from 'lucide-react'
+import { useState, useEffect } from 'react'
+
+interface Settings {
+  deliveryCost: number
+  freeDeliveryThreshold: number
+}
 
 export function CartSummary() {
   const { items, getTotal } = useCart()
   const { data: session } = useSession()
+  const [settings, setSettings] = useState<Settings>({
+    deliveryCost: 10,
+    freeDeliveryThreshold: 100
+  })
+
+  // Fetch settings from API
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await fetch('/api/settings')
+        const data = await response.json()
+        setSettings({
+          deliveryCost: data.deliveryCost || 10,
+          freeDeliveryThreshold: data.freeDeliveryThreshold || 100
+        })
+      } catch (error) {
+        console.error('Error fetching settings:', error)
+        // Use default values if API fails
+      }
+    }
+
+    fetchSettings()
+  }, [])
 
   const subtotal = getTotal()
-  const shipping = subtotal > 100 ? 0 : 10 // Pulsuz çatdırılma 100₼ üzərində
+  const shipping = subtotal >= settings.freeDeliveryThreshold ? 0 : settings.deliveryCost
   const total = subtotal + shipping
 
   return (
@@ -34,7 +63,7 @@ export function CartSummary() {
         
         {shipping > 0 && (
           <div className="text-xs text-gray-500">
-            * 100₼ üzərində sifarişlərdə pulsuz çatdırılma
+            * {settings.freeDeliveryThreshold}₼ üzərində sifarişlərdə pulsuz çatdırılma
           </div>
         )}
         
@@ -52,7 +81,7 @@ export function CartSummary() {
         <ul className="space-y-2 text-sm text-gray-600">
           <li className="flex items-center">
             <Truck className="h-4 w-4 mr-2 text-green-600" />
-            Pulsuz çatdırılma (100₼ üzərində)
+            Pulsuz çatdırılma ({settings.freeDeliveryThreshold}₼ üzərində)
           </li>
           <li className="flex items-center">
             <CreditCard className="h-4 w-4 mr-2 text-green-600" />

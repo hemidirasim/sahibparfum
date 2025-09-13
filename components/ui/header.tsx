@@ -8,6 +8,12 @@ import { useState, useEffect } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useCart } from '@/hooks/use-cart'
 
+interface Settings {
+  contactPhone: string
+  contactEmail: string
+  freeDeliveryThreshold: number
+}
+
 // Static categories that don't need API
 const staticCategories = [
   { name: 'Yeni Gələnlər', href: '/categories?new=true' },
@@ -27,10 +33,36 @@ export function Header() {
   const [brands, setBrands] = useState<{[key: string]: string[]}>({})
   const [categories, setCategories] = useState<Array<{name: string, href: string}>>([])
   const [hoveredLetter, setHoveredLetter] = useState<string | null>(null)
+  const [settings, setSettings] = useState<Settings>({
+    contactPhone: '+994 50 123 45 67',
+    contactEmail: 'info@sahibparfumeriya.az',
+    freeDeliveryThreshold: 100
+  })
   const { data: session } = useSession()
   const { items } = useCart()
 
   const cartItemsCount = items.reduce((total, item) => total + item.quantity, 0)
+
+  // Fetch settings
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await fetch('/api/settings')
+        if (response.ok) {
+          const data = await response.json()
+          setSettings({
+            contactPhone: data.contactPhone || '+994 50 123 45 67',
+            contactEmail: data.contactEmail || 'info@sahibparfumeriya.az',
+            freeDeliveryThreshold: data.freeDeliveryThreshold || 100
+          })
+        }
+      } catch (error) {
+        console.error('Error fetching settings:', error)
+      }
+    }
+
+    fetchSettings()
+  }, [])
 
   // Fetch categories
   useEffect(() => {
@@ -89,15 +121,15 @@ export function Header() {
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
                 <Phone className="h-4 w-4" />
-                <span>+994 50 123 45 67</span>
+                <span>{settings.contactPhone}</span>
               </div>
               <div className="flex items-center space-x-2">
                 <Mail className="h-4 w-4" />
-                <span>info@sahibparfumeriya.az</span>
+                <span>{settings.contactEmail}</span>
               </div>
             </div>
             <div className="hidden md:flex items-center space-x-4">
-              <span>🚚 100₼ üzərində pulsuz çatdırılma</span>
+              <span>🚚 {settings.freeDeliveryThreshold}₼ üzərində pulsuz çatdırılma</span>
               <span>⭐ 1000+ məmnun müştəri</span>
             </div>
           </div>
