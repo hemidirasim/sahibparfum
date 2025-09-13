@@ -198,6 +198,23 @@ export async function POST(request: NextRequest) {
     console.log('United Payment API Response:', result)
     console.log('Response status:', response.status)
     console.log('Response headers:', Object.fromEntries(response.headers.entries()))
+    
+    // Debug response structure
+    console.log('Response structure analysis:', {
+      hasUrl: 'url' in result,
+      hasPaymentUrl: 'paymentUrl' in result,
+      hasRedirectUrl: 'redirectUrl' in result,
+      hasCheckoutUrl: 'checkoutUrl' in result,
+      hasFormUrl: 'formUrl' in result,
+      hasPaymentLink: 'paymentLink' in result,
+      resultKeys: Object.keys(result),
+      resultUrl: result.url,
+      resultPaymentUrl: result.paymentUrl,
+      resultRedirectUrl: result.redirectUrl,
+      resultCheckoutUrl: result.checkoutUrl,
+      resultFormUrl: result.formUrl,
+      resultPaymentLink: result.paymentLink
+    })
 
     if (!response.ok) {
       console.error('United Payment API Error:', result)

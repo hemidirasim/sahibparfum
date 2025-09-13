@@ -217,6 +217,8 @@ export default function OrdersPage() {
   const handleRetryPayment = async (orderId: string) => {
     setRetryingPayment(orderId)
     try {
+      console.log('Starting payment retry for order:', orderId)
+      
       const response = await fetch(`/api/payment/united-payment`, {
         method: 'POST',
         headers: {
@@ -228,13 +230,23 @@ export default function OrdersPage() {
         }),
       })
 
+      console.log('Payment API response status:', response.status)
       const data = await response.json()
+      console.log('Payment API response data:', data)
 
       if (response.ok && data.paymentUrl) {
+        console.log('Redirecting to payment URL:', data.paymentUrl)
         // Redirect to payment page
         window.location.href = data.paymentUrl
       } else {
-        toast.error(data.message || 'Ödəniş səhifəsinə yönləndirilmədi')
+        console.error('Payment redirect failed:', {
+          responseOk: response.ok,
+          hasPaymentUrl: !!data.paymentUrl,
+          data: data,
+          error: data.error,
+          details: data.details
+        })
+        toast.error(data.details || data.message || 'Ödəniş səhifəsinə yönləndirilmədi')
       }
     } catch (error) {
       console.error('Payment retry error:', error)
