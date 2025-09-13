@@ -41,8 +41,11 @@ async function getCategoryData(slug: string): Promise<Category | null> {
           .replace(/ö/g, 'o')
           .replace(/ş/g, 's')
           .replace(/ü/g, 'u')
+          .replace(/ə/g, 'e')  // ə -> e
+          .replace(/ı/g, 'i')  // ı -> i
           .replace(/\s+/g, '-')
         
+        console.log(`🔍 Comparing: "${categorySlug}" === "${slug}"`)
         return categorySlug === slug
       })
     }
