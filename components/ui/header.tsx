@@ -112,6 +112,7 @@ export function Header() {
     e.preventDefault()
     if (searchQuery.trim()) {
       setIsSearchDropdownOpen(false)
+      setSearchSuggestions([])
       router.push(`/categories?search=${encodeURIComponent(searchQuery.trim())}`)
     }
   }
@@ -147,6 +148,13 @@ export function Header() {
     setSearchQuery(suggestion)
     setIsSearchDropdownOpen(false)
     router.push(`/categories?search=${encodeURIComponent(suggestion)}`)
+  }
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      setIsSearchDropdownOpen(false)
+      setSearchSuggestions([])
+    }
   }
 
 
@@ -267,6 +275,7 @@ export function Header() {
                 type="text"
                 value={searchQuery}
                 onChange={handleSearchInputChange}
+                onKeyDown={handleSearchKeyDown}
                 placeholder="Məhsul axtar..."
                 className="w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-gray-50"
               />
@@ -421,6 +430,7 @@ export function Header() {
               type="text"
               value={searchQuery}
               onChange={handleSearchInputChange}
+              onKeyDown={handleSearchKeyDown}
               placeholder="Məhsul axtar..."
               className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-gray-50"
             />
