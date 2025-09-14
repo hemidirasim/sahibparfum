@@ -320,6 +320,7 @@ export function Header() {
                   onMouseEnter={() => setHoveredLetter(letter)}
                 >
                   <button
+                    onClick={() => setHoveredLetter(hoveredLetter === letter ? null : letter)}
                     className={`w-8 h-8 flex items-center justify-center text-sm font-medium rounded transition-all duration-200 ${
                       hoveredLetter === letter 
                         ? 'text-primary-600 bg-primary-100 scale-110 shadow-md' 
