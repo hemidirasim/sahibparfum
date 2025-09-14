@@ -32,6 +32,8 @@ export function Header() {
   const [isProductsDropdownOpen, setIsProductsDropdownOpen] = useState(false)
   const [isSupportDropdownOpen, setIsSupportDropdownOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [searchSuggestions, setSearchSuggestions] = useState<string[]>([])
+  const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false)
   const [brands, setBrands] = useState<{[key: string]: string[]}>({})
   const [categories, setCategories] = useState<Array<{name: string, href: string}>>([])
   const [hoveredLetter, setHoveredLetter] = useState<string | null>(null)
@@ -109,8 +111,42 @@ export function Header() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     if (searchQuery.trim()) {
+      setIsSearchDropdownOpen(false)
       router.push(`/categories?search=${encodeURIComponent(searchQuery.trim())}`)
     }
+  }
+
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setSearchQuery(value)
+    
+    if (value.length >= 2) {
+      // Fetch search suggestions
+      fetchSearchSuggestions(value)
+      setIsSearchDropdownOpen(true)
+    } else {
+      setSearchSuggestions([])
+      setIsSearchDropdownOpen(false)
+    }
+  }
+
+  const fetchSearchSuggestions = async (query: string) => {
+    try {
+      const response = await fetch(`/api/products?search=${encodeURIComponent(query)}&limit=5`)
+      if (response.ok) {
+        const data = await response.json()
+        const suggestions = data.products.map((product: any) => product.name)
+        setSearchSuggestions(suggestions)
+      }
+    } catch (error) {
+      console.error('Error fetching search suggestions:', error)
+    }
+  }
+
+  const handleSuggestionClick = (suggestion: string) => {
+    setSearchQuery(suggestion)
+    setIsSearchDropdownOpen(false)
+    router.push(`/categories?search=${encodeURIComponent(suggestion)}`)
   }
 
 
@@ -230,10 +266,27 @@ export function Header() {
               <input
                 type="text"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={handleSearchInputChange}
                 placeholder="Məhsul axtar..."
                 className="w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-gray-50"
               />
+              
+              {/* Search Suggestions Dropdown */}
+              {isSearchDropdownOpen && searchSuggestions.length > 0 && (
+                <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto">
+                  <div className="py-2">
+                    {searchSuggestions.map((suggestion, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleSuggestionClick(suggestion)}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors"
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </form>
           </nav>
 
@@ -367,10 +420,27 @@ export function Header() {
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={handleSearchInputChange}
               placeholder="Məhsul axtar..."
               className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-gray-50"
             />
+            
+            {/* Mobile Search Suggestions Dropdown */}
+            {isSearchDropdownOpen && searchSuggestions.length > 0 && (
+              <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-64 overflow-y-auto">
+                <div className="py-2">
+                  {searchSuggestions.map((suggestion, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleSuggestionClick(suggestion)}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors"
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </form>
         </div>
 
@@ -507,13 +577,14 @@ export function Header() {
       </div>
 
       {/* Click outside to close dropdowns */}
-      {(isProductsDropdownOpen || isSupportDropdownOpen || hoveredLetter) && (
+      {(isProductsDropdownOpen || isSupportDropdownOpen || hoveredLetter || isSearchDropdownOpen) && (
         <div
           className="fixed inset-0 z-40"
           onClick={() => {
             setIsProductsDropdownOpen(false)
             setIsSupportDropdownOpen(false)
             setHoveredLetter(null)
+            setIsSearchDropdownOpen(false)
           }}
         />
       )}
