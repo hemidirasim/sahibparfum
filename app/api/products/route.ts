@@ -21,8 +21,9 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search')
     if (search) {
       where.OR = [
-        { name: { contains: search } },
-        { description: { contains: search } }
+        { name: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+        { brand: { name: { contains: search, mode: 'insensitive' } } }
       ]
     }
 
@@ -30,7 +31,7 @@ export async function GET(request: NextRequest) {
     const category = searchParams.get('category')
     if (category) {
       where.category = {
-        name: { contains: category }
+        name: { contains: category, mode: 'insensitive' }
       }
     }
 
@@ -38,7 +39,8 @@ export async function GET(request: NextRequest) {
     const filter = searchParams.get('filter')
     if (filter) {
       where.name = {
-        startsWith: filter
+        startsWith: filter,
+        mode: 'insensitive'
       }
     }
 
@@ -55,12 +57,13 @@ export async function GET(request: NextRequest) {
       }
     } else if (brand) {
       where.brand = {
-        name: { contains: brand }
+        name: { contains: brand, mode: 'insensitive' }
       }
     } else if (brandFilter) {
       where.brand = {
         name: {
-          startsWith: brandFilter
+          startsWith: brandFilter,
+          mode: 'insensitive'
         }
       }
     }
@@ -134,7 +137,8 @@ export async function GET(request: NextRequest) {
       }
     } else if (volume) {
       where.volume = {
-        contains: volume
+        contains: volume,
+        mode: 'insensitive'
       }
     }
 
