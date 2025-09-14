@@ -7,6 +7,7 @@ import { ShoppingCart, User, Search, Menu, X, Heart, Settings, ChevronDown, Phon
 import { useState, useEffect } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useCart } from '@/hooks/use-cart'
+import { UserPopup } from './user-popup'
 
 interface Settings {
   contactPhone: string
@@ -191,41 +192,7 @@ export function Header() {
             </Link>
 
             {/* User Menu */}
-            {session ? (
-              <div className="flex items-center space-x-2">
-                <div className="flex items-center space-x-1">
-                  <span className="text-sm text-gray-700 hidden md:block">
-                    {session.user?.name || session.user?.email}
-                  </span>
-                  <div className="flex items-center space-x-1">
-                                         {session.user?.role === 'ADMIN' && (
-                       <Link href="/admin/dashboard" className="p-2 text-gray-700 hover:text-primary-600 transition-colors" title="Admin Panel">
-                         <Settings className="h-5 w-5" />
-                       </Link>
-                     )}
-                    <Link href="/profile" className="p-2 text-gray-700 hover:text-primary-600 transition-colors" title="Profil">
-                      <User className="h-5 w-5" />
-                    </Link>
-                    <button
-                      onClick={() => signOut({ callbackUrl: '/' })}
-                      className="p-2 text-gray-700 hover:text-red-600 transition-colors"
-                      title="Çıxış"
-                    >
-                      <LogOut className="h-5 w-5" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-2">
-                <Link href="/auth/signin" className="text-gray-700 hover:text-primary-600 transition-colors font-medium">
-                  Giriş
-                </Link>
-                <Link href="/auth/signup" className="btn btn-primary btn-sm">
-                  Qeydiyyat
-                </Link>
-              </div>
-            )}
+            <UserPopup />
 
             {/* Mobile Menu Button */}
             <button
@@ -400,60 +367,9 @@ export function Header() {
 
             {/* Mobile User Menu */}
             <div className="mt-6 pt-4 border-t border-gray-200">
-              {session ? (
-                <div className="space-y-3">
-                  <div className="text-sm text-gray-600">
-                    {session.user?.name || session.user?.email}
-                  </div>
-                  <div className="flex flex-col space-y-2">
-                    {session.user?.role === 'ADMIN' && (
-                      <Link
-                        href="/admin"
-                        className="flex items-center space-x-2 text-gray-700 hover:text-primary-600 transition-colors"
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        <Settings className="h-4 w-4" />
-                        <span>Admin Panel</span>
-                      </Link>
-                    )}
-                    <Link
-                      href="/profile"
-                      className="flex items-center space-x-2 text-gray-700 hover:text-primary-600 transition-colors"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      <User className="h-4 w-4" />
-                      <span>Profil</span>
-                    </Link>
-                    <button
-                      onClick={() => {
-                        signOut({ callbackUrl: '/' })
-                        setIsMenuOpen(false)
-                      }}
-                      className="flex items-center space-x-2 text-gray-700 hover:text-red-600 transition-colors"
-                    >
-                      <LogOut className="h-4 w-4" />
-                      <span>Çıxış</span>
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col space-y-2">
-                  <Link
-                    href="/auth/signin"
-                    className="text-gray-700 hover:text-primary-600 transition-colors font-medium"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Giriş
-                  </Link>
-                  <Link
-                    href="/auth/signup"
-                    className="text-gray-700 hover:text-primary-600 transition-colors font-medium"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Qeydiyyat
-                  </Link>
-                </div>
-              )}
+              <div className="flex justify-center">
+                <UserPopup />
+              </div>
             </div>
 
             {/* Mobile Brand Search */}
