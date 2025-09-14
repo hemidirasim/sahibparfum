@@ -318,7 +318,6 @@ export function Header() {
                   key={letter} 
                   className="relative"
                   onMouseEnter={() => setHoveredLetter(letter)}
-                  onMouseLeave={() => setHoveredLetter(null)}
                 >
                   <button
                     className={`w-8 h-8 flex items-center justify-center text-sm font-medium rounded transition-all duration-200 ${
