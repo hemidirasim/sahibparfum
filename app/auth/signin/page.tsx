@@ -158,28 +158,6 @@ export default function SignInPage() {
             </div>
           </form>
 
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Demo hesab</span>
-              </div>
-            </div>
-
-            <div className="mt-6">
-              <div className="bg-gray-50 p-4 rounded-md">
-                <p className="text-sm text-gray-600 mb-2">
-                  Test üçün bu məlumatları istifadə edin:
-                </p>
-                <p className="text-sm font-mono text-gray-800">
-                  Email: admin@sahib.az<br />
-                  Şifrə: admin123
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>

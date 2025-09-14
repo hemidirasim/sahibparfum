@@ -62,16 +62,6 @@ export function UserPopup() {
                 </Link>
               </div>
             </div>
-            <div className="px-4 py-2">
-              <Link
-                href="/checkout/guest"
-                className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 py-2 px-2 rounded hover:bg-gray-50"
-                onClick={() => setIsOpen(false)}
-              >
-                <ShoppingBag className="h-4 w-4" />
-                Qeydiyyatsız Davam Et
-              </Link>
-            </div>
           </div>
         )}
       </div>
