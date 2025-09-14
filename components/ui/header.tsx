@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { ShoppingCart, User, Search, Menu, X, Heart, Settings, ChevronDown, Phone, Mail, LogOut } from 'lucide-react'
+import { ShoppingCart, User, Search, Menu, X, Heart, Settings, ChevronDown, Phone, Mail, LogOut, HelpCircle } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useCart } from '@/hooks/use-cart'
@@ -30,6 +30,7 @@ export function Header() {
   const router = useRouter()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isProductsDropdownOpen, setIsProductsDropdownOpen] = useState(false)
+  const [isSupportDropdownOpen, setIsSupportDropdownOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [brands, setBrands] = useState<{[key: string]: string[]}>({})
   const [categories, setCategories] = useState<Array<{name: string, href: string}>>([])
@@ -157,6 +158,68 @@ export function Header() {
             <Link href="/about" className="text-gray-700 hover:text-primary-600 transition-colors font-medium">
               Haqqımızda
             </Link>
+            
+            {/* Support Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setIsSupportDropdownOpen(!isSupportDropdownOpen)}
+                className="flex items-center space-x-1 text-gray-700 hover:text-primary-600 transition-colors font-medium"
+              >
+                <HelpCircle className="h-4 w-4" />
+                <span>Dəstək</span>
+                <ChevronDown className={`h-4 w-4 transition-transform ${isSupportDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+              
+              {isSupportDropdownOpen && (
+                <div className="absolute top-full left-0 mt-1 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                  <div className="py-2">
+                    <Link
+                      href="/support/orders"
+                      className="block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors"
+                      onClick={() => setIsSupportDropdownOpen(false)}
+                    >
+                      Sifariş
+                    </Link>
+                    <Link
+                      href="/support/payment"
+                      className="block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors"
+                      onClick={() => setIsSupportDropdownOpen(false)}
+                    >
+                      Ödəniş
+                    </Link>
+                    <Link
+                      href="/support/delivery"
+                      className="block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors"
+                      onClick={() => setIsSupportDropdownOpen(false)}
+                    >
+                      Çatdırılma
+                    </Link>
+                    <Link
+                      href="/support/loyalty"
+                      className="block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors"
+                      onClick={() => setIsSupportDropdownOpen(false)}
+                    >
+                      Bonus və loyallıq proqramı
+                    </Link>
+                    <Link
+                      href="/support/returns"
+                      className="block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors"
+                      onClick={() => setIsSupportDropdownOpen(false)}
+                    >
+                      Geri qaytarma
+                    </Link>
+                    <Link
+                      href="/support/faq"
+                      className="block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors"
+                      onClick={() => setIsSupportDropdownOpen(false)}
+                    >
+                      FAQ
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+            
             <Link href="/contact" className="text-gray-700 hover:text-primary-600 transition-colors font-medium">
               Əlaqə
             </Link>
@@ -356,6 +419,57 @@ export function Header() {
               >
                 Haqqımızda
               </Link>
+              
+              {/* Mobile Support Links */}
+              <div className="space-y-2">
+                <div className="text-gray-700 font-medium flex items-center">
+                  <HelpCircle className="h-4 w-4 mr-2" />
+                  Dəstək
+                </div>
+                <Link
+                  href="/support/orders"
+                  className="block pl-6 text-gray-600 hover:text-primary-600 transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Sifariş
+                </Link>
+                <Link
+                  href="/support/payment"
+                  className="block pl-6 text-gray-600 hover:text-primary-600 transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Ödəniş
+                </Link>
+                <Link
+                  href="/support/delivery"
+                  className="block pl-6 text-gray-600 hover:text-primary-600 transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Çatdırılma
+                </Link>
+                <Link
+                  href="/support/loyalty"
+                  className="block pl-6 text-gray-600 hover:text-primary-600 transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Bonus və loyallıq proqramı
+                </Link>
+                <Link
+                  href="/support/returns"
+                  className="block pl-6 text-gray-600 hover:text-primary-600 transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  Geri qaytarma
+                </Link>
+                <Link
+                  href="/support/faq"
+                  className="block pl-6 text-gray-600 hover:text-primary-600 transition-colors"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  FAQ
+                </Link>
+              </div>
+              
               <Link
                 href="/contact"
                 className="text-gray-700 hover:text-primary-600 transition-colors font-medium"
@@ -391,11 +505,14 @@ export function Header() {
         )}
       </div>
 
-      {/* Click outside to close dropdown */}
-      {isProductsDropdownOpen && (
+      {/* Click outside to close dropdowns */}
+      {(isProductsDropdownOpen || isSupportDropdownOpen) && (
         <div
           className="fixed inset-0 z-40"
-          onClick={() => setIsProductsDropdownOpen(false)}
+          onClick={() => {
+            setIsProductsDropdownOpen(false)
+            setIsSupportDropdownOpen(false)
+          }}
         />
       )}
     </header>
