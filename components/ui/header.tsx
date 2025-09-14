@@ -318,6 +318,7 @@ export function Header() {
                   key={letter} 
                   className="relative"
                   onMouseEnter={() => setHoveredLetter(letter)}
+                  onMouseLeave={() => setHoveredLetter(null)}
                 >
                   <button
                     className={`w-8 h-8 flex items-center justify-center text-sm font-medium rounded transition-all duration-200 ${
@@ -506,12 +507,13 @@ export function Header() {
       </div>
 
       {/* Click outside to close dropdowns */}
-      {(isProductsDropdownOpen || isSupportDropdownOpen) && (
+      {(isProductsDropdownOpen || isSupportDropdownOpen || hoveredLetter) && (
         <div
           className="fixed inset-0 z-40"
           onClick={() => {
             setIsProductsDropdownOpen(false)
             setIsSupportDropdownOpen(false)
+            setHoveredLetter(null)
           }}
         />
       )}
