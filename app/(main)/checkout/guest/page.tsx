@@ -36,6 +36,7 @@ export default function GuestCheckoutPage() {
     },
     useSameAddress: true,
     paymentMethod: 'CASH',
+    installment: null as number | null,
     notes: ''
   })
 
@@ -181,6 +182,73 @@ export default function GuestCheckoutPage() {
             console.error('Guest payment creation error:', paymentError)
             toast.error('Ödəniş səhifəsinə yönləndirilərkən xəta')
             // Still redirect to success page for cash payment
+            router.push(`/order-success?orderId=${result.orderNumber}`)
+          }
+        } else if (formData.paymentMethod === 'TAKSIT') {
+          // Taksit payment - redirect to United Payment Taksit API
+          if (!formData.installment) {
+            toast.error('Zəhmət olmasa taksit müddətini seçin')
+            return
+          }
+
+          try {
+            const paymentData = {
+              orderId: result.orderNumber,
+              amount: total,
+              currency: 'AZN',
+              description: `Sifariş #${result.orderNumber} - ${formData.installment} aylıq taksit`,
+              installment: formData.installment,
+              source: 'checkout-guest',
+              customerInfo: {
+                name: formData.guestName,
+                email: formData.guestEmail,
+                phone: formData.guestPhone
+              }
+            }
+
+            console.log('Sending guest taksit payment request:', paymentData)
+            const paymentResponse = await fetch('/api/payment/united-payment/taksit', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(paymentData),
+            })
+            
+            console.log('Guest taksit payment response status:', paymentResponse.status)
+
+            if (paymentResponse.ok) {
+              const paymentResult = await paymentResponse.json()
+              console.log('Guest Taksit Payment API Response:', paymentResult)
+              
+              if (paymentResult.isMock) {
+                console.log('Mock guest taksit payment - redirecting to:', paymentResult.paymentUrl)
+                clearCart()
+                toast.success(`Test rejimində ${formData.installment} aylıq taksit ödənişi simulyasiya edilir...`)
+                router.push(paymentResult.paymentUrl)
+              } else {
+                console.log('Real guest taksit payment - redirecting to:', paymentResult.paymentUrl)
+                toast.success(`${formData.installment} aylıq taksit ödəniş səhifəsinə yönləndirilirsiniz...`)
+                window.location.href = paymentResult.paymentUrl
+              }
+            } else {
+              const paymentError = await paymentResponse.json()
+              console.error('Guest taksit payment creation error:', paymentError)
+              
+              if (paymentError.code === 'CONFIG_MISSING' || paymentError.code === 'AUTH_FAILED') {
+                toast.error('Taksit ödəniş sistemi hazırda əlçatan deyil. Nağd ödəniş seçin.')
+                setFormData(prev => ({ ...prev, paymentMethod: 'CASH' }))
+                clearCart()
+                toast.success('Sifarişiniz nağd ödəniş ilə uğurla yaradıldı!')
+                router.push(`/order-success?orderId=${result.orderNumber}`)
+              } else {
+                toast.error('Taksit ödəniş səhifəsinə yönləndirilərkən xəta: ' + (paymentError.message || 'Naməlum xəta'))
+                router.push(`/order-success?orderId=${result.orderNumber}`)
+              }
+            }
+          } catch (paymentError) {
+            console.error('Guest taksit payment creation error:', paymentError)
+            toast.error('Taksit ödəniş səhifəsinə yönləndirilərkən xəta')
             router.push(`/order-success?orderId=${result.orderNumber}`)
           }
         } else {
@@ -476,7 +544,10 @@ export default function GuestCheckoutPage() {
                     name="paymentMethod"
                     value="CASH"
                     checked={formData.paymentMethod === 'CASH'}
-                    onChange={(e) => handleInputChange('paymentMethod', e.target.value)}
+                    onChange={(e) => {
+                      handleInputChange('paymentMethod', e.target.value)
+                      setFormData(prev => ({ ...prev, installment: null }))
+                    }}
                     className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
                   />
                   <span className="ml-2 text-sm text-gray-700">Nağd ödəniş (çatdırılma zamanı)</span>
@@ -488,12 +559,52 @@ export default function GuestCheckoutPage() {
                     name="paymentMethod"
                     value="CARD"
                     checked={formData.paymentMethod === 'CARD'}
-                    onChange={(e) => handleInputChange('paymentMethod', e.target.value)}
+                    onChange={(e) => {
+                      handleInputChange('paymentMethod', e.target.value)
+                      setFormData(prev => ({ ...prev, installment: null }))
+                    }}
                     className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
                   />
                   <span className="ml-2 text-sm text-gray-700">Kart ilə ödəniş</span>
                 </label>
+
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="TAKSIT"
+                    checked={formData.paymentMethod === 'TAKSIT'}
+                    onChange={(e) => handleInputChange('paymentMethod', e.target.value)}
+                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">Birbank Taksit</span>
+                </label>
               </div>
+
+              {/* Taksit Options */}
+              {formData.paymentMethod === 'TAKSIT' && (
+                <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <h3 className="text-sm font-medium text-blue-900 mb-3">Taksit Seçimi</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[2, 3, 6, 12].map((months) => (
+                      <label key={months} className="flex items-center">
+                        <input
+                          type="radio"
+                          name="installment"
+                          value={months}
+                          checked={formData.installment === months}
+                          onChange={(e) => setFormData(prev => ({ ...prev, installment: parseInt(e.target.value) }))}
+                          className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
+                        />
+                        <span className="ml-2 text-sm text-blue-800">{months} ay</span>
+                      </label>
+                    ))}
+                  </div>
+                  <p className="text-xs text-blue-700 mt-2">
+                    Taksit ödənişi Birbank kartları üçün mövcuddur
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Notes */}
@@ -557,7 +668,7 @@ export default function GuestCheckoutPage() {
 
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || (formData.paymentMethod === 'TAKSIT' && !formData.installment)}
                 className="w-full btn btn-primary btn-lg flex items-center justify-center gap-2"
               >
                 {loading ? (

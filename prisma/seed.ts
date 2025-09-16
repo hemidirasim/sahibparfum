@@ -266,6 +266,98 @@ async function main() {
 
   console.log('✅ Reviews created')
 
+  // Create sample blog posts
+  const blogs = await Promise.all([
+    prisma.blog.upsert({
+      where: { slug: 'parfum-secimi-ucun-tovsiyeler' },
+      update: {},
+      create: {
+        title: 'Parfüm Seçimi Üçün Tövsiyələr',
+        slug: 'parfum-secimi-ucun-tovsiyeler',
+        excerpt: 'Düzgün parfüm seçmək üçün əsas məsləhətlər və tövsiyələr',
+        content: `Parfüm seçmək həm maraqlı, həm də çətin bir prosesdir. Düzgün parfüm seçmək üçün aşağıdakı məsləhətləri nəzərə alın:
+
+1. **Dərinizi Tanıyın**: Hər insanın dərisi fərqlidir və parfümlər fərqli şəkildə reaksiya verir.
+
+2. **Mövsümü Nəzərə Alın**: Yay aylarında daha yüngül, qış aylarında isə daha ağır parfümlər seçin.
+
+3. **Test Edin**: Parfüm alış-verişi etməzdən əvvəl onu dərinizdə test edin və ən azı 30 dəqiqə gözləyin.
+
+4. **Notları Öyrənin**: Parfümün əsas notlarını öyrənərək, sevdiyiniz qoxuları müəyyən edin.
+
+5. **Qiymətə Diqqət Edin**: Həmişə ən bahalı parfüm ən yaxşı deyil. Sizin üçün uyğun olanı tapın.`,
+        image: 'https://images.unsplash.com/photo-1588405748880-12d1d1a6f6a9?w=800&h=400&fit=crop',
+        isPublished: true,
+        publishedAt: new Date()
+      }
+    }),
+    prisma.blog.upsert({
+      where: { slug: 'parfum-notlari-ve-aromalar' },
+      update: {},
+      create: {
+        title: 'Parfüm Notları və Aromalar',
+        slug: 'parfum-notlari-ve-aromalar',
+        excerpt: 'Parfümlərdə istifadə olunan əsas notlar və aromalar haqqında məlumat',
+        content: `Parfümlər üç əsas not qrupundan ibarətdir:
+
+**Üst Notlar (Top Notes)**
+- İlk 15-30 dəqiqədə hiss olunan qoxular
+- Çox vaxt sitrus, çiçək və ya yüngül meyvə notları
+- Nümunələr: limon, portaqal, lavanda
+
+**Orta Notlar (Middle Notes)**
+- Parfümün əsas xarakterini müəyyən edən notlar
+- 30 dəqiqədən 2 saata qədər davam edir
+- Nümunələr: gül, yasəmən, vanil
+
+**Baza Notlar (Base Notes)**
+- Parfümün əsasını təşkil edən, ən uzun davam edən notlar
+- 2 saatdan çox davam edir
+- Nümunələr: ağac, müşk, amber
+
+Bu notların uyğun birləşməsi parfümün unikal xarakterini yaradır.`,
+        image: 'https://images.unsplash.com/photo-1592945403244-b3faa74b2c9a?w=800&h=400&fit=crop',
+        isPublished: true,
+        publishedAt: new Date()
+      }
+    }),
+    prisma.blog.upsert({
+      where: { slug: 'parfum-saxlama-ve-qoruma' },
+      update: {},
+      create: {
+        title: 'Parfüm Saxlama və Qoruma',
+        slug: 'parfum-saxlama-ve-qoruma',
+        excerpt: 'Parfümlərinizi düzgün saxlamaq və uzun müddət qorumaq üçün tövsiyələr',
+        content: `Parfümlərinizi düzgün saxlamaq onların keyfiyyətini və davamlılığını artırır:
+
+**Saxlama Yerləri**
+- Sərin və quru yerlərdə saxlayın
+- Birbaşa günəş işığından uzaq tutun
+- Hərarət dəyişikliklərindən qoruyun
+
+**Qoruma Tədbirləri**
+- Qapağı sıx bağlayın
+- Sprey başlığını təmiz saxlayın
+- Uzun müddət istifadə etmədikdə ara-sıra çalışdırın
+
+**Müddət**
+- Açılmamış parfümlər 3-5 il saxlanır
+- Açılmış parfümlər 2-3 il istifadə edilə bilər
+- Qoxu dəyişibsə istifadə etməyin
+
+**Səhvlər**
+- Banyoda saxlamayın
+- Maşında qoymayın
+- Dondurucuda saxlamağa ehtiyac yoxdur`,
+        image: 'https://images.unsplash.com/photo-1587017539504-67cfbddac569?w=800&h=400&fit=crop',
+        isPublished: true,
+        publishedAt: new Date()
+      }
+    })
+  ])
+
+  console.log('✅ Blog posts created')
+
   console.log('🎉 Database seeding completed!')
 }
 

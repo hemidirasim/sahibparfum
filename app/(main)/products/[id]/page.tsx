@@ -13,6 +13,12 @@ interface ProductVariant {
   isActive: boolean
 }
 
+interface ProductAttribute {
+  id: string
+  name: string
+  value: string
+}
+
 interface Product {
   id: string
   name: string
@@ -34,6 +40,7 @@ interface Product {
     name: string
   }
   variants: ProductVariant[]
+  attributes: ProductAttribute[]
   reviews: {
     id: string
     rating: number
@@ -65,6 +72,7 @@ async function getProductData(id: string): Promise<Product | null> {
           }
         },
         variants: true,
+        attributes: true,
         reviews: {
           include: {
             user: {

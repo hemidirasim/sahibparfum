@@ -19,6 +19,12 @@ interface ProductVariant {
   isActive: boolean
 }
 
+interface ProductAttribute {
+  id: string
+  name: string
+  value: string
+}
+
 interface Product {
   id: string
   name: string
@@ -40,6 +46,7 @@ interface Product {
     name: string
   }
   variants: ProductVariant[]
+  attributes: ProductAttribute[]
   reviews: {
     id: string
     rating: number
@@ -313,6 +320,21 @@ export default function ProductDetailClient({ initialProduct }: ProductDetailCli
                 <span className="font-medium">{product.category.name}</span>
               </div>
             </div>
+
+            {/* Product Attributes */}
+            {product.attributes && product.attributes.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Xüsusiyyətlər</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {product.attributes.map((attribute) => (
+                    <div key={attribute.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                      <span className="text-gray-600 font-medium">{attribute.name}:</span>
+                      <span className="text-gray-900 font-semibold">{attribute.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Description */}
             <div>

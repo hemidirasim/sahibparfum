@@ -15,7 +15,9 @@ import {
   Home,
   Menu,
   X,
-  Tag
+  Tag,
+  HelpCircle,
+  FileText
 } from 'lucide-react'
 import Link from 'next/link'
 import { useState } from 'react'
@@ -122,7 +124,9 @@ export default function AdminLayout({
     { name: 'Məhsullar', href: '/admin/products', icon: Package },
     { name: 'Kateqoriyalar', href: '/admin/categories', icon: BarChart3 },
     { name: 'Markalar', href: '/admin/brands', icon: Tag },
+    { name: 'Blog', href: '/admin/blogs', icon: FileText },
     { name: 'Slayderlər', href: '/admin/sliders', icon: TrendingUp },
+    { name: 'Dəstək Kontenti', href: '/admin/support-content', icon: HelpCircle },
     { name: 'Tənzimləmələr', href: '/admin/settings', icon: Settings },
   ]
 

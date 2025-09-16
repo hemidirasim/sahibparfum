@@ -18,13 +18,24 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const search = searchParams.get('search') || ''
 
-    // Build where clause
-    const where: any = {}
+    // Build where clause - only show active categories with products (same as site)
+    const where: any = {
+      isActive: true,
+      products: {
+        some: {
+          isActive: true
+        }
+      }
+    }
 
     if (search) {
-      where.OR = [
-        { name: { contains: search } },
-        { description: { contains: search } }
+      where.AND = [
+        {
+          OR: [
+            { name: { contains: search } },
+            { description: { contains: search } }
+          ]
+        }
       ]
     }
 

@@ -41,7 +41,7 @@ export function UserPopup() {
         </button>
 
         {isOpen && (
-          <div className="absolute right-0 top-12 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+          <div className="absolute right-0 top-12 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-[70]">
             <div className="px-4 py-3 border-b border-gray-100">
               <p className="text-sm text-gray-600 mb-3">Hesaba daxil olun</p>
               <div className="space-y-2">
@@ -91,7 +91,7 @@ export function UserPopup() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-12 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+        <div className="absolute right-0 top-12 w-64 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-[70]">
           {/* User Info */}
           <div className="px-4 py-3 border-b border-gray-100">
             <div className="flex items-center gap-3">
