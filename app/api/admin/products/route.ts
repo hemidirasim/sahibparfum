@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
     const total = await prisma.product.count({ where })
 
     // Format products
-    const formattedProducts = products.map(product => ({
+    const formattedProducts = products.map((product: any) => ({
       id: product.id,
       name: product.name,
       description: product.description,
@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
       category: product.category.name,
       isNew: product.isNew,
       isOnSale: product.isOnSale,
-      variants: product.variants.map(variant => ({
+      variants: product.variants.map((variant: any) => ({
         id: variant.id,
         volume: variant.volume,
         price: Number(variant.price),
@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
         stock: variant.stock,
         sku: variant.sku
       })),
-      attributes: product.attributes.map(attr => ({
+      attributes: product.attributes.map((attr: any) => ({
         id: attr.id,
         name: attr.name,
         value: attr.value
@@ -128,6 +128,8 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
+    console.log('Product creation request body:', JSON.stringify(body, null, 2))
+    
     const {
       name,
       description,
@@ -145,14 +147,30 @@ export async function POST(request: NextRequest) {
       attributes
     } = body
 
-    // Validate required fields
-    if (!name || !description || !categoryId || !sku) {
+    // Validate required fields - check for empty strings and null/undefined
+    const trimmedName = name?.toString().trim()
+    const trimmedDescription = description?.toString().trim()
+    const trimmedCategoryId = categoryId?.toString().trim()
+    const trimmedSku = sku?.toString().trim()
+    
+    console.log('Validation check:', {
+      name: !!trimmedName,
+      description: !!trimmedDescription,
+      categoryId: !!trimmedCategoryId,
+      sku: !!trimmedSku,
+      nameValue: trimmedName,
+      descriptionValue: trimmedDescription,
+      categoryIdValue: trimmedCategoryId,
+      skuValue: trimmedSku
+    })
+    
+    if (!trimmedName || !trimmedDescription || !trimmedCategoryId || !trimmedSku) {
       return NextResponse.json({ error: 'Name, description, category and SKU are required' }, { status: 400 })
     }
 
     // Check if SKU already exists
     const existingProduct = await prisma.product.findUnique({
-      where: { sku }
+      where: { sku: trimmedSku }
     })
 
     if (existingProduct) {
@@ -162,14 +180,14 @@ export async function POST(request: NextRequest) {
     // Create product
     const product = await prisma.product.create({
       data: {
-        name,
-        description,
+        name: trimmedName,
+        description: trimmedDescription,
         brandId,
-        categoryId,
+        categoryId: trimmedCategoryId,
         price: price ? parseFloat(price) : 0,
         salePrice: salePrice ? parseFloat(salePrice) : null,
         stockCount: parseInt(stockCount) || 0,
-        sku,
+        sku: trimmedSku,
         isNew: isNew || false,
         isOnSale: isOnSale || false,
         isActive: isActive !== false,

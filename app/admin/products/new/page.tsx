@@ -210,18 +210,84 @@ export default function NewProductPage() {
     e.preventDefault()
     setLoading(true)
 
+    // Frontend validation
+    if (!formData.name?.trim()) {
+      alert('Məhsul adı tələb olunur')
+      setLoading(false)
+      return
+    }
+    if (!formData.description?.trim()) {
+      alert('Məhsul təsviri tələb olunur')
+      setLoading(false)
+      return
+    }
+    if (!formData.categoryId?.trim()) {
+      alert('Kateqoriya seçilməlidir')
+      setLoading(false)
+      return
+    }
+    if (!formData.sku?.trim()) {
+      alert('SKU tələb olunur')
+      setLoading(false)
+      return
+    }
+
     try {
+      // Handle brand - convert brand name to brandId if provided
+      let brandId = null
+      if (formData.brand && formData.brand.trim()) {
+        // First, try to find existing brand
+        const brandsResponse = await fetch('/api/admin/brands')
+        if (brandsResponse.ok) {
+          const brandsData = await brandsResponse.json()
+          const existingBrand = brandsData.brands?.find((brand: any) => 
+            brand.name.toLowerCase() === formData.brand.toLowerCase()
+          )
+          
+          if (existingBrand) {
+            brandId = existingBrand.id
+          } else {
+            // Create new brand if it doesn't exist
+            const createBrandResponse = await fetch('/api/admin/brands', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                name: formData.brand.trim(),
+                description: ''
+              })
+            })
+            
+            if (createBrandResponse.ok) {
+              const newBrandData = await createBrandResponse.json()
+              brandId = newBrandData.brand.id
+            } else {
+              console.error('Failed to create brand:', await createBrandResponse.json())
+            }
+          }
+        }
+      }
+
+      // Prepare the data to send, excluding the brand field and using brandId instead
+      const { brand, ...formDataWithoutBrand } = formData
+      
+      const requestData = {
+        ...formDataWithoutBrand,
+        brandId, // Use brandId instead of brand
+        images,
+        variants,
+        attributes
+      }
+      
+      console.log('Sending product data:', JSON.stringify(requestData, null, 2))
+      
       const response = await fetch('/api/admin/products', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          ...formData,
-          images,
-          variants,
-          attributes
-        })
+        body: JSON.stringify(requestData)
       })
 
       if (response.ok) {
@@ -391,10 +457,11 @@ export default function NewProductPage() {
 
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Təsvir
+                Təsvir *
               </label>
               <textarea
                 rows={3}
+                required
                 value={formData.description}
                 onChange={(e) => handleInputChange('description', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
