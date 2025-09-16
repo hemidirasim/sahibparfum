@@ -31,11 +31,15 @@ export async function GET(
       return NextResponse.json({ error: 'Product not found' }, { status: 404 })
     }
 
-    // Parse images field - handle both string and array formats
+    // Parse images field - handle comma-separated string and convert to array
     const transformedProduct = {
       ...product,
       images: product.images 
-        ? (typeof product.images === 'string' ? [product.images] : product.images)
+        ? (typeof product.images === 'string' 
+            ? product.images.split(',').filter(img => img.trim() !== '')
+            : Array.isArray(product.images) 
+              ? product.images 
+              : [])
         : []
     }
 
@@ -116,7 +120,7 @@ export async function PATCH(
         isNew: isNew || false,
         isOnSale: isOnSale || false,
         isActive: isActive !== false,
-        images: Array.isArray(images) ? images[0] || '' : images || ''
+        images: Array.isArray(images) ? images.join(',') : images || ''
       }
     })
 

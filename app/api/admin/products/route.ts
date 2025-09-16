@@ -191,7 +191,7 @@ export async function POST(request: NextRequest) {
         isNew: isNew || false,
         isOnSale: isOnSale || false,
         isActive: isActive !== false,
-        images: Array.isArray(images) ? images[0] || '' : images || ''
+        images: Array.isArray(images) ? images.join(',') : images || ''
       }
     })
 

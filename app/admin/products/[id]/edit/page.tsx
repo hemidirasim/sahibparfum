@@ -103,11 +103,11 @@ export default function EditProductPage() {
         })
         setVariants(productData.variants || [])
         setAttributes(productData.attributes || [])
-        // Handle images - convert string to array if needed
+        // Handle images - convert comma-separated string to array if needed
         const imagesArray = Array.isArray(productData.images) 
           ? productData.images 
           : productData.images 
-            ? [productData.images] 
+            ? productData.images.split(',').filter(img => img.trim() !== '')
             : []
         setImages(imagesArray)
         console.log('Product images loaded:', imagesArray)
