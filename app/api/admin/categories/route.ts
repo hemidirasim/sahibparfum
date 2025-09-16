@@ -18,14 +18,9 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const search = searchParams.get('search') || ''
 
-    // Build where clause - only show active categories with products (same as site)
+    // Build where clause - show all categories for admin (not filtered by products)
     const where: any = {
-      isActive: true,
-      products: {
-        some: {
-          isActive: true
-        }
-      }
+      isActive: true
     }
 
     if (search) {

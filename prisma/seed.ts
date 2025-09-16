@@ -6,152 +6,22 @@ const prisma = new PrismaClient()
 async function main() {
   console.log('🌱 Starting database seed...')
 
-  // Create categories
-  const categories = await Promise.all([
-    prisma.category.upsert({
-      where: { name: 'Kişi Parfümləri' },
-      update: {},
-      create: {
-        name: 'Kişi Parfümləri',
-        description: 'Kişilər üçün nəzərdə tutulmuş parfümlər',
-        image: 'https://images.unsplash.com/photo-1592945403244-b3faa74b2c9a?w=400&h=400&fit=crop'
-      }
-    }),
-    prisma.category.upsert({
-      where: { name: 'Qadın Parfümləri' },
-      update: {},
-      create: {
-        name: 'Qadın Parfümləri',
-        description: 'Qadınlar üçün nəzərdə tutulmuş parfümlər',
-        image: 'https://images.unsplash.com/photo-1588405748880-12d1d1a6f6a9?w=400&h=400&fit=crop'
-      }
-    }),
-    prisma.category.upsert({
-      where: { name: 'Unisex Parfümlər' },
-      update: {},
-      create: {
-        name: 'Unisex Parfümlər',
-        description: 'Həm kişilər, həm də qadınlar üçün uyğun parfümlər',
-        image: 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=400&h=400&fit=crop'
-      }
-    }),
-    prisma.category.upsert({
-      where: { name: 'Mini Parfümlər' },
-      update: {},
-      create: {
-        name: 'Mini Parfümlər',
-        description: 'Kiçik həcmdə parfümlər',
-        image: 'https://images.unsplash.com/photo-1587017539504-67cfbddac569?w=400&h=400&fit=crop'
-      }
-    })
-  ])
+  // Create admin user
+  const hashedPassword = await bcrypt.hash('admin123', 12)
+  
+  const adminUser = await prisma.user.upsert({
+    where: { email: 'rasim@admin.az' },
+    update: {},
+    create: {
+      name: 'Admin',
+      email: 'rasim@admin.az',
+      password: hashedPassword,
+      role: 'ADMIN',
+      isActive: true
+    }
+  })
 
-  console.log('✅ Categories created')
-
-  // Create products
-  const products = await Promise.all([
-    prisma.product.upsert({
-      where: { sku: 'CHN-001' },
-      update: {},
-      create: {
-        name: 'Chanel N°5 Eau de Parfum',
-        description: 'Chanel N°5 Eau de Parfum is the world\'s most famous fragrance. A timeless classic that embodies the essence of luxury and femininity.',
-        price: 299.99,
-        salePrice: 249.99,
-        images: 'https://images.unsplash.com/photo-1588405748880-12d1d1a6f6a9?w=600&h=600&fit=crop',
-        inStock: true,
-        stockCount: 15,
-        sku: 'CHN-001',
-          brandId: null,
-        volume: '100ml',
-        categoryId: categories[1].id // Qadın Parfümləri
-      }
-    }),
-    prisma.product.upsert({
-      where: { sku: 'DIR-002' },
-      update: {},
-      create: {
-        name: 'Dior Sauvage Eau de Toilette',
-        description: 'Dior Sauvage is a fresh and powerful fragrance that captures the spirit of wide-open spaces.',
-        price: 189.99,
-        images: 'https://images.unsplash.com/photo-1592945403244-b3faa74b2c9a?w=600&h=600&fit=crop',
-        inStock: true,
-        stockCount: 25,
-        sku: 'DIR-002',
-          brandId: null,
-        volume: '100ml',
-        categoryId: categories[0].id // Kişi Parfümləri
-      }
-    }),
-    prisma.product.upsert({
-      where: { sku: 'YSL-003' },
-      update: {},
-      create: {
-        name: 'Yves Saint Laurent Black Opium',
-        description: 'Black Opium is an addictive gourmand fragrance with notes of coffee, vanilla, and white flowers.',
-        price: 159.99,
-        salePrice: 129.99,
-        images: 'https://images.unsplash.com/photo-1587017539504-67cfbddac569?w=600&h=600&fit=crop',
-        inStock: true,
-        stockCount: 20,
-        sku: 'YSL-003',
-        brandId: null,
-        volume: '90ml',
-        categoryId: categories[1].id // Qadın Parfümləri
-      }
-    }),
-    prisma.product.upsert({
-      where: { sku: 'TF-004' },
-      update: {},
-      create: {
-        name: 'Tom Ford Tobacco Vanille',
-        description: 'A modern take on an old-world men\'s club. A smooth oriental, vanilla-based fragrance.',
-        price: 399.99,
-        images: 'https://images.unsplash.com/photo-1588405748880-12d1d1a6f6a9?w=600&h=600&fit=crop',
-        inStock: true,
-        stockCount: 8,
-        sku: 'TF-004',
-          brandId: null,
-        volume: '100ml',
-        categoryId: categories[2].id // Unisex Parfümlər
-      }
-    }),
-    prisma.product.upsert({
-      where: { sku: 'JML-005' },
-      update: {},
-      create: {
-        name: 'Jo Malone London Wood Sage & Sea Salt',
-        description: 'Escape the everyday along the windswept shore. Waves breaking white, the air fresh with sea salt and spray.',
-        price: 129.99,
-        images: 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=600&h=600&fit=crop',
-        inStock: true,
-        stockCount: 30,
-        sku: 'JML-005',
-        brandId: null,
-        volume: '100ml',
-        categoryId: categories[2].id // Unisex Parfümlər
-      }
-    }),
-    prisma.product.upsert({
-      where: { sku: 'VER-006' },
-      update: {},
-      create: {
-        name: 'Versace Eros Eau de Toilette',
-        description: 'A fresh, sensual fragrance with a luminous, intense structure that gives way to a Mediterranean character.',
-        price: 89.99,
-        salePrice: 69.99,
-        images: 'https://images.unsplash.com/photo-1592945403244-b3faa74b2c9a?w=600&h=600&fit=crop',
-        inStock: true,
-        stockCount: 18,
-        sku: 'VER-006',
-          brandId: null,
-        volume: '100ml',
-        categoryId: categories[0].id // Kişi Parfümləri
-      }
-    })
-  ])
-
-  console.log('✅ Products created')
+  console.log('✅ Admin user created')
 
   // Create sliders
   const sliders = await Promise.all([
@@ -161,11 +31,11 @@ async function main() {
       create: {
         id: 'slider-1',
         title: 'Yeni Koleksiya',
-        subtitle: '2024-cü ilin ən yaxşı parfümləri',
-        description: 'Dünyanın ən məşhur brendlərinin yeni parfümlərini kəşf edin',
+        subtitle: '2025-ci ilin ən yaxşı parfümləri',
+        description: 'Yeni gələn parfüm kolleksiyasını kəşf edin',
         image: 'https://images.unsplash.com/photo-1588405748880-12d1d1a6f6a9?w=1200&h=600&fit=crop',
-        link: '/products',
-        buttonText: 'İndi Alış-Veriş Et',
+        link: '/products?new=true',
+        buttonText: 'Kəşf Et',
         isActive: true,
         order: 1
       }
@@ -176,11 +46,11 @@ async function main() {
       create: {
         id: 'slider-2',
         title: 'Endirimlər',
-        subtitle: '50%-ə qədər endirim',
-        description: 'Sevimli parfümlərinizi daha sərfəli qiymətə əldə edin',
+        subtitle: '50% endirim',
+        description: 'Seçilmiş parfümlərdə böyük endirimlər',
         image: 'https://images.unsplash.com/photo-1592945403244-b3faa74b2c9a?w=1200&h=600&fit=crop',
         link: '/products?sale=true',
-        buttonText: 'Endirimləri Gör',
+        buttonText: 'Alış-veriş Et',
         isActive: true,
         order: 2
       }
@@ -191,11 +61,11 @@ async function main() {
       create: {
         id: 'slider-3',
         title: 'Chanel Koleksiyası',
-        subtitle: 'Klassik zəriflik',
-        description: 'Chanel-in ən məşhur parfümlərini kəşf edin',
-        image: 'https://images.unsplash.com/photo-1587017539504-67cfbddac569?w=1200&h=600&fit=crop',
-        link: '/products?search=chanel',
-        buttonText: 'Chanel Parfümləri',
+        subtitle: 'Klassik lüks',
+        description: 'Chanel-in ən məşhur parfümləri',
+        image: 'https://images.unsplash.com/photo-1541643600914-78b084683601?w=1200&h=600&fit=crop',
+        link: '/products?brand=chanel',
+        buttonText: 'Bax',
         isActive: true,
         order: 3
       }
@@ -203,68 +73,6 @@ async function main() {
   ])
 
   console.log('✅ Sliders created')
-
-  // Create sample users with hashed passwords
-  const users = await Promise.all([
-    prisma.user.upsert({
-      where: { email: 'admin@sahibparfumeriya.az' },
-      update: {},
-      create: {
-        email: 'admin@sahibparfumeriya.az',
-        name: 'Admin',
-        password: await bcrypt.hash('admin123', 12),
-        role: 'ADMIN'
-      }
-    }),
-    prisma.user.upsert({
-      where: { email: 'user@example.com' },
-      update: {},
-      create: {
-        email: 'user@example.com',
-        name: 'Test User',
-        password: await bcrypt.hash('user123', 12),
-        role: 'USER'
-      }
-    })
-  ])
-
-  console.log('✅ Users created')
-
-  // Create sample reviews
-  const reviews = await Promise.all([
-    prisma.review.upsert({
-      where: { 
-        userId_productId: {
-          userId: users[1].id,
-          productId: products[0].id
-        }
-      },
-      update: {},
-      create: {
-        rating: 5,
-        comment: 'Mükəmməl parfüm! Çox uzun müddət davam edir.',
-        userId: users[1].id,
-        productId: products[0].id
-      }
-    }),
-    prisma.review.upsert({
-      where: { 
-        userId_productId: {
-          userId: users[1].id,
-          productId: products[1].id
-        }
-      },
-      update: {},
-      create: {
-        rating: 4,
-        comment: 'Gözəl qoxu, amma qiyməti bir az yüksəkdir.',
-        userId: users[1].id,
-        productId: products[1].id
-      }
-    })
-  ])
-
-  console.log('✅ Reviews created')
 
   // Create sample blog posts
   const blogs = await Promise.all([
@@ -358,12 +166,167 @@ Bu notların uyğun birləşməsi parfümün unikal xarakterini yaradır.`,
 
   console.log('✅ Blog posts created')
 
+  // Create support content
+  const supportContent = await Promise.all([
+    prisma.supportContent.create({
+      data: {
+        page: 'orders',
+        title: 'Sifarişlərin İdarə Edilməsi',
+        content: `Sifarişlərinizi asanlıqla idarə edə bilərsiniz:
+
+**Sifariş Statusları**
+- Gözləyir: Sifarişiniz qəbul edilib
+- Hazırlanır: Sifarişiniz hazırlanır
+- Göndərilib: Sifarişiniz kuryerə təhvil verilib
+- Çatdırılıb: Sifarişiniz çatdırılıb
+
+**Sifarişi Ləğv Etmək**
+- Sifariş statusu "Gözləyir" olduqda ləğv edə bilərsiniz
+- Ləğv etmək üçün bizimlə əlaqə saxlayın
+
+**Sifarişi Dəyişdirmək**
+- Sifariş statusu "Gözləyir" olduqda dəyişdirə bilərsiniz
+- Dəyişiklik üçün bizimlə əlaqə saxlayın`,
+        order: 1
+      }
+    }),
+    prisma.supportContent.create({
+      data: {
+        page: 'payment',
+        title: 'Ödəniş Üsulları',
+        content: `Müxtəlif ödəniş üsulları təklif edirik:
+
+**Nağd Ödəniş**
+- Çatdırılma zamanı nağd ödəniş
+- Ən güvənli ödəniş üsulu
+
+**Kart ilə Ödəniş**
+- Visa, Mastercard qəbul edilir
+- Təhlükəsiz ödəniş sistemi
+
+**Taksit Ödənişi**
+- 2, 3, 6, 12 aylıq taksit imkanları
+- Birbank kartları üçün
+
+**Ödəniş Təhlükəsizliyi**
+- Bütün ödənişlər şifrələnir
+- Kart məlumatları saxlanmır`,
+        order: 2
+      }
+    }),
+    prisma.supportContent.create({
+      data: {
+        page: 'delivery',
+        title: 'Çatdırılma Xidməti',
+        content: `Çatdırılma xidmətimiz haqqında məlumat:
+
+**Çatdırılma Sahələri**
+- Bakı şəhəri daxilində
+- Gəncə şəhəri daxilində
+- Sumqayıt şəhəri daxilində
+
+**Çatdırılma Müddəti**
+- Bakı: 1-2 iş günü
+- Gəncə: 2-3 iş günü
+- Sumqayıt: 2-3 iş günü
+
+**Çatdırılma Haqqı**
+- 100₼ üzərində pulsuz çatdırılma
+- 100₼ altında 10₼ çatdırılma haqqı
+
+**Çatdırılma Vaxtı**
+- Bazar ertəsi - Şənbə: 09:00-18:00
+- Bazar günü çatdırılma yoxdur`,
+        order: 3
+      }
+    }),
+    prisma.supportContent.create({
+      data: {
+        page: 'returns',
+        title: 'Qaytarma və Dəyişdirmə',
+        content: `Qaytarma və dəyişdirmə siyasətimiz:
+
+**Qaytarma Müddəti**
+- 14 gün ərzində qaytara bilərsiniz
+- Məhsul istifadə edilməmiş olmalıdır
+
+**Qaytarma Səbəbləri**
+- Məhsul zədələnmişdir
+- Yanlış məhsul göndərilib
+- Məhsul təsvirə uyğun deyil
+
+**Qaytarma Prosesi**
+1. Bizimlə əlaqə saxlayın
+2. Qaytarma səbəbini bildirin
+3. Məhsulu qaytarın
+4. Geri ödəniş alın
+
+**Dəyişdirmə**
+- Eyni qiymətli məhsulla dəyişdirilə bilər
+- Fərq varsa əlavə ödəniş tələb olunur`,
+        order: 4
+      }
+    }),
+    prisma.supportContent.create({
+      data: {
+        page: 'faq',
+        title: 'Tez-tez Verilən Suallar',
+        content: `Ən çox verilən suallar və cavabları:
+
+**Sifariş haqqında**
+- S: Sifarişi necə verə bilərəm?
+- C: Məhsulu səbətə əlavə edin və checkout səhifəsindən sifariş verin.
+
+**Ödəniş haqqında**
+- S: Hansı ödəniş üsulları qəbul edilir?
+- C: Nağd, kart və taksit ödənişi qəbul edilir.
+
+**Çatdırılma haqqında**
+- S: Çatdırılma nə qədər vaxt alır?
+- C: Bakıda 1-2, digər şəhərlərdə 2-3 iş günü.
+
+**Qaytarma haqqında**
+- S: Məhsulu qaytara bilərəmmi?
+- C: Bəli, 14 gün ərzində qaytara bilərsiniz.`,
+        order: 5
+      }
+    }),
+    prisma.supportContent.create({
+      data: {
+        page: 'loyalty',
+        title: 'Sədaqət Proqramı',
+        content: `Sədaqət proqramımız haqqında məlumat:
+
+**Sədaqət Xalları**
+- Hər 1₼ üçün 1 xal qazanırsınız
+- 100 xal = 10₼ endirim
+
+**Xal İstifadəsi**
+- Alış-veriş zamanı xallarınızı istifadə edin
+- Minimum 50 xal istifadə edilə bilər
+
+**Xüsusi Təkliflər**
+- Sədaqət üzvləri üçün xüsusi endirimlər
+- Erken bildiriş yeni məhsullar haqqında
+- Eksklüziv təkliflər
+
+**Üzvlük Səviyyələri**
+- Gümüş: 1000₼ alış-veriş
+- Qızıl: 5000₼ alış-veriş
+- Platin: 10000₼ alış-veriş`,
+        order: 6
+      }
+    })
+  ])
+
+  console.log('✅ Support content created')
+
   console.log('🎉 Database seeding completed!')
 }
 
 main()
   .catch((e) => {
-    console.error('❌ Error during seeding:', e)
+    console.error(e)
     process.exit(1)
   })
   .finally(async () => {

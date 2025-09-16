@@ -131,15 +131,12 @@ export default function EditProductPage() {
   const fetchBrands = async () => {
     try {
       setBrandsLoading(true)
-      const response = await fetch('/api/brands')
+      const response = await fetch('/api/admin/brands')
       if (response.ok) {
         const data = await response.json()
-        // Flatten all brands from all letters
-        const allBrands: string[] = []
-        Object.values(data.brands || {}).forEach((brandList: any) => {
-          allBrands.push(...brandList)
-        })
-        setBrands(Array.from(new Set(allBrands)).sort()) // Remove duplicates and sort
+        // Extract brand names from admin brands API
+        const brandNames = data.brands?.map((brand: any) => brand.name) || []
+        setBrands(brandNames.sort())
       } else {
         console.error('Failed to fetch brands')
       }
