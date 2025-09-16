@@ -103,7 +103,14 @@ export default function EditProductPage() {
         })
         setVariants(productData.variants || [])
         setAttributes(productData.attributes || [])
-        setImages(productData.images || [])
+        // Handle images - convert string to array if needed
+        const imagesArray = Array.isArray(productData.images) 
+          ? productData.images 
+          : productData.images 
+            ? [productData.images] 
+            : []
+        setImages(imagesArray)
+        console.log('Product images loaded:', imagesArray)
       } else {
         console.error('Failed to fetch product')
         router.push('/admin/products')
@@ -211,7 +218,8 @@ export default function EditProductPage() {
         })
 
         if (!response.ok) {
-          throw new Error('Upload failed')
+          const errorData = await response.json()
+          throw new Error(errorData.error || 'Upload failed')
         }
 
         const result = await response.json()
@@ -219,13 +227,19 @@ export default function EditProductPage() {
       })
 
       const uploadedUrls = await Promise.all(uploadPromises)
-      setImages(prev => [...prev, ...uploadedUrls])
+      console.log('Uploaded URLs:', uploadedUrls)
+      
+      setImages(prev => {
+        const newImages = [...prev, ...uploadedUrls]
+        console.log('Updated images array:', newImages)
+        return newImages
+      })
       
       // Clear the input field after successful upload
       e.target.value = ''
     } catch (error) {
       console.error('Upload error:', error)
-      alert('Şəkil yüklənərkən xəta baş verdi')
+      alert(`Şəkil yüklənərkən xəta baş verdi: ${error instanceof Error ? error.message : 'Naməlum xəta'}`)
     } finally {
       setUploading(false)
     }

@@ -31,10 +31,12 @@ export async function GET(
       return NextResponse.json({ error: 'Product not found' }, { status: 404 })
     }
 
-    // Parse images field
+    // Parse images field - handle both string and array formats
     const transformedProduct = {
       ...product,
-      images: product.images ? [product.images] : []
+      images: product.images 
+        ? (typeof product.images === 'string' ? [product.images] : product.images)
+        : []
     }
 
     return NextResponse.json(transformedProduct)

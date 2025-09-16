@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { put } from '@vercel/blob'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
+import { writeFile, mkdir } from 'fs/promises'
+import { join } from 'path'
 
 export async function POST(request: NextRequest) {
   try {
@@ -99,27 +101,63 @@ export async function POST(request: NextRequest) {
     const fileExtension = file.name.split('.').pop()
     const filename = `products/${timestamp}-${randomString}.${fileExtension}`
 
-    console.log('Uploading to Vercel Blob:', {
-      filename,
-      hasBlobToken: !!process.env.BLOB_READ_WRITE_TOKEN,
-      blobTokenPrefix: process.env.BLOB_READ_WRITE_TOKEN?.substring(0, 10) + '...'
-    })
+    // Check if we're in development or production
+    const isDevelopment = process.env.NODE_ENV === 'development'
+    
+    if (isDevelopment) {
+      // Use local file system for development
+      console.log('Using local file system for development')
+      
+      // Ensure uploads directory exists
+      const uploadsDir = join(process.cwd(), 'public', 'uploads')
+      await mkdir(uploadsDir, { recursive: true })
+      
+      // Convert file to buffer
+      const bytes = await file.arrayBuffer()
+      const buffer = Buffer.from(bytes)
+      
+      // Write file to local filesystem
+      const filePath = join(uploadsDir, filename)
+      await writeFile(filePath, buffer)
+      
+      // Return local URL
+      const localUrl = `/uploads/${filename}`
+      
+      console.log('Local upload successful:', {
+        localUrl,
+        filename,
+        filePath
+      })
+      
+      return NextResponse.json({ 
+        success: true, 
+        url: localUrl,
+        filename: filename
+      })
+    } else {
+      // Use Vercel Blob for production
+      console.log('Uploading to Vercel Blob:', {
+        filename,
+        hasBlobToken: !!process.env.BLOB_READ_WRITE_TOKEN,
+        blobTokenPrefix: process.env.BLOB_READ_WRITE_TOKEN?.substring(0, 10) + '...'
+      })
 
-    // Upload to Vercel Blob
-    const blob = await put(filename, file, {
-      access: 'public',
-    })
+      // Upload to Vercel Blob
+      const blob = await put(filename, file, {
+        access: 'public',
+      })
 
-    console.log('Upload successful:', {
-      blobUrl: blob.url,
-      filename: blob.pathname
-    })
+      console.log('Upload successful:', {
+        blobUrl: blob.url,
+        filename: blob.pathname
+      })
 
-    return NextResponse.json({ 
-      success: true, 
-      url: blob.url,
-      filename: filename
-    })
+      return NextResponse.json({ 
+        success: true, 
+        url: blob.url,
+        filename: filename
+      })
+    }
 
   } catch (error) {
     console.error('=== UPLOAD ERROR START ===')
