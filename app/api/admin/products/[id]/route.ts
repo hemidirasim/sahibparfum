@@ -60,6 +60,8 @@ export async function PATCH(
     }
 
     const body = await request.json()
+    console.log('Product update request body:', JSON.stringify(body, null, 2))
+    
     const {
       name,
       description,

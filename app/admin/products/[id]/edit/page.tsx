@@ -220,6 +220,9 @@ export default function EditProductPage() {
 
       const uploadedUrls = await Promise.all(uploadPromises)
       setImages(prev => [...prev, ...uploadedUrls])
+      
+      // Clear the input field after successful upload
+      e.target.value = ''
     } catch (error) {
       console.error('Upload error:', error)
       alert('Şəkil yüklənərkən xəta baş verdi')
@@ -244,17 +247,61 @@ export default function EditProductPage() {
     setSaving(true)
 
     try {
+      // Handle brand - convert brand name to brandId if provided
+      let brandId = null
+      if (formData.brand && formData.brand.trim()) {
+        // First, try to find existing brand
+        const brandsResponse = await fetch('/api/admin/brands')
+        if (brandsResponse.ok) {
+          const brandsData = await brandsResponse.json()
+          const existingBrand = brandsData.brands?.find((brand: any) => 
+            brand.name.toLowerCase() === formData.brand.toLowerCase()
+          )
+          
+          if (existingBrand) {
+            brandId = existingBrand.id
+          } else {
+            // Create new brand if it doesn't exist
+            const createBrandResponse = await fetch('/api/admin/brands', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                name: formData.brand.trim(),
+                description: ''
+              })
+            })
+            
+            if (createBrandResponse.ok) {
+              const newBrandData = await createBrandResponse.json()
+              brandId = newBrandData.brand.id
+            } else {
+              console.error('Failed to create brand:', await createBrandResponse.json())
+            }
+          }
+        }
+      }
+
+      // Prepare the data to send, excluding the brand field and using brandId instead
+      const { brand, ...formDataWithoutBrand } = formData
+      
+      const requestData = {
+        ...formDataWithoutBrand,
+        brandId, // Use brandId instead of brand
+        variants,
+        attributes,
+        images
+      }
+      
+      console.log('Updating product with data:', JSON.stringify(requestData, null, 2))
+      
       const response = await fetch(`/api/admin/products/${productId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          ...formData,
-          variants,
-          attributes,
-          images
-        })
+        body: JSON.stringify(requestData)
       })
 
       if (response.ok) {
@@ -262,7 +309,7 @@ export default function EditProductPage() {
       } else {
         const error = await response.json()
         console.error('Update error:', error)
-        alert('Məhsul yenilənərkən xəta baş verdi')
+        alert(`Məhsul yenilənərkən xəta baş verdi: ${error.error || 'Naməlum xəta'}`)
       }
     } catch (error) {
       console.error('Error updating product:', error)
@@ -429,6 +476,49 @@ export default function EditProductPage() {
                 onChange={(e) => handleInputChange('sku', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="SKU kodunu daxil edin"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Əsas Qiymət *
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                required
+                value={formData.price}
+                onChange={(e) => handleInputChange('price', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="0.00"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Endirim Qiyməti
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                value={formData.salePrice}
+                onChange={(e) => handleInputChange('salePrice', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="0.00"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Əsas Stok *
+              </label>
+              <input
+                type="number"
+                required
+                value={formData.stockCount}
+                onChange={(e) => handleInputChange('stockCount', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="0"
               />
             </div>
 
