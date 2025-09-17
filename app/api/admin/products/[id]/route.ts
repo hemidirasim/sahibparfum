@@ -85,6 +85,33 @@ export async function PATCH(
       images
     } = body
 
+    // Handle simple restore request (only isActive field)
+    if (Object.keys(body).length === 1 && 'isActive' in body) {
+      const existingProduct = await prisma.product.findUnique({
+        where: { id: params.id }
+      })
+
+      if (!existingProduct) {
+        return NextResponse.json({ error: 'Product not found' }, { status: 404 })
+      }
+
+      const updatedProduct = await prisma.product.update({
+        where: { id: params.id },
+        data: {
+          isActive: isActive
+        }
+      })
+
+      return NextResponse.json({ 
+        success: true, 
+        product: {
+          id: updatedProduct.id,
+          name: updatedProduct.name,
+          isActive: updatedProduct.isActive
+        }
+      })
+    }
+
     // Check if product exists
     const existingProduct = await prisma.product.findUnique({
       where: { id: params.id }
