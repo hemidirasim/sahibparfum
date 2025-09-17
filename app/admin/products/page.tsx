@@ -15,7 +15,7 @@ export default function AdminProductsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [selectedCategory, setSelectedCategory] = useState(categoryParam || '')
-  const [selectedStatus, setSelectedStatus] = useState('')
+  const [selectedStatus, setSelectedStatus] = useState('active')
   const [products, setProducts] = useState<any[]>([])
   const [categories, setCategories] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -94,7 +94,7 @@ export default function AdminProductsPage() {
   const clearFilters = () => {
     setSearchTerm('')
     setSelectedCategory('')
-    setSelectedStatus('')
+    setSelectedStatus('active')
   }
 
   const handleDeleteProduct = async (productId: string, productName: string) => {
@@ -584,7 +584,7 @@ export default function AdminProductsPage() {
               onClick={() => {
                 setSearchTerm('')
                 setSelectedCategory('')
-                setSelectedStatus('')
+                setSelectedStatus('active')
               }}
               className="text-blue-600 hover:text-blue-700 font-medium"
             >
