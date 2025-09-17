@@ -107,7 +107,7 @@ export default function EditProductPage() {
         const imagesArray = Array.isArray(productData.images) 
           ? productData.images 
           : productData.images 
-            ? productData.images.split(',').filter(img => img.trim() !== '')
+            ? productData.images.split(',').filter((img: string) => img.trim() !== '')
             : []
         setImages(imagesArray)
         console.log('Product images loaded:', imagesArray)
