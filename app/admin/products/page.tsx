@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { Plus, Search, Edit, Trash2, Eye, Grid, List, Filter, Package, RefreshCw } from 'lucide-react'
+import { Plus, Search, Edit, Trash2, Eye, Grid, List, Filter, Package, RefreshCw, RotateCcw } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 
@@ -48,8 +48,7 @@ export default function AdminProductsPage() {
       const params = new URLSearchParams()
       if (searchTerm) params.append('search', searchTerm)
       if (selectedCategory) params.append('category', selectedCategory)
-      // Always fetch only active products
-      params.append('status', 'active')
+      if (selectedStatus) params.append('status', selectedStatus)
       params.append('limit', '50') // Show more products
       
       const response = await fetch(`/api/admin/products?${params.toString()}`)
@@ -74,17 +73,16 @@ export default function AdminProductsPage() {
     if (session?.user?.role === 'ADMIN') {
       fetchProducts()
     }
-  }, [searchTerm, selectedCategory, session, status])
+  }, [searchTerm, selectedCategory, selectedStatus, session, status])
 
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          product.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          product.sku.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCategory = !selectedCategory || product.category === selectedCategory
-    // Always show only active products
-    const isActive = product.status === 'active'
+    const matchesStatus = !selectedStatus || product.status === selectedStatus
     
-    return matchesSearch && matchesCategory && isActive
+    return matchesSearch && matchesCategory && matchesStatus
   })
 
   const getStatusColor = (status: string) => {
@@ -96,6 +94,7 @@ export default function AdminProductsPage() {
   const clearFilters = () => {
     setSearchTerm('')
     setSelectedCategory('')
+    setSelectedStatus('active')
   }
 
   const handleDeleteProduct = async (productId: string, productName: string) => {
@@ -121,6 +120,42 @@ export default function AdminProductsPage() {
     } catch (error) {
       console.error('Error deleting product:', error)
       alert('Məhsul silinərkən xəta baş verdi')
+    } finally {
+      setDeleting(null)
+    }
+  }
+
+  const handleRestoreProduct = async (productId: string, productName: string) => {
+    if (!confirm(`"${productName}" məhsulunu bərpa etmək istədiyinizə əminsiniz?`)) {
+      return
+    }
+
+    setDeleting(productId)
+    try {
+      const response = await fetch(`/api/admin/products/${productId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          isActive: true
+        })
+      })
+
+      if (response.ok) {
+        // Update product status in local state
+        setProducts(prev => prev.map(p => 
+          p.id === productId ? { ...p, status: 'active', isActive: true } : p
+        ))
+        alert('Məhsul uğurla bərpa edildi')
+      } else {
+        const error = await response.json()
+        console.error('Restore error:', error)
+        alert('Məhsul bərpa edilərkən xəta baş verdi')
+      }
+    } catch (error) {
+      console.error('Error restoring product:', error)
+      alert('Məhsul bərpa edilərkən xəta baş verdi')
     } finally {
       setDeleting(null)
     }
@@ -225,6 +260,15 @@ export default function AdminProductsPage() {
                 {category.name}
               </option>
             ))}
+          </select>
+          <select 
+            value={selectedStatus}
+            onChange={(e) => setSelectedStatus(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="active">Aktiv</option>
+            <option value="inactive">Silinmiş</option>
+            <option value="">Bütün statuslar</option>
           </select>
         </div>
         
@@ -373,25 +417,42 @@ export default function AdminProductsPage() {
                     >
                       <Eye className="h-4 w-4" />
                     </Link>
-                    <Link
-                      href={`/admin/products/${product.id}/edit`}
-                      className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                      title="Redaktə et"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Link>
-                    <button 
-                      onClick={() => handleDeleteProduct(product.id, product.name)}
-                      disabled={deleting === product.id}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
-                      title="Sil"
-                    >
-                      {deleting === product.id ? (
-                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent"></div>
-                      ) : (
-                        <Trash2 className="h-4 w-4" />
-                      )}
-                    </button>
+                    {product.status === 'active' && (
+                      <Link
+                        href={`/admin/products/${product.id}/edit`}
+                        className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                        title="Redaktə et"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Link>
+                    )}
+                    {product.status === 'active' ? (
+                      <button 
+                        onClick={() => handleDeleteProduct(product.id, product.name)}
+                        disabled={deleting === product.id}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                        title="Sil"
+                      >
+                        {deleting === product.id ? (
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent"></div>
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                      </button>
+                    ) : (
+                      <button 
+                        onClick={() => handleRestoreProduct(product.id, product.name)}
+                        disabled={deleting === product.id}
+                        className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors disabled:opacity-50"
+                        title="Bərpa et"
+                      >
+                        {deleting === product.id ? (
+                          <div className="h-4 w-4 animate-spin rounded-full border-2 border-green-600 border-t-transparent"></div>
+                        ) : (
+                          <RotateCcw className="h-4 w-4" />
+                        )}
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -523,23 +584,39 @@ export default function AdminProductsPage() {
                         >
                           <Eye className="h-4 w-4" />
                         </Link>
-                        <Link
-                          href={`/admin/products/${product.id}/edit`}
-                          className="text-green-600 hover:text-green-900 p-1"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Link>
-                        <button 
-                          onClick={() => handleDeleteProduct(product.id, product.name)}
-                          disabled={deleting === product.id}
-                          className="text-red-600 hover:text-red-900 p-1 disabled:opacity-50"
-                        >
-                          {deleting === product.id ? (
-                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent"></div>
-                          ) : (
-                            <Trash2 className="h-4 w-4" />
-                          )}
-                        </button>
+                        {product.status === 'active' && (
+                          <Link
+                            href={`/admin/products/${product.id}/edit`}
+                            className="text-green-600 hover:text-green-900 p-1"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Link>
+                        )}
+                        {product.status === 'active' ? (
+                          <button 
+                            onClick={() => handleDeleteProduct(product.id, product.name)}
+                            disabled={deleting === product.id}
+                            className="text-red-600 hover:text-red-900 p-1 disabled:opacity-50"
+                          >
+                            {deleting === product.id ? (
+                              <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent"></div>
+                            ) : (
+                              <Trash2 className="h-4 w-4" />
+                            )}
+                          </button>
+                        ) : (
+                          <button 
+                            onClick={() => handleRestoreProduct(product.id, product.name)}
+                            disabled={deleting === product.id}
+                            className="text-green-600 hover:text-green-900 p-1 disabled:opacity-50"
+                          >
+                            {deleting === product.id ? (
+                              <div className="h-4 w-4 animate-spin rounded-full border-2 border-green-600 border-t-transparent"></div>
+                            ) : (
+                              <RotateCcw className="h-4 w-4" />
+                            )}
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -576,6 +653,7 @@ export default function AdminProductsPage() {
               onClick={() => {
                 setSearchTerm('')
                 setSelectedCategory('')
+                setSelectedStatus('active')
               }}
               className="text-blue-600 hover:text-blue-700 font-medium"
             >
