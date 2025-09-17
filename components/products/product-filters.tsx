@@ -62,8 +62,14 @@ export function ProductFilters({ onFiltersChange, activeFilters }: ProductFilter
   useEffect(() => {
     const fetchFilterData = async () => {
       try {
-        // Fetch categories
-        const categoriesResponse = await fetch('/api/categories')
+        // Fetch categories with cache busting
+        const timestamp = Date.now()
+        const categoriesResponse = await fetch(`/api/categories?_t=${timestamp}`, {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache'
+          }
+        })
         const categoriesData = await categoriesResponse.json()
         
         // Fetch brands
@@ -81,13 +87,11 @@ export function ProductFilters({ onFiltersChange, activeFilters }: ProductFilter
         }
 
         setFilterData({
-          categories: categoriesData
-            .filter((cat: any) => cat.isActive && cat.productCount > 0)
-            .map((cat: any) => ({
-              id: cat.id,
-              name: cat.name,
-              count: 0
-            })),
+          categories: categoriesData.map((cat: any) => ({
+            id: cat.id,
+            name: cat.name,
+            count: 0
+          })),
           brands: allBrands,
           volumes: [
             { volume: '50ml', count: 0 },

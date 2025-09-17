@@ -83,9 +83,23 @@ export function Header() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch('/api/categories')
+        // Add cache busting parameter
+        const timestamp = Date.now()
+        const response = await fetch(`/api/categories?_t=${timestamp}`, {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache'
+          }
+        })
         if (response.ok) {
           const data = await response.json()
+          
+          console.log('Header: Categories fetched:', {
+            timestamp: new Date().toISOString(),
+            categoriesCount: data?.length || 0,
+            url: `/api/categories?_t=${timestamp}`
+          })
+          
           // API already filters for active categories with products
           const activeCategories = data.map((cat: any) => ({
             name: cat.name,
