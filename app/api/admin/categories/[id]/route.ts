@@ -131,17 +131,23 @@ export async function DELETE(
       return NextResponse.json({ error: 'Category not found' }, { status: 404 })
     }
 
-    // Check if category has products
+    console.log(`Deleting category: ${existingCategory.name} with ${existingCategory._count.products} products`)
+
+    // Delete all products in this category first (soft delete - set isActive to false)
     if (existingCategory._count.products > 0) {
-      return NextResponse.json({ 
-        error: 'Cannot delete category with products. Please move or delete products first.' 
-      }, { status: 400 })
+      await prisma.product.updateMany({
+        where: { categoryId: params.id },
+        data: { isActive: false }
+      })
+      console.log(`Soft deleted ${existingCategory._count.products} products from category: ${existingCategory.name}`)
     }
 
     // Delete category
     await prisma.category.delete({
       where: { id: params.id }
     })
+
+    console.log(`Successfully deleted category: ${existingCategory.name}`)
 
     return NextResponse.json({ success: true })
   } catch (error) {

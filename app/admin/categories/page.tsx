@@ -49,7 +49,15 @@ export default function AdminCategoriesPage() {
   }, [])
 
   const handleDelete = async (categoryId: string, categoryName: string) => {
-    if (!confirm(`"${categoryName}" kateqoriyasını silmək istədiyinizə əminsiniz?`)) {
+    const category = categories.find(cat => cat.id === categoryId)
+    const productCount = category?.productCount || 0
+    
+    let confirmMessage = `"${categoryName}" kateqoriyasını silmək istədiyinizə əminsiniz?`
+    if (productCount > 0) {
+      confirmMessage += `\n\nBu kateqoriyada ${productCount} məhsul var və onlar da silinəcək. Bu əməliyyat geri alına bilməz.`
+    }
+    
+    if (!confirm(confirmMessage)) {
       return
     }
 
@@ -61,7 +69,14 @@ export default function AdminCategoriesPage() {
 
       if (response.ok) {
         setCategories(prev => prev.filter(cat => cat.id !== categoryId))
-        alert('Kateqoriya uğurla silindi')
+        const deletedCategory = categories.find(cat => cat.id === categoryId)
+        const productCount = deletedCategory?.productCount || 0
+        
+        let successMessage = 'Kateqoriya uğurla silindi'
+        if (productCount > 0) {
+          successMessage += `\n${productCount} məhsul da silindi`
+        }
+        alert(successMessage)
       } else {
         const error = await response.json()
         alert(error.error || 'Kateqoriya silinərkən xəta baş verdi')
