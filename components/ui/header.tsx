@@ -86,13 +86,11 @@ export function Header() {
         const response = await fetch('/api/categories')
         if (response.ok) {
           const data = await response.json()
-          // Only show active categories with products
-          const activeCategories = data
-            .filter((cat: any) => cat.isActive && cat.productCount > 0)
-            .map((cat: any) => ({
-              name: cat.name,
-              href: `/categories?categoryIds=${cat.id}`
-            }))
+          // API already filters for active categories with products
+          const activeCategories = data.map((cat: any) => ({
+            name: cat.name,
+            href: `/categories?categoryIds=${cat.id}`
+          }))
           setCategories(activeCategories)
         }
       } catch (error) {

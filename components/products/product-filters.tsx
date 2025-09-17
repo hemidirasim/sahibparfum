@@ -81,11 +81,13 @@ export function ProductFilters({ onFiltersChange, activeFilters }: ProductFilter
         }
 
         setFilterData({
-          categories: categoriesData.map((cat: any) => ({
-            id: cat.id,
-            name: cat.name,
-            count: 0
-          })),
+          categories: categoriesData
+            .filter((cat: any) => cat.isActive && cat.productCount > 0)
+            .map((cat: any) => ({
+              id: cat.id,
+              name: cat.name,
+              count: 0
+            })),
           brands: allBrands,
           volumes: [
             { volume: '50ml', count: 0 },

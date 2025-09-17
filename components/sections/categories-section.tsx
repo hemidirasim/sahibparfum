@@ -37,10 +37,8 @@ export function CategoriesSection() {
             categoriesCount: data?.length || 0,
             url: `/api/categories?_t=${timestamp}`
           })
-          // Only show active categories with products
-          const activeCategories = data.filter((cat: Category) => 
-            cat.isActive && cat.productCount > 0
-          ).slice(0, 4) // Show only first 4 categories
+          // Show only first 4 categories (API already filters for active categories with products)
+          const activeCategories = data.slice(0, 4)
           setCategories(activeCategories)
         }
       } catch (error) {

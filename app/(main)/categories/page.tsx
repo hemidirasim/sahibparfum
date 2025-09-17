@@ -41,10 +41,12 @@ async function getCategoriesData(): Promise<Category[]> {
 
     await prisma.$disconnect()
 
-    return categories.map(category => ({
-      ...category,
-      productCount: category._count.products
-    }))
+    return categories
+      .filter(category => category.isActive && category._count.products > 0)
+      .map(category => ({
+        ...category,
+        productCount: category._count.products
+      }))
   } catch (error) {
     console.error('Error fetching categories:', error)
     await prisma.$disconnect()

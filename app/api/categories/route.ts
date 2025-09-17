@@ -32,10 +32,12 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    const transformedCategories = categories.map(category => ({
-      ...category,
-      productCount: category._count.products
-    }))
+    const transformedCategories = categories
+      .filter(category => category._count.products > 0)
+      .map(category => ({
+        ...category,
+        productCount: category._count.products
+      }))
 
     return NextResponse.json(transformedCategories)
 
