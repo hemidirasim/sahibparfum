@@ -60,7 +60,7 @@ export async function GET(
       status: order.status,
       paymentStatus: order.paymentStatus,
       paymentMethod: order.paymentMethod,
-      transactionId: order.transactionId || null,
+      transactionId: order.transactionId,
       items: order.orderItems.map(item => ({
         id: item.id,
         quantity: item.quantity,

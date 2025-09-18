@@ -87,6 +87,7 @@ export async function POST(request: NextRequest) {
         data: {
           status: orderStatus,
           paymentStatus: paymentStatus,
+          ...(transactionId && { transactionId: parseInt(transactionId) }),
           updatedAt: new Date()
         }
       })

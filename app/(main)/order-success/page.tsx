@@ -31,7 +31,8 @@ export default function OrderSuccessPage() {
           clearCart()
         }
       } else {
-        checkOrderStatus()
+        // Check order status and also try to get transactionId from order
+        checkOrderStatusWithTransaction()
       }
     } else {
       setLoading(false)
@@ -104,6 +105,71 @@ export default function OrderSuccessPage() {
       }
     } catch (error) {
       console.error('Error updating order status:', error)
+    }
+  }
+
+  const checkOrderStatusWithTransaction = async () => {
+    try {
+      const response = await fetch(`/api/orders/${orderId}`)
+      if (response.ok) {
+        const order = await response.json()
+        const status = order.status || 'PENDING'
+        
+        // If order has transactionId, check payment status
+        if (order.transactionId) {
+          console.log('Order has transactionId, checking payment status:', order.transactionId)
+          const paymentResponse = await fetch('/api/payment/check-status', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ transactionId: order.transactionId })
+          })
+
+          if (paymentResponse.ok) {
+            const paymentResult = await paymentResponse.json()
+            console.log('Payment status check result:', paymentResult)
+            
+            // Map United Payment status to our order status
+            let mappedStatus = status
+            if (paymentResult.orderStatus === 'APPROVED') {
+              mappedStatus = 'PAID'
+            } else if (paymentResult.orderStatus === 'DECLINED' || paymentResult.orderStatus === 'FAILED') {
+              mappedStatus = 'PAYMENT_FAILED'
+            } else if (paymentResult.orderStatus === 'CANCELLED') {
+              mappedStatus = 'CANCELLED'
+            }
+
+            setOrderStatus(mappedStatus)
+            
+            // Update order status in database if different
+            if (mappedStatus !== status) {
+              await updateOrderStatus(mappedStatus)
+            }
+            
+            // Clear cart if payment is successful
+            if (mappedStatus === 'PAID') {
+              clearCart()
+            }
+          } else {
+            // Fallback to order status
+            setOrderStatus(status)
+            if (status === 'PAID') {
+              clearCart()
+            }
+          }
+        } else {
+          // No transactionId, use order status
+          setOrderStatus(status)
+          if (status === 'PAID') {
+            clearCart()
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error checking order status:', error)
+    } finally {
+      setLoading(false)
     }
   }
 
