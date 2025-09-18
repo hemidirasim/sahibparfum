@@ -12,6 +12,7 @@ export default function OrderSuccessPage() {
   const paymentStatus = searchParams.get('status')
   const paymentId = searchParams.get('paymentId')
   const transactionId = searchParams.get('transactionId')
+  const upParam = searchParams.get('up') // United Payment callback data
   
   const [orderStatus, setOrderStatus] = useState<string>('PENDING')
   const [loading, setLoading] = useState(true)
@@ -19,7 +20,26 @@ export default function OrderSuccessPage() {
 
   useEffect(() => {
     if (orderId) {
-      console.log('Order success page loaded with:', { orderId, paymentStatus, transactionId })
+      console.log('Order success page loaded with:', { orderId, paymentStatus, transactionId, upParam })
+      
+      // Parse United Payment callback data if available
+      if (upParam) {
+        try {
+          const decodedData = JSON.parse(atob(upParam))
+          console.log('United Payment callback data:', decodedData)
+          
+          // If we have United Payment data showing APPROVED, set status immediately
+          if (decodedData.Status === 'APPROVED' || decodedData.ExternalStatusDesc === 'FullyPaid') {
+            console.log('United Payment shows APPROVED, setting status to PAID')
+            setOrderStatus('PAID')
+            clearCart()
+            setLoading(false)
+            return
+          }
+        } catch (error) {
+          console.error('Error parsing United Payment callback data:', error)
+        }
+      }
       
       // Always check payment status first using our API
       console.log('Checking payment status for orderId:', orderId)
@@ -28,7 +48,7 @@ export default function OrderSuccessPage() {
       console.log('No orderId found')
       setLoading(false)
     }
-  }, [orderId, paymentStatus, transactionId, clearCart])
+  }, [orderId, paymentStatus, transactionId, upParam, clearCart])
 
   const checkPaymentStatus = async () => {
     if (!orderId) {
@@ -255,12 +275,17 @@ export default function OrderSuccessPage() {
           {orderId && (
             <div className="bg-gray-50 rounded-lg p-4 mb-6">
               <p className="text-sm text-gray-600 mb-1">Sifariş Nömrəsi:</p>
-              <p className="text-lg font-mono font-semibold text-primary-600">
+              <p className="text-lg font-mono font-semibold text-primary-600 break-all overflow-wrap-anywhere">
                 {orderId}
               </p>
               {paymentId && (
-                <p className="text-sm text-gray-600 mt-2">
+                <p className="text-sm text-gray-600 mt-2 break-all overflow-wrap-anywhere">
                   Ödəniş ID: {paymentId}
+                </p>
+              )}
+              {transactionId && (
+                <p className="text-sm text-gray-600 mt-2 break-all overflow-wrap-anywhere">
+                  Transaction ID: {transactionId}
                 </p>
               )}
             </div>
