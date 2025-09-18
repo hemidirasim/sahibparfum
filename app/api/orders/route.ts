@@ -220,6 +220,11 @@ export async function POST(request: NextRequest) {
 
     // Send order confirmation email
     try {
+      if (!order) {
+        console.error('Order is null, cannot send email')
+        return NextResponse.json(order)
+      }
+
       const settings = await prisma.settings.findFirst()
       const deliveryCost = settings?.deliveryCost || 10
       const freeDeliveryThreshold = settings?.freeDeliveryThreshold || 100
@@ -260,7 +265,7 @@ export async function POST(request: NextRequest) {
       // Don't fail the order creation if email fails
     }
 
-    return NextResponse.json(order)
+    return NextResponse.json(order || {})
   } catch (error) {
     console.error('Order creation error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
