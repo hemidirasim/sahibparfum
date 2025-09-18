@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { revalidatePath } from 'next/cache'
 
 export async function GET(request: NextRequest) {
   try {
@@ -116,6 +117,16 @@ export async function POST(request: NextRequest) {
         isActive: isActive !== false
       }
     })
+
+    // Revalidate category-related pages
+    try {
+      revalidatePath('/api/categories')
+      revalidatePath('/')
+      revalidatePath('/categories')
+      console.log('Revalidated category paths after creation')
+    } catch (revalidateError) {
+      console.error('Revalidation error:', revalidateError)
+    }
 
     return NextResponse.json({ 
       success: true, 

@@ -26,7 +26,8 @@ export function CategoriesSection() {
         const response = await fetch(`/api/categories?_t=${timestamp}`, {
           cache: 'no-store',
           headers: {
-            'Cache-Control': 'no-cache'
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
           }
         })
         if (response.ok) {
@@ -49,7 +50,15 @@ export function CategoriesSection() {
       }
     }
 
+    // Initial fetch
     fetchCategories()
+    
+    // Refresh categories every 30 seconds to catch new ones
+    const interval = setInterval(() => {
+      fetchCategories()
+    }, 30000)
+    
+    return () => clearInterval(interval)
   }, [])
 
   if (loading) {

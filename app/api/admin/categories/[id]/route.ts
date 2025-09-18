@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { revalidatePath } from 'next/cache'
 
 export async function GET(
   request: NextRequest,
@@ -148,6 +149,16 @@ export async function DELETE(
     })
 
     console.log(`Successfully deleted category: ${existingCategory.name}`)
+
+    // Revalidate category-related pages
+    try {
+      revalidatePath('/api/categories')
+      revalidatePath('/')
+      revalidatePath('/categories')
+      console.log('Revalidated category paths after deletion')
+    } catch (revalidateError) {
+      console.error('Revalidation error:', revalidateError)
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {
