@@ -124,8 +124,8 @@ export async function POST(request: NextRequest) {
 
       const emailData = {
         orderId: order.orderNumber,
-        customerName: order.user.name || 'Müştəri',
-        customerEmail: order.user.email,
+        customerName: order.user?.name || 'Müştəri',
+        customerEmail: order.user?.email || '',
         orderItems: order.orderItems.map(item => ({
           id: item.product.id,
           name: item.product.name,
@@ -137,7 +137,7 @@ export async function POST(request: NextRequest) {
         shipping,
         total,
         deliveryAddress: order.shippingAddress ? 
-          `${order.shippingAddress.fullName}\n${order.shippingAddress.address}\n${order.shippingAddress.city}, ${order.shippingAddress.postalCode}\n${order.shippingAddress.phone}` : 
+          `${order.shippingAddress.firstName} ${order.shippingAddress.lastName}\n${order.shippingAddress.address1}${order.shippingAddress.address2 ? '\n' + order.shippingAddress.address2 : ''}\n${order.shippingAddress.city}, ${order.shippingAddress.postalCode}\n${order.shippingAddress.phone}` : 
           'Çatdırılma ünvanı təyin edilməyib',
         orderDate: order.createdAt
       }
