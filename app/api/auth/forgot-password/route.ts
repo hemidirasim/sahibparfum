@@ -40,7 +40,10 @@ export async function POST(request: NextRequest) {
     })
 
     // Send reset email
-    const resetUrl = `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/auth/reset-password?token=${resetToken}`
+    const baseUrl = process.env.NODE_ENV === 'production' 
+      ? 'https://sahibparfum.az' 
+      : (process.env.NEXTAUTH_URL || 'http://localhost:3000')
+    const resetUrl = `${baseUrl}/auth/reset-password?token=${resetToken}`
     
     const emailHtml = `
       <!DOCTYPE html>
