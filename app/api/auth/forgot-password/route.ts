@@ -21,7 +21,8 @@ export async function POST(request: NextRequest) {
       // Don't reveal if user exists or not for security
       return NextResponse.json({ 
         success: true, 
-        message: 'Əgər bu email ünvanı sistemdə qeydiyyatdadırsa, şifrə sıfırlama linki göndəriləcək' 
+        message: 'Email ünvanınızı yoxladıq. Əgər bu ünvan sistemdə qeydiyyatdadırsa, şifrə sıfırlama linki göndəriləcək.',
+        emailSent: false
       })
     }
 
@@ -155,7 +156,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ 
       success: true, 
-      message: 'Şifrə sıfırlama linki email ünvanınıza göndərildi' 
+      message: 'Şifrə sıfırlama linki email ünvanınıza göndərildi',
+      emailSent: true
     })
 
   } catch (error) {

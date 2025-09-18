@@ -10,6 +10,7 @@ export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [emailSent, setEmailSent] = useState(false)
+  const [actualEmailSent, setActualEmailSent] = useState(false)
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -31,7 +32,12 @@ export default function ForgotPasswordPage() {
         toast.error(data.error || 'Xəta baş verdi')
       } else {
         setEmailSent(true)
-        toast.success('Şifrə sıfırlama linki email ünvanınıza göndərildi')
+        setActualEmailSent(data.emailSent || false)
+        if (data.emailSent) {
+          toast.success('Şifrə sıfırlama linki email ünvanınıza göndərildi')
+        } else {
+          toast.info('Email ünvanınızı yoxladıq. Əgər qeydiyyatdadırsa, link göndəriləcək.')
+        }
       }
     } catch (error) {
       toast.error('Xəta baş verdi')
@@ -53,7 +59,7 @@ export default function ForgotPasswordPage() {
               />
             </Link>
             <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-              Email göndərildi
+              {actualEmailSent ? 'Email göndərildi' : 'Email yoxlandı'}
             </h2>
           </div>
         </div>
@@ -61,17 +67,35 @@ export default function ForgotPasswordPage() {
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
           <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
             <div className="text-center">
-              <CheckCircle className="mx-auto h-16 w-16 text-green-500 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Şifrə sıfırlama linki göndərildi
-              </h3>
-              <p className="text-sm text-gray-600 mb-6">
-                <strong>{email}</strong> ünvanına şifrə sıfırlama linki göndərdik. 
-                Email qutunuzu yoxlayın və linkə klik edin.
-              </p>
-              <p className="text-xs text-gray-500 mb-6">
-                Email gəlmədisə, spam qovluğunu yoxlayın və ya bir neçə dəqiqə gözləyin.
-              </p>
+              {actualEmailSent ? (
+                <>
+                  <CheckCircle className="mx-auto h-16 w-16 text-green-500 mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    Şifrə sıfırlama linki göndərildi
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-6">
+                    <strong>{email}</strong> ünvanına şifrə sıfırlama linki göndərdik. 
+                    Email qutunuzu yoxlayın və linkə klik edin.
+                  </p>
+                  <p className="text-xs text-gray-500 mb-6">
+                    Email gəlmədisə, spam qovluğunu yoxlayın və ya bir neçə dəqiqə gözləyin.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="mx-auto h-16 w-16 text-blue-500 mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">
+                    Email ünvanı yoxlandı
+                  </h3>
+                  <p className="text-sm text-gray-600 mb-6">
+                    <strong>{email}</strong> ünvanını yoxladıq. Əgər bu ünvan sistemdə qeydiyyatdadırsa, 
+                    şifrə sıfırlama linki göndəriləcək.
+                  </p>
+                  <p className="text-xs text-gray-500 mb-6">
+                    Təhlükəsizlik məqsədi ilə email-in mövcudluğu açıqlanmır.
+                  </p>
+                </>
+              )}
               <div className="space-y-3">
                 <button
                   onClick={() => {
