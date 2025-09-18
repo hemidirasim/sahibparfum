@@ -837,7 +837,7 @@ export default function CheckoutPage() {
                         {item.name} x {item.quantity}
                       </span>
                       <span className="text-gray-900">
-                        {(item.price * item.quantity).toFixed(2)} ₼
+                        {((item.salePrice || item.price) * item.quantity).toFixed(2)} ₼
                       </span>
                     </div>
                   ))}
