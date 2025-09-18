@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { revalidatePath } from 'next/cache'
+
+// Force dynamic rendering to prevent caching issues
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export async function GET() {
   try {
@@ -52,6 +57,17 @@ export async function PUT(request: NextRequest) {
         where: { id: settings.id },
         data: body
       })
+    }
+
+    // Revalidate settings-related pages
+    try {
+      revalidatePath('/api/settings')
+      revalidatePath('/')
+      revalidatePath('/cart')
+      revalidatePath('/checkout')
+      console.log('Revalidated settings paths after update')
+    } catch (revalidateError) {
+      console.error('Settings revalidation error:', revalidateError)
     }
 
     return NextResponse.json(settings)

@@ -62,9 +62,23 @@ export function Header() {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const response = await fetch('/api/settings')
+        // Add cache busting parameter
+        const timestamp = Date.now()
+        const response = await fetch(`/api/settings?_t=${timestamp}`, {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
+        })
         if (response.ok) {
           const data = await response.json()
+          
+          console.log('Header: Settings fetched:', {
+            timestamp: new Date().toISOString(),
+            freeDeliveryThreshold: data.freeDeliveryThreshold
+          })
+          
           setSettings({
             contactPhone: data.contactPhone || '+994 50 123 45 67',
             contactEmail: data.contactEmail || 'info@sahibparfumeriya.az',
@@ -76,7 +90,15 @@ export function Header() {
       }
     }
 
+    // Initial fetch
     fetchSettings()
+    
+    // Refresh settings every 30 seconds to catch updates
+    const interval = setInterval(fetchSettings, 30000)
+    
+    return () => {
+      clearInterval(interval)
+    }
   }, [])
 
   // Fetch categories

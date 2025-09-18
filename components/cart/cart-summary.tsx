@@ -23,8 +23,23 @@ export function CartSummary() {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const response = await fetch('/api/settings')
+        // Add cache busting parameter
+        const timestamp = Date.now()
+        const response = await fetch(`/api/settings?_t=${timestamp}`, {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
+        })
         const data = await response.json()
+        
+        console.log('Cart Summary: Settings fetched:', {
+          timestamp: new Date().toISOString(),
+          deliveryCost: data.deliveryCost,
+          freeDeliveryThreshold: data.freeDeliveryThreshold
+        })
+        
         setSettings({
           deliveryCost: data.deliveryCost || 10,
           freeDeliveryThreshold: data.freeDeliveryThreshold || 100
@@ -35,7 +50,13 @@ export function CartSummary() {
       }
     }
 
+    // Initial fetch
     fetchSettings()
+    
+    // Refresh settings every 30 seconds to catch updates
+    const interval = setInterval(fetchSettings, 30000)
+    
+    return () => clearInterval(interval)
   }, [])
 
   const subtotal = getTotal()
