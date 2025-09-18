@@ -229,6 +229,8 @@ export default function AdminOrdersPage() {
     switch (status) {
       case 'PENDING':
         return 'bg-yellow-100 text-yellow-800'
+      case 'PAID':
+        return 'bg-green-100 text-green-800'
       case 'CONFIRMED':
         return 'bg-blue-100 text-blue-800'
       case 'PROCESSING':
@@ -239,6 +241,8 @@ export default function AdminOrdersPage() {
         return 'bg-green-100 text-green-800'
       case 'CANCELLED':
         return 'bg-red-100 text-red-800'
+      case 'PAYMENT_FAILED':
+        return 'bg-red-100 text-red-800'
       default:
         return 'bg-gray-100 text-gray-800'
     }
@@ -248,6 +252,8 @@ export default function AdminOrdersPage() {
     switch (status) {
       case 'PENDING':
         return 'Gözləyir'
+      case 'PAID':
+        return 'Ödənilib'
       case 'CONFIRMED':
         return 'Təsdiqlənib'
       case 'PROCESSING':
@@ -258,6 +264,8 @@ export default function AdminOrdersPage() {
         return 'Çatdırıldı'
       case 'CANCELLED':
         return 'Ləğv edildi'
+      case 'PAYMENT_FAILED':
+        return 'Ödəniş Uğursuz'
       default:
         return status
     }
@@ -384,11 +392,13 @@ export default function AdminOrdersPage() {
             >
               <option value="ALL">Bütün Statuslar</option>
               <option value="PENDING">Gözləyir</option>
+              <option value="PAID">Ödənilib</option>
               <option value="CONFIRMED">Təsdiqlənib</option>
               <option value="PROCESSING">İşlənir</option>
               <option value="SHIPPED">Göndərildi</option>
               <option value="DELIVERED">Çatdırıldı</option>
               <option value="CANCELLED">Ləğv edildi</option>
+              <option value="PAYMENT_FAILED">Ödəniş Uğursuz</option>
             </select>
           </div>
 
@@ -501,11 +511,13 @@ export default function AdminOrdersPage() {
                         className={`text-xs font-semibold px-2 py-1 rounded-full border-0 ${getStatusColor(order.status)}`}
                       >
                         <option value="PENDING">Gözləyir</option>
+                        <option value="PAID">Ödənilib</option>
                         <option value="CONFIRMED">Təsdiqlənib</option>
                         <option value="PROCESSING">İşlənir</option>
                         <option value="SHIPPED">Göndərildi</option>
                         <option value="DELIVERED">Çatdırıldı</option>
                         <option value="CANCELLED">Ləğv edildi</option>
+                        <option value="PAYMENT_FAILED">Ödəniş Uğursuz</option>
                       </select>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

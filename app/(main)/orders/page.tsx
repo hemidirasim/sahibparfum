@@ -139,11 +139,15 @@ export default function OrdersPage() {
     switch (status) {
       case 'DELIVERED':
         return <CheckCircle className="h-5 w-5 text-green-600" />
+      case 'PAID':
+        return <CheckCircle className="h-5 w-5 text-green-600" />
       case 'SHIPPED':
         return <Package className="h-5 w-5 text-blue-600" />
       case 'PROCESSING':
         return <Clock className="h-5 w-5 text-yellow-600" />
       case 'CANCELLED':
+        return <XCircle className="h-5 w-5 text-red-600" />
+      case 'PAYMENT_FAILED':
         return <XCircle className="h-5 w-5 text-red-600" />
       default:
         return <Clock className="h-5 w-5 text-gray-600" />
@@ -154,6 +158,8 @@ export default function OrdersPage() {
     switch (status) {
       case 'PENDING':
         return 'Gözləyir'
+      case 'PAID':
+        return 'Ödənilib'
       case 'CONFIRMED':
         return 'Təsdiqləndi'
       case 'PROCESSING':
@@ -166,6 +172,8 @@ export default function OrdersPage() {
         return 'Ləğv edildi'
       case 'REFUNDED':
         return 'Qaytarıldı'
+      case 'PAYMENT_FAILED':
+        return 'Ödəniş Uğursuz'
       default:
         return status
     }
