@@ -1,7 +1,10 @@
-# Production Migration Guide - Password Reset Fields
+# Production Migration Guide - Database Schema Updates
 
-## Problem
+## Problem 1: Password Reset Fields
 Production database-də `users` table-də `resetToken` və `resetTokenExpiry` sütunları yoxdur. Bu səbəbdən şifrə sıfırlama funksiyası 500 xətası verir.
+
+## Problem 2: Transaction ID Field
+Production database-də `orders` table-də `transactionId` sütunu yoxdur. Bu səbəbdən admin panel-də ödəniş statusu yoxlanması işləmir.
 
 ## Solution
 Aşağıdakı addımları izləyin:
@@ -40,6 +43,12 @@ ALTER TABLE "users" ADD COLUMN "resetTokenExpiry" TIMESTAMP(3);
 
 -- Add indexes for better performance
 CREATE INDEX "users_resetToken_idx" ON "users"("resetToken");
+
+-- Add transactionId field to orders table
+ALTER TABLE "orders" ADD COLUMN "transactionId" INTEGER;
+
+-- Add index for transactionId for better query performance
+CREATE INDEX "orders_transactionId_idx" ON "orders"("transactionId");
 ```
 
 ### Option 3: Prisma Studio (Local)
@@ -55,17 +64,34 @@ npx prisma studio
 
 Migration tamamlandıqdan sonra:
 
-1. Şifrə sıfırlama səhifəsinə gedin: https://sahibparfum.az/auth/forgot-password
-2. Mövcud bir email ünvanı daxil edin
-3. Email gəlməli və link düzgün işləməlidir
+1. **Password Reset Test:**
+   - Şifrə sıfırlama səhifəsinə gedin: https://sahibparfum.az/auth/forgot-password
+   - Mövcud bir email ünvanı daxil edin
+   - Email gəlməli və link düzgün işləməlidir
+
+2. **Payment Status Check Test:**
+   - Admin panel-ə daxil olun
+   - Sifarişlər səhifəsinə gedin
+   - Transaction ID olan sifarişdə yeşil CheckCircle düyməsini test edin
+   - Ödəniş statusu yoxlanmalı və yenilənməlidir
 
 ## Files Modified
 
-- `prisma/schema.prisma` - Schema güncəlləndi
+**Database Schema:**
+- `prisma/schema.prisma` - Order model-inə transactionId field əlavə edildi
+- `prisma/migrations/20250918160000_add_transaction_id_to_orders/migration.sql` - Migration script
+
+**Password Reset:**
 - `app/api/auth/forgot-password/route.ts` - API endpoint əlavə edildi
 - `app/auth/forgot-password/page.tsx` - Frontend səhifəsi əlavə edildi
 - `app/auth/reset-password/page.tsx` - Reset səhifəsi əlavə edildi
 - `lib/email.ts` - Email funksiyaları əlavə edildi
+
+**Payment Status Check:**
+- `lib/united-payment-auth.ts` - Transaction status check funksiyası
+- `app/api/payment/check-status/route.ts` - Status check API endpoint
+- `app/admin/orders/page.tsx` - Admin panel-də status check düyməsi
+- `app/api/admin/orders/route.ts` - Admin orders API transactionId ilə
 
 ## Environment Variables
 
