@@ -43,7 +43,8 @@ export default function ForgotPasswordPage() {
         }
       }
     } catch (error) {
-      toast.error('Xəta baş verdi')
+      console.error('Forgot password error:', error)
+      toast.error('Xəta baş verdi. Zəhmət olmasa yenidən cəhd edin.')
     } finally {
       setIsLoading(false)
     }
