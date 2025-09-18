@@ -7,17 +7,26 @@ const UNITED_PAYMENT_CONFIG = {
 
 export async function POST(request: NextRequest) {
   try {
-    const { orderId } = await request.json()
+    console.log('Payment check-order-status API called')
+    
+    const body = await request.json()
+    console.log('Request body:', body)
+    
+    const { orderId } = body
 
     if (!orderId) {
+      console.log('No orderId provided')
       return NextResponse.json({ 
         success: false, 
         error: 'Order ID is required' 
       }, { status: 400 })
     }
 
+    console.log('Checking payment status for orderId:', orderId)
+    console.log('Auth token configured:', !!UNITED_PAYMENT_CONFIG.authToken)
+
     if (!UNITED_PAYMENT_CONFIG.authToken) {
-      console.error('United Payment auth token not configured')
+      console.log('United Payment auth token not configured, returning mock response')
       // For testing purposes, return a mock response
       return NextResponse.json({
         success: true,
@@ -92,9 +101,16 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Error checking order status:', error)
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      name: error instanceof Error ? error.name : undefined
+    })
+    
     return NextResponse.json({ 
       success: false, 
-      error: 'Internal server error' 
+      error: 'Internal server error',
+      details: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 })
   }
 }
