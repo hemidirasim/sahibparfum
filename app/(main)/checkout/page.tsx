@@ -33,9 +33,13 @@ export default function CheckoutPage() {
     installment: null as number | null,
     notes: ''
   })
+  const [settings, setSettings] = useState({
+    deliveryCost: 10,
+    freeDeliveryThreshold: 100
+  })
 
   const subtotal = getTotal()
-  const shipping = subtotal > 100 ? 0 : 10
+  const shipping = subtotal >= settings.freeDeliveryThreshold ? 0 : settings.deliveryCost
   const total = subtotal + shipping
 
   // Redirect if not authenticated
@@ -44,6 +48,39 @@ export default function CheckoutPage() {
       router.push('/auth/signin?callbackUrl=/checkout')
     }
   }, [status, router])
+
+  // Load settings
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const timestamp = Date.now()
+        const response = await fetch(`/api/settings?_t=${timestamp}`, {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
+        })
+        
+        if (response.ok) {
+          const data = await response.json()
+          setSettings({
+            deliveryCost: data.deliveryCost || 10,
+            freeDeliveryThreshold: data.freeDeliveryThreshold || 100
+          })
+          console.log('Checkout: Settings loaded:', data)
+        }
+      } catch (error) {
+        console.error('Error loading settings:', error)
+      }
+    }
+
+    fetchSettings()
+
+    // Auto-refresh settings every 30 seconds
+    const interval = setInterval(fetchSettings, 30000)
+    return () => clearInterval(interval)
+  }, [])
 
   // Load user addresses
   useEffect(() => {
