@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { checkTransactionStatus } from '@/lib/united-payment-auth'
 
 // Handle payment callback from United Payment
 export async function POST(request: NextRequest) {
@@ -24,19 +25,39 @@ export async function POST(request: NextRequest) {
     // Use clientOrderId as primary order identifier
     const orderIdToUpdate = clientOrderId || orderId
 
+    // If we have a transactionId, check the actual status with United Payment
+    let actualStatus = status
+    let actualOrderStatus = 'PENDING'
+    
+    if (transactionId) {
+      console.log('Checking actual transaction status with United Payment for transactionId:', transactionId)
+      const statusCheck = await checkTransactionStatus(transactionId)
+      
+      if (statusCheck.success) {
+        actualStatus = statusCheck.status
+        actualOrderStatus = statusCheck.orderStatus || 'PENDING'
+        console.log('Actual transaction status:', actualStatus, 'Order status:', actualOrderStatus)
+      } else {
+        console.error('Failed to check transaction status:', statusCheck.error)
+      }
+    }
+
     // Update order status based on payment result
     let orderStatus = 'PENDING'
     let paymentStatus = 'PENDING'
 
-    switch (status?.toLowerCase()) {
+    // Use actual status from United Payment if available
+    const finalStatus = actualOrderStatus || status
+
+    switch (finalStatus?.toLowerCase()) {
+      case 'approved':
       case 'success':
       case 'completed':
-      case 'approved':
         orderStatus = 'PAID'
         paymentStatus = 'COMPLETED'
         break
-      case 'failed':
       case 'declined':
+      case 'failed':
       case 'rejected':
         orderStatus = 'PAYMENT_FAILED'
         paymentStatus = 'FAILED'
@@ -52,10 +73,12 @@ export async function POST(request: NextRequest) {
         paymentStatus = 'CANCELLED'
         break
       default:
-        console.warn('Unknown payment status:', status)
+        console.warn('Unknown payment status:', finalStatus)
         orderStatus = 'PENDING'
         paymentStatus = 'PENDING'
     }
+
+    console.log('Final order status:', orderStatus, 'Payment status:', paymentStatus)
 
     // Update order in database
     try {

@@ -76,3 +76,75 @@ export async function getValidToken(): Promise<string | null> {
     return null
   }
 }
+
+// Check transaction status by transaction ID
+export async function checkTransactionStatus(transactionId: number): Promise<{
+  success: boolean;
+  status?: string;
+  orderStatus?: string;
+  bankOrderId?: string;
+  bankSessionId?: string;
+  error?: string;
+}> {
+  try {
+    console.log('Checking transaction status for ID:', transactionId)
+    
+    const token = await getValidToken()
+    if (!token) {
+      return {
+        success: false,
+        error: 'Failed to get authentication token'
+      }
+    }
+
+    const apiUrl = getApiUrl()
+    const requestBody = {
+      transactionId: transactionId
+    }
+
+    console.log('Making status check request to:', `${apiUrl}/api/transactions/transaction-status-by-trx-id`)
+    console.log('Request body:', requestBody)
+
+    const response = await fetch(`${apiUrl}/api/transactions/transaction-status-by-trx-id`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'x-auth-token': token
+      },
+      body: JSON.stringify(requestBody)
+    })
+
+    console.log('Status check response status:', response.status)
+
+    if (response.ok) {
+      const result = await response.json()
+      console.log('Transaction status response:', result)
+      
+      return {
+        success: true,
+        status: result.status,
+        orderStatus: result.orderStatus,
+        bankOrderId: result.bankOrderId,
+        bankSessionId: result.bankSessionId
+      }
+    } else {
+      const errorText = await response.text()
+      console.error('Status check failed:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText
+      })
+      return {
+        success: false,
+        error: `Status check failed: ${response.status} ${response.statusText}`
+      }
+    }
+  } catch (error) {
+    console.error('Error checking transaction status:', error instanceof Error ? error.message : 'Unknown error')
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    }
+  }
+}

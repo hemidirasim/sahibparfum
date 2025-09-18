@@ -11,6 +11,7 @@ export default function OrderSuccessPage() {
   const orderId = searchParams.get('orderId')
   const paymentStatus = searchParams.get('status')
   const paymentId = searchParams.get('paymentId')
+  const transactionId = searchParams.get('transactionId')
   
   const [orderStatus, setOrderStatus] = useState<string>('PENDING')
   const [loading, setLoading] = useState(true)
@@ -18,8 +19,11 @@ export default function OrderSuccessPage() {
 
   useEffect(() => {
     if (orderId) {
-      // If we have payment status from URL params, set it immediately
-      if (paymentStatus) {
+      // If we have transactionId, check payment status first
+      if (transactionId) {
+        checkPaymentStatus()
+      } else if (paymentStatus) {
+        // If we have payment status from URL params, set it immediately
         setOrderStatus(paymentStatus)
         setLoading(false)
         // Clear cart if payment is successful
@@ -32,7 +36,76 @@ export default function OrderSuccessPage() {
     } else {
       setLoading(false)
     }
-  }, [orderId, paymentStatus, clearCart])
+  }, [orderId, paymentStatus, transactionId, clearCart])
+
+  const checkPaymentStatus = async () => {
+    try {
+      console.log('Checking payment status for transactionId:', transactionId)
+      const response = await fetch('/api/payment/check-status', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ transactionId: parseInt(transactionId!) })
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        console.log('Payment status check result:', result)
+        
+        // Map United Payment status to our order status
+        let mappedStatus = 'PENDING'
+        if (result.orderStatus === 'APPROVED') {
+          mappedStatus = 'PAID'
+        } else if (result.orderStatus === 'DECLINED' || result.orderStatus === 'FAILED') {
+          mappedStatus = 'PAYMENT_FAILED'
+        } else if (result.orderStatus === 'CANCELLED') {
+          mappedStatus = 'CANCELLED'
+        }
+
+        setOrderStatus(mappedStatus)
+        
+        // Clear cart if payment is successful
+        if (mappedStatus === 'PAID') {
+          clearCart()
+        }
+
+        // Update order status in database
+        await updateOrderStatus(mappedStatus)
+      } else {
+        console.error('Failed to check payment status')
+        checkOrderStatus() // Fallback to checking order status
+      }
+    } catch (error) {
+      console.error('Error checking payment status:', error)
+      checkOrderStatus() // Fallback to checking order status
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const updateOrderStatus = async (status: string) => {
+    try {
+      const response = await fetch(`/api/orders/${orderId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          status: status,
+          paymentStatus: status === 'PAID' ? 'COMPLETED' : status === 'PAYMENT_FAILED' ? 'FAILED' : 'PENDING'
+        })
+      })
+
+      if (response.ok) {
+        console.log('Order status updated successfully')
+      } else {
+        console.error('Failed to update order status')
+      }
+    } catch (error) {
+      console.error('Error updating order status:', error)
+    }
+  }
 
   const checkOrderStatus = async () => {
     try {
