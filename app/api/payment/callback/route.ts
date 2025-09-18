@@ -31,14 +31,14 @@ export async function POST(request: NextRequest) {
     // Use different field names that United Payment might send
     const finalTransactionId = transactionId || TransactionId || Transaction
     const finalOrderId = clientOrderId || orderId || OrderId
-    const finalStatus = status || Status
+    const initialStatus = status || Status
 
     // Use final extracted values
     const orderIdToUpdate = finalOrderId
-    console.log('Processing callback for order:', orderIdToUpdate, 'transactionId:', finalTransactionId, 'status:', finalStatus)
+    console.log('Processing callback for order:', orderIdToUpdate, 'transactionId:', finalTransactionId, 'status:', initialStatus)
 
     // If we have a transactionId, check the actual status with United Payment
-    let actualStatus = finalStatus
+    let actualStatus = initialStatus
     let actualOrderStatus = 'PENDING'
     
     if (finalTransactionId) {
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
     let paymentStatus = 'PENDING'
 
     // Use actual status from United Payment if available
-    const finalStatus = actualOrderStatus || status
+    const finalStatus = actualOrderStatus || initialStatus
 
     switch (finalStatus?.toLowerCase()) {
       case 'approved':
