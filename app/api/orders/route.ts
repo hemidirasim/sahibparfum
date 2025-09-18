@@ -172,50 +172,51 @@ export async function POST(request: NextRequest) {
       const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
 
       order = await prisma.order.create({
-      data: {
-        orderNumber,
-        userId,
-        totalAmount,
-        paymentMethod,
-        notes,
-        status: 'PENDING',
-        shippingAddressId,
-        billingAddressId,
-        orderItems: {
-          create: orderItems.map((item: any) => ({
-            productId: item.productId,
-            productVariantId: item.productVariantId || null,
-            quantity: item.quantity,
-            price: item.price
-          }))
-        }
-      },
-      include: {
-        user: {
-          select: {
-            name: true,
-            email: true
+        data: {
+          orderNumber,
+          userId,
+          totalAmount,
+          paymentMethod,
+          notes,
+          status: 'PENDING',
+          shippingAddressId,
+          billingAddressId,
+          orderItems: {
+            create: orderItems.map((item: any) => ({
+              productId: item.productId,
+              productVariantId: item.productVariantId || null,
+              quantity: item.quantity,
+              price: item.price
+            }))
           }
         },
-        orderItems: {
-          include: {
-            product: {
-              select: {
-                id: true,
-                name: true,
-                images: true
-              }
-            },
-            productVariant: {
-              select: {
-                volume: true
+        include: {
+          user: {
+            select: {
+              name: true,
+              email: true
+            }
+          },
+          orderItems: {
+            include: {
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  images: true
+                }
+              },
+              productVariant: {
+                select: {
+                  volume: true
+                }
               }
             }
-          }
-        },
-        shippingAddress: true
-      }
-    })
+          },
+          shippingAddress: true
+        }
+      })
+    }
 
     // Send order confirmation email
     try {
