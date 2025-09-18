@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { Search, Download, Eye, Edit, RefreshCw, X, MapPin, Phone, Mail, CreditCard, Package } from 'lucide-react'
+import { Search, Download, Eye, Edit, RefreshCw, X, MapPin, Phone, Mail, CreditCard, Package, CheckCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 interface Order {
@@ -17,6 +17,7 @@ interface Order {
   paymentMethod: string
   amount: number
   itemCount: number
+  transactionId?: number
   items: {
     id: string
     quantity: number
@@ -153,6 +154,68 @@ export default function AdminOrdersPage() {
       }
     } catch (error) {
       console.error('Payment status update error:', error)
+      toast.error('Xəta baş verdi!')
+    }
+  }
+
+  const checkPaymentStatus = async (order: Order) => {
+    if (!order.transactionId) {
+      toast.error('Bu sifariş üçün transaction ID mövcud deyil!')
+      return
+    }
+
+    try {
+      toast.loading('Ödəniş statusu yoxlanılır...')
+      
+      const response = await fetch('/api/payment/check-status', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ transactionId: order.transactionId })
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        
+        // Map United Payment status to our order status
+        let mappedStatus = 'PENDING'
+        let mappedPaymentStatus = 'PENDING'
+        
+        if (result.orderStatus === 'APPROVED') {
+          mappedStatus = 'PAID'
+          mappedPaymentStatus = 'COMPLETED'
+        } else if (result.orderStatus === 'DECLINED' || result.orderStatus === 'FAILED') {
+          mappedStatus = 'PAYMENT_FAILED'
+          mappedPaymentStatus = 'FAILED'
+        } else if (result.orderStatus === 'CANCELLED') {
+          mappedStatus = 'CANCELLED'
+          mappedPaymentStatus = 'CANCELLED'
+        }
+
+        // Update order status
+        const updateResponse = await fetch(`/api/admin/orders/${order.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            status: mappedStatus,
+            paymentStatus: mappedPaymentStatus
+          }),
+        })
+
+        if (updateResponse.ok) {
+          toast.success(`Ödəniş statusu yoxlandı: ${result.orderStatus}`)
+          fetchOrders()
+        } else {
+          toast.error('Status yoxlandı amma yenilənmədi!')
+        }
+      } else {
+        toast.error('Ödəniş statusu yoxlanılmadı!')
+      }
+    } catch (error) {
+      console.error('Payment status check error:', error)
       toast.error('Xəta baş verdi!')
     }
   }
@@ -478,6 +541,15 @@ export default function AdminOrdersPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center justify-end space-x-2">
+                        {order.transactionId && (
+                          <button 
+                            onClick={() => checkPaymentStatus(order)}
+                            className="text-green-600 hover:text-green-900 p-1"
+                            title="Ödəniş statusunu yoxla"
+                          >
+                            <CheckCircle className="h-4 w-4" />
+                          </button>
+                        )}
                         <button 
                           onClick={() => fetchOrderDetails(order.id)}
                           className="text-blue-600 hover:text-blue-900 p-1"
@@ -697,6 +769,15 @@ export default function AdminOrdersPage() {
                 >
                   Bağla
                 </button>
+                {selectedOrder.transactionId && (
+                  <button
+                    onClick={() => checkPaymentStatus(selectedOrder)}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+                  >
+                    <CheckCircle className="h-4 w-4" />
+                    Ödəniş Statusunu Yoxla
+                  </button>
+                )}
                 <button
                   onClick={() => {
                     // Print or export functionality
