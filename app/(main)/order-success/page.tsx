@@ -19,11 +19,15 @@ export default function OrderSuccessPage() {
 
   useEffect(() => {
     if (orderId) {
+      console.log('Order success page loaded with:', { orderId, paymentStatus, transactionId })
+      
       // If we have transactionId, check payment status first
       if (transactionId) {
+        console.log('TransactionId found, checking payment status...')
         checkPaymentStatus()
       } else if (paymentStatus) {
         // If we have payment status from URL params, set it immediately
+        console.log('Payment status from URL:', paymentStatus)
         setOrderStatus(paymentStatus)
         setLoading(false)
         // Clear cart if payment is successful
@@ -32,9 +36,11 @@ export default function OrderSuccessPage() {
         }
       } else {
         // Check order status and also try to get transactionId from order
+        console.log('No transactionId or paymentStatus, checking order status...')
         checkOrderStatusWithTransaction()
       }
     } else {
+      console.log('No orderId found')
       setLoading(false)
     }
   }, [orderId, paymentStatus, transactionId, clearCart])

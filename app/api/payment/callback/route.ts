@@ -8,6 +8,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     
     console.log('Payment callback received:', body)
+    console.log('Callback headers:', Object.fromEntries(request.headers.entries()))
 
     // Extract callback data (format may vary based on United Payment documentation)
     const { 
@@ -19,19 +20,30 @@ export async function POST(request: NextRequest) {
       message,
       // Additional fields that might come from United Payment
       orderId,
-      paymentId
+      paymentId,
+      // United Payment specific fields
+      OrderId,
+      TransactionId,
+      Status,
+      Transaction
     } = body
 
-    // Use clientOrderId as primary order identifier
-    const orderIdToUpdate = clientOrderId || orderId
+    // Use different field names that United Payment might send
+    const finalTransactionId = transactionId || TransactionId || Transaction
+    const finalOrderId = clientOrderId || orderId || OrderId
+    const finalStatus = status || Status
+
+    // Use final extracted values
+    const orderIdToUpdate = finalOrderId
+    console.log('Processing callback for order:', orderIdToUpdate, 'transactionId:', finalTransactionId, 'status:', finalStatus)
 
     // If we have a transactionId, check the actual status with United Payment
-    let actualStatus = status
+    let actualStatus = finalStatus
     let actualOrderStatus = 'PENDING'
     
-    if (transactionId) {
-      console.log('Checking actual transaction status with United Payment for transactionId:', transactionId)
-      const statusCheck = await checkTransactionStatus(transactionId)
+    if (finalTransactionId) {
+      console.log('Checking actual transaction status with United Payment for transactionId:', finalTransactionId)
+      const statusCheck = await checkTransactionStatus(finalTransactionId)
       
       if (statusCheck.success) {
         actualStatus = statusCheck.status
@@ -87,7 +99,7 @@ export async function POST(request: NextRequest) {
         data: {
           status: orderStatus,
           paymentStatus: paymentStatus,
-          ...(transactionId && { transactionId: parseInt(transactionId) }),
+          ...(finalTransactionId && { transactionId: parseInt(finalTransactionId) }),
           updatedAt: new Date()
         }
       })
@@ -119,7 +131,9 @@ export async function POST(request: NextRequest) {
         success: true, 
         message: 'Callback processed successfully',
         orderId: orderIdToUpdate,
-        status: orderStatus 
+        status: orderStatus,
+        transactionId: finalTransactionId,
+        redirectUrl: finalTransactionId ? `${process.env.UNITED_PAYMENT_SUCCESS_URL || 'http://localhost:3000/order-success'}?orderId=${orderIdToUpdate}&transactionId=${finalTransactionId}&status=${orderStatus}` : null
       })
 
     } catch (dbError) {
@@ -141,8 +155,17 @@ export async function POST(request: NextRequest) {
 
 // Handle GET requests (for testing)
 export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams
+  const testOrderId = searchParams.get('orderId')
+  const testTransactionId = searchParams.get('transactionId')
+  
   return NextResponse.json({ 
     message: 'Payment callback endpoint is working',
-    method: 'GET'
+    method: 'GET',
+    testData: {
+      orderId: testOrderId,
+      transactionId: testTransactionId,
+      timestamp: new Date().toISOString()
+    }
   })
 }
