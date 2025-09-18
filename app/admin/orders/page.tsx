@@ -159,57 +159,46 @@ export default function AdminOrdersPage() {
   }
 
   const checkPaymentStatus = async (order: Order) => {
-    if (!order.transactionId) {
-      toast.error('Bu sifariş üçün transaction ID mövcud deyil!')
-      return
-    }
-
     try {
       toast.loading('Ödəniş statusu yoxlanılır...')
       
-      const response = await fetch('/api/payment/check-status', {
+      // Use order ID to check payment status (more reliable)
+      const response = await fetch('/api/payment/check-order-status', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ transactionId: order.transactionId })
+        body: JSON.stringify({ orderId: order.orderNumber })
       })
 
       if (response.ok) {
         const result = await response.json()
         
-        // Map United Payment status to our order status
-        let mappedStatus = 'PENDING'
-        let mappedPaymentStatus = 'PENDING'
-        
-        if (result.orderStatus === 'APPROVED') {
-          mappedStatus = 'PAID'
-          mappedPaymentStatus = 'COMPLETED'
-        } else if (result.orderStatus === 'DECLINED' || result.orderStatus === 'FAILED') {
-          mappedStatus = 'PAYMENT_FAILED'
-          mappedPaymentStatus = 'FAILED'
-        } else if (result.orderStatus === 'CANCELLED') {
-          mappedStatus = 'CANCELLED'
-          mappedPaymentStatus = 'CANCELLED'
-        }
+        if (result.success) {
+          // Use the status from the API response
+          const mappedStatus = result.orderStatus
+          const mappedPaymentStatus = result.paymentStatus
 
-        // Update order status
-        const updateResponse = await fetch(`/api/admin/orders/${order.id}`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ 
-            status: mappedStatus,
-            paymentStatus: mappedPaymentStatus
-          }),
-        })
+          // Update order status
+          const updateResponse = await fetch(`/api/admin/orders/${order.id}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ 
+              status: mappedStatus,
+              paymentStatus: mappedPaymentStatus
+            }),
+          })
 
-        if (updateResponse.ok) {
-          toast.success(`Ödəniş statusu yoxlandı: ${result.orderStatus}`)
-          fetchOrders()
+          if (updateResponse.ok) {
+            toast.success(`Ödəniş statusu yoxlandı: ${result.orderStatus}`)
+            fetchOrders()
+          } else {
+            toast.error('Status yoxlandı amma yenilənmədi!')
+          }
         } else {
-          toast.error('Status yoxlandı amma yenilənmədi!')
+          toast.error('Ödəniş statusu yoxlanılmadı!')
         }
       } else {
         toast.error('Ödəniş statusu yoxlanılmadı!')
@@ -543,9 +532,8 @@ export default function AdminOrdersPage() {
                       <div className="flex items-center justify-end space-x-2">
                         <button 
                           onClick={() => checkPaymentStatus(order)}
-                          className={`p-1 ${order.transactionId ? 'text-green-600 hover:text-green-900' : 'text-gray-400 cursor-not-allowed'}`}
-                          title={order.transactionId ? "Ödəniş statusunu yoxla" : "Transaction ID yoxdur - Test məqsədi ilə düymə görünür"}
-                          disabled={!order.transactionId}
+                          className="p-1 text-green-600 hover:text-green-900"
+                          title="Ödəniş statusunu yoxla"
                         >
                           <CheckCircle className="h-4 w-4" />
                         </button>
@@ -770,9 +758,8 @@ export default function AdminOrdersPage() {
                 </button>
                 <button
                   onClick={() => checkPaymentStatus(selectedOrder)}
-                  className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${selectedOrder.transactionId ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-gray-400 text-white cursor-not-allowed'}`}
-                  disabled={!selectedOrder.transactionId}
-                  title={selectedOrder.transactionId ? "Ödəniş statusunu yoxla" : "Transaction ID yoxdur - Test məqsədi ilə düymə görünür"}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+                  title="Ödəniş statusunu yoxla"
                 >
                   <CheckCircle className="h-4 w-4" />
                   Ödəniş Statusunu Yoxla

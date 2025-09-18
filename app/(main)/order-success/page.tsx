@@ -47,38 +47,34 @@ export default function OrderSuccessPage() {
 
   const checkPaymentStatus = async () => {
     try {
-      console.log('Checking payment status for transactionId:', transactionId)
-      const response = await fetch('/api/payment/check-status', {
+      console.log('Checking payment status for orderId:', orderId)
+      // Use order ID to check payment status (more reliable)
+      const response = await fetch('/api/payment/check-order-status', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ transactionId: parseInt(transactionId!) })
+        body: JSON.stringify({ orderId })
       })
 
       if (response.ok) {
         const result = await response.json()
         console.log('Payment status check result:', result)
         
-        // Map United Payment status to our order status
-        let mappedStatus = 'PENDING'
-        if (result.orderStatus === 'APPROVED') {
-          mappedStatus = 'PAID'
-        } else if (result.orderStatus === 'DECLINED' || result.orderStatus === 'FAILED') {
-          mappedStatus = 'PAYMENT_FAILED'
-        } else if (result.orderStatus === 'CANCELLED') {
-          mappedStatus = 'CANCELLED'
-        }
+        if (result.success) {
+          setOrderStatus(result.orderStatus)
+          
+          // Clear cart if payment is successful
+          if (result.orderStatus === 'PAID') {
+            clearCart()
+          }
 
-        setOrderStatus(mappedStatus)
-        
-        // Clear cart if payment is successful
-        if (mappedStatus === 'PAID') {
-          clearCart()
+          // Update order status in database
+          await updateOrderStatus(result.orderStatus)
+        } else {
+          console.error('Payment status check failed:', result.error)
+          checkOrderStatus() // Fallback to checking order status
         }
-
-        // Update order status in database
-        await updateOrderStatus(mappedStatus)
       } else {
         console.error('Failed to check payment status')
         checkOrderStatus() // Fallback to checking order status
