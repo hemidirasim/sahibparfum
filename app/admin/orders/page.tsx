@@ -543,8 +543,8 @@ export default function AdminOrdersPage() {
                       <div className="flex items-center justify-end space-x-2">
                         <button 
                           onClick={() => checkPaymentStatus(order)}
-                          className="text-green-600 hover:text-green-900 p-1"
-                          title="Ödəniş statusunu yoxla"
+                          className={`p-1 ${order.transactionId ? 'text-green-600 hover:text-green-900' : 'text-gray-400 cursor-not-allowed'}`}
+                          title={order.transactionId ? "Ödəniş statusunu yoxla" : "Transaction ID yoxdur - Test məqsədi ilə düymə görünür"}
                           disabled={!order.transactionId}
                         >
                           <CheckCircle className="h-4 w-4" />
@@ -770,8 +770,9 @@ export default function AdminOrdersPage() {
                 </button>
                 <button
                   onClick={() => checkPaymentStatus(selectedOrder)}
-                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  className={`px-4 py-2 rounded-lg transition-colors flex items-center gap-2 ${selectedOrder.transactionId ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-gray-400 text-white cursor-not-allowed'}`}
                   disabled={!selectedOrder.transactionId}
+                  title={selectedOrder.transactionId ? "Ödəniş statusunu yoxla" : "Transaction ID yoxdur - Test məqsədi ilə düymə görünür"}
                 >
                   <CheckCircle className="h-4 w-4" />
                   Ödəniş Statusunu Yoxla
