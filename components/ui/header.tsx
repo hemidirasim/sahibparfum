@@ -608,64 +608,6 @@ export function Header() {
           </form>
         </div>
 
-        {/* Mobile Brand Search */}
-        <div className="lg:hidden mb-4">
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="text-sm font-medium text-gray-700 mb-3">Brend axtar:</h3>
-            <div className="flex flex-wrap gap-2">
-              {alphabetFilter.map((letter) => (
-                <button
-                  key={letter}
-                  className={`w-8 h-8 rounded-full font-semibold text-sm transition-all duration-200 ${
-                    activeLetter === letter
-                      ? 'bg-primary-600 text-white shadow-md'
-                      : 'bg-white text-gray-600 hover:bg-primary-50 hover:text-primary-600 border border-gray-200'
-                  }`}
-                  onClick={() => setActiveLetter(activeLetter === letter ? null : letter)}
-                >
-                  {letter}
-                </button>
-              ))}
-            </div>
-            
-            {/* Mobile Brand Dropdown */}
-            {activeLetter && (
-              <div className="mt-4 bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-y-auto">
-                <div className="p-4">
-                  <div className="flex items-center space-x-2 mb-3">
-                    <div className="w-6 h-6 bg-primary-600 rounded-full flex items-center justify-center">
-                      <span className="text-white font-bold text-xs">{activeLetter}</span>
-                    </div>
-                    <h4 className="text-sm font-semibold text-gray-800">
-                      "{activeLetter}" hərfi ilə başlayan brendlər
-                    </h4>
-                  </div>
-                  {brands[activeLetter] && brands[activeLetter].length > 0 ? (
-                    <div className="grid grid-cols-2 gap-2">
-                      {brands[activeLetter].map((brand, index) => (
-                        <button
-                          key={index}
-                          className="p-2 bg-gray-50 rounded-md border border-gray-200 hover:bg-primary-50 hover:border-primary-200 transition-all duration-200 text-left"
-                          onClick={() => {
-                            router.push(`/categories?brand=${encodeURIComponent(brand)}`)
-                            setActiveLetter(null)
-                          }}
-                        >
-                          <span className="text-gray-700 font-medium text-xs">{brand}</span>
-                        </button>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="p-4 text-center text-gray-500">
-                      <p className="text-sm">Bu hərf üçün brend tapılmadı</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
         {/* Mobile Menu */}
         {isMenuOpen && (
           <div className="lg:hidden border-t border-gray-200 py-4 max-h-[80vh] overflow-y-auto">
@@ -788,18 +730,61 @@ export function Header() {
             </div>
 
             {/* Mobile Brand Search */}
-            <div className="mt-6">
-              <div className="text-sm text-gray-600 mb-3">Brend axtar:</div>
-              <div className="grid grid-cols-7 gap-1">
-                {alphabetFilter.map((letter) => (
-                  <button
-                    key={letter}
-                    onClick={() => setIsMenuOpen(false)}
-                    className="w-8 h-8 flex items-center justify-center text-sm font-medium text-gray-600 hover:text-primary-600 hover:bg-primary-50 rounded transition-colors"
-                  >
-                    {letter}
-                  </button>
-                ))}
+            <div className="mt-6 pt-4 border-t border-gray-200">
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h3 className="text-sm font-medium text-gray-700 mb-3">Brend axtar:</h3>
+                <div className="flex flex-wrap gap-2">
+                  {alphabetFilter.map((letter) => (
+                    <button
+                      key={letter}
+                      className={`w-8 h-8 rounded-full font-semibold text-sm transition-all duration-200 ${
+                        activeLetter === letter
+                          ? 'bg-primary-600 text-white shadow-md'
+                          : 'bg-white text-gray-600 hover:bg-primary-50 hover:text-primary-600 border border-gray-200'
+                      }`}
+                      onClick={() => setActiveLetter(activeLetter === letter ? null : letter)}
+                    >
+                      {letter}
+                    </button>
+                  ))}
+                </div>
+                
+                {/* Mobile Brand Dropdown */}
+                {activeLetter && (
+                  <div className="mt-4 bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-y-auto">
+                    <div className="p-4">
+                      <div className="flex items-center space-x-2 mb-3">
+                        <div className="w-6 h-6 bg-primary-600 rounded-full flex items-center justify-center">
+                          <span className="text-white font-bold text-xs">{activeLetter}</span>
+                        </div>
+                        <h4 className="text-sm font-semibold text-gray-800">
+                          "{activeLetter}" hərfi ilə başlayan brendlər
+                        </h4>
+                      </div>
+                      {brands[activeLetter] && brands[activeLetter].length > 0 ? (
+                        <div className="grid grid-cols-2 gap-2">
+                          {brands[activeLetter].map((brand, index) => (
+                            <button
+                              key={index}
+                              className="p-2 bg-gray-50 rounded-md border border-gray-200 hover:bg-primary-50 hover:border-primary-200 transition-all duration-200 text-left"
+                              onClick={() => {
+                                router.push(`/categories?brand=${encodeURIComponent(brand)}`)
+                                setActiveLetter(null)
+                                setIsMenuOpen(false)
+                              }}
+                            >
+                              <span className="text-gray-700 font-medium text-xs">{brand}</span>
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="p-4 text-center text-gray-500">
+                          <p className="text-sm">Bu hərf üçün brend tapılmadı</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
