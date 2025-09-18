@@ -21,24 +21,9 @@ export default function OrderSuccessPage() {
     if (orderId) {
       console.log('Order success page loaded with:', { orderId, paymentStatus, transactionId })
       
-      // If we have transactionId, check payment status first
-      if (transactionId) {
-        console.log('TransactionId found, checking payment status...')
-        checkPaymentStatus()
-      } else if (paymentStatus) {
-        // If we have payment status from URL params, set it immediately
-        console.log('Payment status from URL:', paymentStatus)
-        setOrderStatus(paymentStatus)
-        setLoading(false)
-        // Clear cart if payment is successful
-        if (paymentStatus === 'PAID') {
-          clearCart()
-        }
-      } else {
-        // Check order status and also try to get transactionId from order
-        console.log('No transactionId or paymentStatus, checking order status...')
-        checkOrderStatusWithTransaction()
-      }
+      // Always check payment status first using our API
+      console.log('Checking payment status for orderId:', orderId)
+      checkPaymentStatus()
     } else {
       console.log('No orderId found')
       setLoading(false)
@@ -46,6 +31,12 @@ export default function OrderSuccessPage() {
   }, [orderId, paymentStatus, transactionId, clearCart])
 
   const checkPaymentStatus = async () => {
+    if (!orderId) {
+      console.error('No orderId available for payment status check')
+      setLoading(false)
+      return
+    }
+
     try {
       console.log('Checking payment status for orderId:', orderId)
       // Use order ID to check payment status (more reliable)
@@ -62,10 +53,12 @@ export default function OrderSuccessPage() {
         console.log('Payment status check result:', result)
         
         if (result.success) {
+          console.log('Setting order status to:', result.orderStatus)
           setOrderStatus(result.orderStatus)
           
           // Clear cart if payment is successful
           if (result.orderStatus === 'PAID') {
+            console.log('Payment successful, clearing cart')
             clearCart()
           }
 
@@ -195,6 +188,7 @@ export default function OrderSuccessPage() {
   }
 
   const getStatusInfo = () => {
+    console.log('Getting status info for orderStatus:', orderStatus)
     switch (orderStatus) {
       case 'PAID':
         return {
