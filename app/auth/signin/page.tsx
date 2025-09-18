@@ -156,6 +156,15 @@ export default function SignInPage() {
                 {loading ? 'Giriş edilir...' : 'Giriş et'}
               </button>
             </div>
+
+            <div className="text-center">
+              <Link
+                href="/auth/forgot-password"
+                className="text-sm font-medium text-primary-600 hover:text-primary-500"
+              >
+                Şifrəmi unutdum
+              </Link>
+            </div>
           </form>
 
         </div>

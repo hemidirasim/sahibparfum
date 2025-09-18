@@ -8,23 +8,25 @@ datasource db {
 }
 
 model User {
-  id        String    @id @default(cuid())
-  name      String?
-  email     String    @unique
-  image     String?
-  password  String?
-  role      String    @default("USER")
-  isActive  Boolean   @default(true)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  accounts  Account[]
-  addresses Address[]
-  cart      Cart?
-  orders    Order[]
-  reviews   Review[]
-  sessions  Session[]
-  ratings   ProductRating[]
-  favorites Favorite[]
+  id                String    @id @default(cuid())
+  name              String?
+  email             String    @unique
+  image             String?
+  password          String?
+  role              String    @default("USER")
+  isActive          Boolean   @default(true)
+  resetToken        String?
+  resetTokenExpiry  DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  accounts          Account[]
+  addresses         Address[]
+  cart              Cart?
+  orders            Order[]
+  reviews           Review[]
+  sessions          Session[]
+  ratings           ProductRating[]
+  favorites         Favorite[]
 
   @@map("users")
 }
