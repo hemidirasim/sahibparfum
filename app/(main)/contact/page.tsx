@@ -256,59 +256,6 @@ export default function ContactPage() {
             )}
           </div>
         </div>
-
-        {/* FAQ Section */}
-        <div className="mt-20">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">
-            Tez-tez Verilən Suallar
-          </h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="bg-white rounded-lg p-6 shadow-sm">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                Sifarişlərimi necə izləyə bilərəm?
-              </h3>
-              <p className="text-gray-600">
-                Sifarişinizi izləmək üçün e-mail ünvanınıza göndərilən izləmə nömrəsindən 
-                istifadə edə bilərsiniz. Həmçinin müştəri xidmətlərimizlə əlaqə saxlayaraq 
-                sifariş statusunuzu öyrənə bilərsiniz.
-              </p>
-            </div>
-
-            <div className="bg-white rounded-lg p-6 shadow-sm">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                Çatdırılma xərcləri nə qədərdir?
-              </h3>
-              <p className="text-gray-600">
-                Bakı daxilində 50₼ və yuxarı sifarişlər üçün pulsuz çatdırılma. 
-                Regionlara çatdırılma xərci 5-10₼ arasında dəyişir. 
-                Dəqiq məlumat üçün bizimlə əlaqə saxlayın.
-              </p>
-            </div>
-
-            <div className="bg-white rounded-lg p-6 shadow-sm">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                Məhsullarınız orijinaldır?
-              </h3>
-              <p className="text-gray-600">
-                Bəli, bütün məhsullarımız orijinal və zəmanətli olduğu üçün 
-                rahatlıqla alış-veriş edə bilərsiniz. Hər bir məhsul rəsmi 
-                distribütorlardan təminat edilir.
-              </p>
-            </div>
-
-            <div className="bg-white rounded-lg p-6 shadow-sm">
-              <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                Geri qaytarma mümkündür?
-              </h3>
-              <p className="text-gray-600">
-                14 gün ərzində istifadə edilməmiş və orijinal qablaşdırmada 
-                olan məhsulları geri qaytara bilərsiniz. 
-                Geri qaytarma şərtləri haqqında ətraflı məlumat üçün bizimlə əlaqə saxlayın.
-              </p>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   )
