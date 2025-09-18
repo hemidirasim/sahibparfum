@@ -22,83 +22,179 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Bütün məcburi sahələr doldurulmalıdır' }, { status: 400 })
     }
 
-    // Generate unique order number
-    const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
-
-    // Create shipping address
-    const shippingAddressRecord = await prisma.address.create({
-      data: {
-        type: 'SHIPPING',
-        firstName: shippingAddress.firstName,
-        lastName: shippingAddress.lastName,
-        address1: shippingAddress.address1,
-        address2: shippingAddress.address2,
-        city: shippingAddress.city,
-        state: shippingAddress.state,
-        postalCode: shippingAddress.postalCode,
-        country: shippingAddress.country,
-        phone: shippingAddress.phone
-      }
-    })
-
-    // Create billing address (same as shipping if not specified)
-    const billingAddressRecord = await prisma.address.create({
-      data: {
-        type: 'BILLING',
-        firstName: billingAddress.firstName,
-        lastName: billingAddress.lastName,
-        address1: billingAddress.address1,
-        address2: billingAddress.address2,
-        city: billingAddress.city,
-        state: billingAddress.state,
-        postalCode: billingAddress.postalCode,
-        country: billingAddress.country,
-        phone: billingAddress.phone
-      }
-    })
-
-    // Create order
-    const order = await prisma.order.create({
-      data: {
-        orderNumber,
-        guestName,
-        guestEmail,
-        guestPhone,
-        totalAmount,
-        paymentMethod,
-        notes,
-        shippingAddressId: shippingAddressRecord.id,
-        billingAddressId: billingAddressRecord.id,
-        orderItems: {
-          create: orderItems.map((item: any) => ({
-            productId: item.productId,
-            productVariantId: item.productVariantId || null,
-            quantity: item.quantity,
-            price: item.price
-          }))
-        }
+    // Check if guest has any PENDING orders that can be reused
+    const existingPendingOrder = await prisma.order.findFirst({
+      where: {
+        guestEmail: guestEmail,
+        status: 'PENDING',
+        paymentStatus: 'PENDING'
       },
       include: {
-        orderItems: {
-          include: {
-            product: {
-              select: {
-                id: true,
-                name: true,
-                images: true
-              }
-            },
-            productVariant: {
-              select: {
-                volume: true
-              }
-            }
-          }
-        },
-        shippingAddress: true,
-        billingAddress: true
+        orderItems: true
+      },
+      orderBy: {
+        createdAt: 'desc'
       }
     })
+
+    let order
+
+    if (existingPendingOrder) {
+      console.log('Reusing existing pending guest order:', existingPendingOrder.orderNumber)
+      
+      // Update existing order with new data
+      order = await prisma.order.update({
+        where: { id: existingPendingOrder.id },
+        data: {
+          guestName,
+          guestPhone,
+          totalAmount,
+          paymentMethod,
+          notes,
+          updatedAt: new Date()
+        },
+        include: {
+          orderItems: {
+            include: {
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  images: true
+                }
+              },
+              productVariant: {
+                select: {
+                  volume: true
+                }
+              }
+            }
+          },
+          shippingAddress: true,
+          billingAddress: true
+        }
+      })
+
+      // Delete old order items and create new ones
+      await prisma.orderItem.deleteMany({
+        where: { orderId: existingPendingOrder.id }
+      })
+
+      await prisma.orderItem.createMany({
+        data: orderItems.map((item: any) => ({
+          orderId: existingPendingOrder.id,
+          productId: item.productId,
+          productVariantId: item.productVariantId || null,
+          quantity: item.quantity,
+          price: item.price
+        }))
+      })
+
+      // Fetch updated order with new items
+      order = await prisma.order.findUnique({
+        where: { id: existingPendingOrder.id },
+        include: {
+          orderItems: {
+            include: {
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  images: true
+                }
+              },
+              productVariant: {
+                select: {
+                  volume: true
+                }
+              }
+            }
+          },
+          shippingAddress: true,
+          billingAddress: true
+        }
+      })
+    } else {
+      console.log('Creating new guest order')
+      
+      // Generate unique order number
+      const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
+
+      // Create shipping address
+      const shippingAddressRecord = await prisma.address.create({
+        data: {
+          type: 'SHIPPING',
+          firstName: shippingAddress.firstName,
+          lastName: shippingAddress.lastName,
+          address1: shippingAddress.address1,
+          address2: shippingAddress.address2,
+          city: shippingAddress.city,
+          state: shippingAddress.state,
+          postalCode: shippingAddress.postalCode,
+          country: shippingAddress.country,
+          phone: shippingAddress.phone
+        }
+      })
+
+      // Create billing address (same as shipping if not specified)
+      const billingAddressRecord = await prisma.address.create({
+        data: {
+          type: 'BILLING',
+          firstName: billingAddress.firstName,
+          lastName: billingAddress.lastName,
+          address1: billingAddress.address1,
+          address2: billingAddress.address2,
+          city: billingAddress.city,
+          state: billingAddress.state,
+          postalCode: billingAddress.postalCode,
+          country: billingAddress.country,
+          phone: billingAddress.phone
+        }
+      })
+
+      // Create order
+      order = await prisma.order.create({
+        data: {
+          orderNumber,
+          guestName,
+          guestEmail,
+          guestPhone,
+          totalAmount,
+          paymentMethod,
+          notes,
+          shippingAddressId: shippingAddressRecord.id,
+          billingAddressId: billingAddressRecord.id,
+          orderItems: {
+            create: orderItems.map((item: any) => ({
+              productId: item.productId,
+              productVariantId: item.productVariantId || null,
+              quantity: item.quantity,
+              price: item.price
+            }))
+          }
+        },
+        include: {
+          orderItems: {
+            include: {
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  images: true
+                }
+              },
+              productVariant: {
+                select: {
+                  volume: true
+                }
+              }
+            }
+          },
+          shippingAddress: true,
+          billingAddress: true
+        }
+      })
+    }
 
     // Send order confirmation email
     try {

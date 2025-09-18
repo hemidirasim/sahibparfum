@@ -63,10 +63,115 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { userId, totalAmount, paymentMethod, notes, orderItems, shippingAddressId, billingAddressId } = body
 
-    // Generate order number
-    const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
+    // Check if user has any PENDING orders that can be reused
+    const existingPendingOrder = await prisma.order.findFirst({
+      where: {
+        userId: userId,
+        status: 'PENDING',
+        paymentStatus: 'PENDING'
+      },
+      include: {
+        orderItems: true
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    })
 
-    const order = await prisma.order.create({
+    let order
+
+    if (existingPendingOrder) {
+      console.log('Reusing existing pending order:', existingPendingOrder.orderNumber)
+      
+      // Update existing order with new data
+      order = await prisma.order.update({
+        where: { id: existingPendingOrder.id },
+        data: {
+          totalAmount,
+          paymentMethod,
+          notes,
+          shippingAddressId,
+          billingAddressId,
+          updatedAt: new Date()
+        },
+        include: {
+          user: {
+            select: {
+              name: true,
+              email: true
+            }
+          },
+          orderItems: {
+            include: {
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  images: true
+                }
+              },
+              productVariant: {
+                select: {
+                  volume: true
+                }
+              }
+            }
+          },
+          shippingAddress: true
+        }
+      })
+
+      // Delete old order items and create new ones
+      await prisma.orderItem.deleteMany({
+        where: { orderId: existingPendingOrder.id }
+      })
+
+      await prisma.orderItem.createMany({
+        data: orderItems.map((item: any) => ({
+          orderId: existingPendingOrder.id,
+          productId: item.productId,
+          productVariantId: item.productVariantId || null,
+          quantity: item.quantity,
+          price: item.price
+        }))
+      })
+
+      // Fetch updated order with new items
+      order = await prisma.order.findUnique({
+        where: { id: existingPendingOrder.id },
+        include: {
+          user: {
+            select: {
+              name: true,
+              email: true
+            }
+          },
+          orderItems: {
+            include: {
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  images: true
+                }
+              },
+              productVariant: {
+                select: {
+                  volume: true
+                }
+              }
+            }
+          },
+          shippingAddress: true
+        }
+      })
+    } else {
+      console.log('Creating new order')
+      
+      // Generate order number
+      const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
+
+      order = await prisma.order.create({
       data: {
         orderNumber,
         userId,
