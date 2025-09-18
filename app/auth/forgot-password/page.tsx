@@ -36,7 +36,10 @@ export default function ForgotPasswordPage() {
         if (data.emailSent) {
           toast.success('Şifrə sıfırlama linki email ünvanınıza göndərildi')
         } else {
-          toast.info('Email ünvanınızı yoxladıq. Əgər qeydiyyatdadırsa, link göndəriləcək.')
+          toast('Email ünvanınızı yoxladıq. Əgər qeydiyyatdadırsa, link göndəriləcək.', {
+            icon: 'ℹ️',
+            duration: 4000,
+          })
         }
       }
     } catch (error) {
