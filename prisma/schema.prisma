@@ -3,30 +3,30 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
-  id                String    @id @default(cuid())
-  name              String?
-  email             String    @unique
-  image             String?
-  password          String?
-  role              String    @default("USER")
-  isActive          Boolean   @default(true)
-  resetToken        String?
-  resetTokenExpiry  DateTime?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  accounts          Account[]
-  addresses         Address[]
-  cart              Cart?
-  orders            Order[]
-  reviews           Review[]
-  sessions          Session[]
-  ratings           ProductRating[]
-  favorites         Favorite[]
+  id               String          @id @default(cuid())
+  name             String?
+  email            String          @unique
+  image            String?
+  password         String?
+  role             String          @default("USER")
+  isActive         Boolean         @default(true)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  resetToken       String?
+  resetTokenExpiry DateTime?
+  accounts         Account[]
+  addresses        Address[]
+  cart             Cart?
+  favorites        Favorite[]
+  orders           Order[]
+  ratings          ProductRating[]
+  reviews          Review[]
+  sessions         Session[]
 
   @@map("users")
 }
@@ -112,35 +112,35 @@ model Brand {
 }
 
 model Product {
-  id            String      @id @default(cuid())
+  id            String             @id @default(cuid())
   name          String
   description   String
   price         Float
   salePrice     Float?
   images        String
-  inStock       Boolean     @default(true)
-  stockCount    Int         @default(0)
-  sku           String      @unique
+  inStock       Boolean            @default(true)
+  stockCount    Int                @default(0)
+  sku           String             @unique
   brandId       String?
   volume        String?
   categoryId    String
-  isNew         Boolean     @default(false)
-  isOnSale      Boolean     @default(false)
-  isActive      Boolean     @default(true)
-  averageRating Float       @default(0)
-  reviewCount   Int         @default(0)
+  isNew         Boolean            @default(false)
+  isOnSale      Boolean            @default(false)
+  isActive      Boolean            @default(true)
+  averageRating Float              @default(0)
+  reviewCount   Int                @default(0)
   deletedAt     DateTime?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
   cartItems     CartItem[]
+  favorites     Favorite[]
   orderItems    OrderItem[]
-  category      Category    @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  brand         Brand?      @relation(fields: [brandId], references: [id], onDelete: Cascade)
-  reviews       Review[]
-  variants      ProductVariant[]
   attributes    ProductAttribute[]
   ratings       ProductRating[]
-  favorites     Favorite[]
+  variants      ProductVariant[]
+  brand         Brand?             @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  category      Category           @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  reviews       Review[]
 
   @@map("products")
 }
@@ -148,7 +148,7 @@ model Product {
 model ProductVariant {
   id         String      @id @default(cuid())
   productId  String
-  volume     String      // e.g., "50ml", "100ml", "200ml"
+  volume     String
   price      Float
   salePrice  Float?
   stock      Int         @default(0)
@@ -156,8 +156,8 @@ model ProductVariant {
   isActive   Boolean     @default(true)
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
-  product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
   orderItems OrderItem[]
+  product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@map("product_variants")
 }
@@ -165,8 +165,8 @@ model ProductVariant {
 model ProductAttribute {
   id        String   @id @default(cuid())
   productId String
-  name      String   // e.g., "Aroma", "Durability", "Season"
-  value     String   // e.g., "Floral", "6-8 hours", "Spring/Summer"
+  name      String
+  value     String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
@@ -190,43 +190,43 @@ model Review {
 }
 
 model ProductRating {
-  id                String   @id @default(cuid())
-  productId         String
-  userId            String?
-  guestSessionId    String?  // For anonymous users
-  rating            Int?     // Simple 1-5 star rating
-  comment           String?  // Simple text comment
-  relationship      String?  // Sevimli ətrimdir, Bəyənirəm, Mənim ətrim deyil
-  longevity         String?  // Zəifdir, Qalıcı deyil, Orta qalıcı, Qalıcıdır, Çox qalıcıdır
-  sillage           String?  // Şleyf yoxdur, Dəriyə yaxın, Açılmış qol məsafəsində, 6 addımlıq məsafədən, Otağı bürüyür
-  ageGroup          String?  // 18 yaşadək, 18-26 yaş, 26-35 yaş, 35-45 yaş, 45-dən yuxarı
-  season            String?  // Qış, Yaz, Yay, Payız
-  timeOfDay         String?  // Gündüz, Axşam
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  product           Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  user              User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id             String   @id @default(cuid())
+  productId      String
+  userId         String?
+  guestSessionId String?
+  rating         Int?
+  comment        String?
+  relationship   String?
+  longevity      String?
+  sillage        String?
+  ageGroup       String?
+  season         String?
+  timeOfDay      String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  product        Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user           User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([productId, userId, guestSessionId])
   @@map("product_ratings")
 }
 
 model Settings {
-  id                        String   @id @default(cuid())
-  siteName                  String   @default("Sahib Parfumeriya")
-  siteDescription           String   @default("Premium Parfüm Mağazası")
-  contactEmail              String   @default("info@sahibparfumeriya.az")
-  contactPhone              String   @default("+994 50 123 45 67")
-  address                   String   @default("Bakı şəhəri, Nərimanov rayonu")
-  currency                  String   @default("AZN")
-  taxRate                   Float    @default(18.0)
-  deliveryCost              Float    @default(10.0)
-  freeDeliveryThreshold     Float    @default(100.0)
-  maintenanceMode           Boolean  @default(false)
-  allowRegistration         Boolean  @default(true)
-  requireEmailVerification  Boolean  @default(true)
-  createdAt                 DateTime @default(now())
-  updatedAt                 DateTime @updatedAt
+  id                       String   @id @default(cuid())
+  siteName                 String   @default("Sahib Parfumeriya")
+  siteDescription          String   @default("Premium Parfüm Mağazası")
+  contactEmail             String   @default("info@sahibparfumeriya.az")
+  contactPhone             String   @default("+994 50 123 45 67")
+  address                  String   @default("Bakı şəhəri, Nərimanov rayonu")
+  currency                 String   @default("AZN")
+  taxRate                  Float    @default(18.0)
+  deliveryCost             Float    @default(10.0)
+  freeDeliveryThreshold    Float    @default(100.0)
+  maintenanceMode          Boolean  @default(false)
+  allowRegistration        Boolean  @default(true)
+  requireEmailVerification Boolean  @default(true)
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
 
   @@map("settings")
 }
@@ -257,48 +257,49 @@ model CartItem {
 }
 
 model Order {
-  id                String        @id @default(cuid())
-  orderNumber       String        @unique
+  id                String      @id @default(cuid())
+  orderNumber       String      @unique
   userId            String?
   guestEmail        String?
   guestName         String?
   guestPhone        String?
-  status            String        @default("PENDING")
+  status            String      @default("PENDING")
   totalAmount       Float
-  paymentStatus     String        @default("PENDING")
+  paymentStatus     String      @default("PENDING")
   paymentMethod     String
-  transactionId     Int?
   shippingAddressId String?
   billingAddressId  String?
   notes             String?
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  transactionId     Int?
   orderItems        OrderItem[]
-  billingAddress    Address?      @relation("BillingAddress", fields: [billingAddressId], references: [id])
-  shippingAddress   Address?      @relation("ShippingAddress", fields: [shippingAddressId], references: [id])
-  user              User?         @relation(fields: [userId], references: [id])
+  billingAddress    Address?    @relation("BillingAddress", fields: [billingAddressId], references: [id])
+  shippingAddress   Address?    @relation("ShippingAddress", fields: [shippingAddressId], references: [id])
+  user              User?       @relation(fields: [userId], references: [id])
 
+  @@index([transactionId])
   @@map("orders")
 }
 
 model OrderItem {
-  id                String           @id @default(cuid())
-  quantity          Int
-  price             Float
-  orderId           String
-  productId         String
-  productVariantId  String?
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
-  order             Order            @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product           Product          @relation(fields: [productId], references: [id])
-  productVariant    ProductVariant?  @relation(fields: [productVariantId], references: [id])
+  id               String          @id @default(cuid())
+  quantity         Int
+  price            Float
+  orderId          String
+  productId        String
+  productVariantId String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  order            Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product          Product         @relation(fields: [productId], references: [id])
+  productVariant   ProductVariant? @relation(fields: [productVariantId], references: [id])
 
   @@map("order_items")
 }
 
 model Address {
-  id          String      @id @default(cuid())
+  id          String   @id @default(cuid())
   type        String
   firstName   String
   lastName    String
@@ -310,13 +311,13 @@ model Address {
   postalCode  String
   country     String
   phone       String?
-  isDefault   Boolean     @default(false)
+  isDefault   Boolean  @default(false)
   userId      String?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  user        User?       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  billingFor  Order[]     @relation("BillingAddress")
-  shippingFor Order[]     @relation("ShippingAddress")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  billingFor  Order[]  @relation("BillingAddress")
+  shippingFor Order[]  @relation("ShippingAddress")
 
   @@map("addresses")
 }
@@ -327,8 +328,8 @@ model Favorite {
   productId String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, productId])
   @@map("favorites")
@@ -338,7 +339,7 @@ model SupportContent {
   id        String   @id @default(cuid())
   title     String
   content   String
-  page      String   // orders, payment, delivery, returns, loyalty, faq
+  page      String
   order     Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -347,18 +348,16 @@ model SupportContent {
 }
 
 model Blog {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   title       String
-  slug        String   @unique
+  slug        String    @unique
   excerpt     String?
   content     String
   image       String?
-  isPublished Boolean  @default(false)
+  isPublished Boolean   @default(false)
   publishedAt DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@map("blogs")
 }
-
-// Cache buster - Thu Sep 18 16:12:01 +04 2025
