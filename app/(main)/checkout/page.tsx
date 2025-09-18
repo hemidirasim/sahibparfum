@@ -54,7 +54,13 @@ export default function CheckoutPage() {
 
   const fetchUserAddresses = async () => {
     try {
-      const response = await fetch('/api/addresses')
+      const timestamp = Date.now()
+      const response = await fetch(`/api/addresses?_t=${timestamp}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      })
       if (response.ok) {
         const addresses = await response.json()
         setUserAddresses(addresses)
@@ -66,6 +72,8 @@ export default function CheckoutPage() {
             billingAddressId: addresses[0].id
           }))
         }
+      } else {
+        console.error('Addresses API error:', response.status, response.statusText)
       }
     } catch (error) {
       console.error('Ünvanlar yüklənərkən xəta:', error)

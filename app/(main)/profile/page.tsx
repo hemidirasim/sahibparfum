@@ -46,9 +46,15 @@ export default function ProfilePage() {
   const fetchUserData = async () => {
     try {
       setLoading(true)
+      const timestamp = Date.now()
       const [ordersRes, addressesRes, favoritesRes] = await Promise.all([
         fetch('/api/orders'),
-        fetch('/api/addresses'),
+        fetch(`/api/addresses?_t=${timestamp}`, {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache'
+          }
+        }),
         fetch('/api/favorites')
       ])
 

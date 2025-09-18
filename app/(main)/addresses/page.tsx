@@ -44,10 +44,18 @@ export default function AddressesPage() {
 
   const fetchAddresses = async () => {
     try {
-      const response = await fetch('/api/addresses')
+      const timestamp = Date.now()
+      const response = await fetch(`/api/addresses?_t=${timestamp}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      })
       if (response.ok) {
         const data = await response.json()
         setAddresses(data)
+      } else {
+        console.error('Addresses API error:', response.status, response.statusText)
       }
     } catch (error) {
       console.error('Ünvanlar yüklənərkən xəta:', error)
