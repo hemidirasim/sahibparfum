@@ -42,61 +42,6 @@ export async function POST(request: NextRequest) {
       rawData: { test: true, orderId }
     })
 
-    console.log('Checking transaction status for order ID:', orderId)
-
-    // Call United Payment API to get transaction status by order ID
-    const response = await fetch(`${UNITED_PAYMENT_CONFIG.baseUrl}/api/transactions/transaction-status-by-order-id-detailed`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-auth-token': UNITED_PAYMENT_CONFIG.authToken
-      },
-      body: JSON.stringify({
-        clientOrderId: orderId
-      })
-    })
-
-    if (!response.ok) {
-      console.error('United Payment API error:', response.status, response.statusText)
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Failed to check payment status' 
-      }, { status: response.status })
-    }
-
-    const paymentData = await response.json()
-    console.log('United Payment response:', paymentData)
-
-    // Map United Payment status to our order status
-    let orderStatus = 'PENDING'
-    let paymentStatus = 'PENDING'
-
-    if (paymentData.isSuccess && paymentData.status === 'APPROVED') {
-      orderStatus = 'PAID'
-      paymentStatus = 'COMPLETED'
-    } else if (paymentData.status === 'DECLINED' || paymentData.status === 'FAILED') {
-      orderStatus = 'PAYMENT_FAILED'
-      paymentStatus = 'FAILED'
-    } else if (paymentData.status === 'CANCELLED') {
-      orderStatus = 'CANCELLED'
-      paymentStatus = 'CANCELLED'
-    }
-
-    return NextResponse.json({
-      success: true,
-      orderStatus,
-      paymentStatus,
-      transactionId: paymentData.transactionId,
-      amount: paymentData.amount,
-      bankName: paymentData.bankName,
-      maskedPan: paymentData.maskedPan,
-      bankRRN: paymentData.bankRRN,
-      createdAt: paymentData.createdAt,
-      isReversed: paymentData.isReversed,
-      refundAmount: paymentData.refundAmount,
-      rawData: paymentData
-    })
-
   } catch (error) {
     console.error('Error checking order status:', error)
     console.error('Error details:', {
