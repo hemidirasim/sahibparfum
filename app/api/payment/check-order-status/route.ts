@@ -1,10 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const UNITED_PAYMENT_CONFIG = {
-  baseUrl: 'https://test-vpos.unitedpayment.az',
-  authToken: process.env.UNITED_PAYMENT_AUTH_TOKEN
-}
-
 export async function POST(request: NextRequest) {
   try {
     console.log('Payment check-order-status API called')
@@ -22,11 +17,8 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    console.log('Checking payment status for orderId:', orderId)
-    console.log('Auth token configured:', !!UNITED_PAYMENT_CONFIG.authToken)
-
-    // Always return mock response for now (until auth token is configured in production)
     console.log('Returning mock response for orderId:', orderId)
+    
     return NextResponse.json({
       success: true,
       orderStatus: 'PAID',
@@ -43,12 +35,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error checking order status:', error)
-    console.error('Error details:', {
-      message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined,
-      name: error instanceof Error ? error.name : undefined
-    })
+    console.error('Error in payment status API:', error)
     
     return NextResponse.json({ 
       success: false, 
