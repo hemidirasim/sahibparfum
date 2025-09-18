@@ -267,6 +267,7 @@ model Order {
   totalAmount       Float
   paymentStatus     String        @default("PENDING")
   paymentMethod     String
+  transactionId     Int?
   shippingAddressId String?
   billingAddressId  String?
   notes             String?
