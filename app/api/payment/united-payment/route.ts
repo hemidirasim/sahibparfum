@@ -202,7 +202,7 @@ export async function POST(request: NextRequest) {
       orderId: finalOrderId, // United Payment API expects 'orderId' not 'clientOrderId'
       amount: finalAmount, // Keep amount in AZN (no conversion needed)
       language: "AZ", // Azerbaijani
-      successUrl: `${UNITED_PAYMENT_CONFIG.successUrl}?orderId=${finalOrderId}`,
+      successUrl: `${UNITED_PAYMENT_CONFIG.successUrl}?orderId=${finalOrderId}&status=PAID&paymentId=${finalOrderId}`,
       cancelUrl: cancelUrl,
       declineUrl: UNITED_PAYMENT_CONFIG.declineUrl,
       description: description || `Sifariş #${finalOrderId}`,

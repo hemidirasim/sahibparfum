@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { checkTransactionStatus } from '@/lib/united-payment-auth'
 
 // Handle payment callback from United Payment
 export async function POST(request: NextRequest) {
@@ -10,7 +9,7 @@ export async function POST(request: NextRequest) {
     console.log('Payment callback received:', body)
     console.log('Callback headers:', Object.fromEntries(request.headers.entries()))
 
-    // Extract callback data (format may vary based on United Payment documentation)
+    // Extract callback data
     const { 
       clientOrderId, 
       transactionId, 
@@ -33,78 +32,48 @@ export async function POST(request: NextRequest) {
     const finalOrderId = clientOrderId || orderId || OrderId
     const initialStatus = status || Status
 
-    // Use final extracted values
-    const orderIdToUpdate = finalOrderId
-    console.log('Processing callback for order:', orderIdToUpdate, 'transactionId:', finalTransactionId, 'status:', initialStatus)
+    console.log('Processing callback for order:', finalOrderId, 'transactionId:', finalTransactionId, 'status:', initialStatus)
 
-    // If we have a transactionId, check the actual status with United Payment
-    let actualStatus = initialStatus
-    let actualOrderStatus = 'PENDING'
-    
-    if (finalTransactionId) {
-      console.log('Checking actual transaction status with United Payment for transactionId:', finalTransactionId)
-      const statusCheck = await checkTransactionStatus(finalTransactionId)
-      
-      if (statusCheck.success) {
-        actualStatus = statusCheck.status
-        actualOrderStatus = statusCheck.orderStatus || 'PENDING'
-        console.log('Actual transaction status:', actualStatus, 'Order status:', actualOrderStatus)
-      } else {
-        console.error('Failed to check transaction status:', statusCheck.error)
-      }
+    if (!finalOrderId) {
+      console.error('No order ID found in callback')
+      return NextResponse.json({ 
+        success: false, 
+        error: 'No order ID provided' 
+      }, { status: 400 })
     }
 
-    // Update order status based on payment result
+    // Map United Payment status to our order status
     let orderStatus = 'PENDING'
     let paymentStatus = 'PENDING'
 
-    // Use actual status from United Payment if available
-    const finalStatus = actualOrderStatus || initialStatus
-
-    switch (finalStatus?.toLowerCase()) {
-      case 'approved':
-      case 'success':
-      case 'completed':
-        orderStatus = 'PAID'
-        paymentStatus = 'COMPLETED'
-        break
-      case 'declined':
-      case 'failed':
-      case 'rejected':
-        orderStatus = 'PAYMENT_FAILED'
-        paymentStatus = 'FAILED'
-        break
-      case 'pending':
-      case 'processing':
-        orderStatus = 'PENDING'
-        paymentStatus = 'PENDING'
-        break
-      case 'cancelled':
-      case 'canceled':
-        orderStatus = 'CANCELLED'
-        paymentStatus = 'CANCELLED'
-        break
-      default:
-        console.warn('Unknown payment status:', finalStatus)
-        orderStatus = 'PENDING'
-        paymentStatus = 'PENDING'
+    const statusStr = (initialStatus || '').toString().toLowerCase()
+    
+    if (statusStr === 'approved' || statusStr === 'success' || statusStr === 'completed') {
+      orderStatus = 'PAID'
+      paymentStatus = 'COMPLETED'
+    } else if (statusStr === 'declined' || statusStr === 'failed' || statusStr === 'rejected') {
+      orderStatus = 'PAYMENT_FAILED'
+      paymentStatus = 'FAILED'
+    } else if (statusStr === 'cancelled' || statusStr === 'canceled') {
+      orderStatus = 'CANCELLED'
+      paymentStatus = 'CANCELLED'
     }
 
-    console.log('Final order status:', orderStatus, 'Payment status:', paymentStatus)
+    console.log('Mapped status - Order:', orderStatus, 'Payment:', paymentStatus)
 
     // Update order in database
     try {
       const updatedOrder = await prisma.order.update({
-        where: { orderNumber: orderIdToUpdate },
+        where: { orderNumber: finalOrderId },
         data: {
           status: orderStatus,
           paymentStatus: paymentStatus,
-          ...(finalTransactionId && { transactionId: parseInt(finalTransactionId) }),
+          ...(finalTransactionId && { transactionId: parseInt(finalTransactionId.toString()) }),
           updatedAt: new Date()
         }
       })
 
-      console.log('Order updated successfully:', updatedOrder.id)
+      console.log('Order updated successfully:', updatedOrder.id, 'Status:', orderStatus)
 
       // If payment successful, reduce product stock
       if (orderStatus === 'PAID') {
@@ -124,16 +93,15 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        console.log('Product stock updated for order:', orderIdToUpdate)
+        console.log('Product stock updated for order:', finalOrderId)
       }
 
       return NextResponse.json({ 
         success: true, 
         message: 'Callback processed successfully',
-        orderId: orderIdToUpdate,
+        orderId: finalOrderId,
         status: orderStatus,
-        transactionId: finalTransactionId,
-        redirectUrl: finalTransactionId ? `${process.env.UNITED_PAYMENT_SUCCESS_URL || 'http://localhost:3000/order-success'}?orderId=${orderIdToUpdate}&transactionId=${finalTransactionId}&status=${orderStatus}` : null
+        transactionId: finalTransactionId
       })
 
     } catch (dbError) {
