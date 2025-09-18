@@ -247,7 +247,7 @@ export function Header() {
 
 
   return (
-    <header className="bg-white shadow-sm border-b sticky top-0 z-50">
+    <header className="bg-white shadow-sm border-b md:sticky md:top-0 md:z-50">
       {/* Top Bar */}
       <div className="bg-primary-600 text-white py-2">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
