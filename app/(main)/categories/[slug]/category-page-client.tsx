@@ -318,7 +318,8 @@ export default function CategoryPageClient() {
       productId: product.id,
       id: product.id,
       name: product.name,
-      price: product.salePrice || product.price,
+      price: product.price,
+      salePrice: product.salePrice,
       image: product.images?.[0] || '/placeholder-product.jpg',
       quantity: 1,
       sku: product.sku

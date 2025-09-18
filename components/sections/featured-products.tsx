@@ -150,7 +150,8 @@ export function FeaturedProducts() {
       id: product.id,
       productId: product.id,
       name: product.name,
-      price: product.salePrice || product.price,
+      price: product.price,
+      salePrice: product.salePrice,
       image: product.images[0] || '/placeholder.jpg',
       quantity: 1,
       sku: product.sku

@@ -192,7 +192,8 @@ export function ProductGrid({
       id: product.id,
       productId: product.id,
       name: product.name,
-      price: product.salePrice || product.price,
+      price: product.price,
+      salePrice: product.salePrice,
       image: product.images?.[0] || product.image || '/placeholder.jpg',
       quantity: 1,
       sku: product.sku || product.id

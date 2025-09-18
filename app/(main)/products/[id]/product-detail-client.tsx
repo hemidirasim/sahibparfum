@@ -103,7 +103,8 @@ export default function ProductDetailClient({ initialProduct }: ProductDetailCli
         id: product.id,
         productId: product.id,
         name: product.name,
-        price: product.salePrice || product.price,
+        price: product.price,
+        salePrice: product.salePrice,
         image: product.images[0],
         quantity: 1,
         sku: product.sku
@@ -139,7 +140,8 @@ export default function ProductDetailClient({ initialProduct }: ProductDetailCli
         productId: product.id,
         productVariantId: variant.id,
         name: `${product.name} - ${variant.volume}`,
-        price: variant.salePrice || variant.price,
+        price: variant.price,
+        salePrice: variant.salePrice,
         image: product.images[0],
         quantity,
         sku: variant.sku

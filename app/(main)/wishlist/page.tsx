@@ -109,7 +109,8 @@ export default function WishlistPage() {
         id: product.id,
         productId: product.id,
         name: product.name,
-        price: product.salePrice || product.price,
+        price: product.price,
+        salePrice: product.salePrice,
         image: product.images[0] || '/placeholder.jpg',
         quantity: 1,
         sku: product.id // Using product ID as SKU for now
@@ -128,7 +129,8 @@ export default function WishlistPage() {
           id: favorite.product.id,
           productId: favorite.product.id,
           name: favorite.product.name,
-          price: favorite.product.salePrice || favorite.product.price,
+          price: favorite.product.price,
+          salePrice: favorite.product.salePrice,
           image: favorite.product.images[0] || '/placeholder.jpg',
           quantity: 1,
           sku: favorite.product.id // Using product ID as SKU for now
