@@ -293,7 +293,7 @@ export default function OrdersPage() {
   // Check if order can be retried (unpaid orders)
   const canRetryPayment = (order: Order) => {
     return order.paymentStatus === 'PENDING' || 
-           order.paymentStatus === 'PAYMENT_FAILED' ||
+           order.paymentStatus === 'FAILED' ||
            order.paymentStatus === 'CANCELLED'
   }
 
@@ -533,7 +533,7 @@ export default function OrdersPage() {
                       <div className="flex items-center space-x-1">
                         <CreditCard className="h-4 w-4" />
                         <span>
-                          {order.paymentStatus === 'PAID' ? 'Ödənildi' : 'Ödənilmədi'}
+                          {order.paymentStatus === 'PAID' || order.paymentStatus === 'COMPLETED' ? 'Ödənildi' : 'Ödənilmədi'}
                         </span>
                       </div>
                     </div>

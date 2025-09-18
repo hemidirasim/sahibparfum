@@ -275,6 +275,8 @@ export default function AdminOrdersPage() {
     switch (status) {
       case 'PAID':
         return 'bg-green-100 text-green-800'
+      case 'COMPLETED':
+        return 'bg-green-100 text-green-800'
       case 'PENDING':
         return 'bg-yellow-100 text-yellow-800'
       case 'FAILED':
@@ -287,6 +289,8 @@ export default function AdminOrdersPage() {
   const getPaymentStatusText = (status: string) => {
     switch (status) {
       case 'PAID':
+        return 'Ödənilib'
+      case 'COMPLETED':
         return 'Ödənilib'
       case 'PENDING':
         return 'Gözləyir'
@@ -410,6 +414,7 @@ export default function AdminOrdersPage() {
             >
               <option value="ALL">Bütün Ödəniş Statusları</option>
               <option value="PAID">Ödənilib</option>
+              <option value="COMPLETED">Ödənilib</option>
               <option value="PENDING">Gözləyir</option>
               <option value="FAILED">Uğursuz</option>
             </select>
@@ -528,6 +533,7 @@ export default function AdminOrdersPage() {
                       >
                         <option value="PENDING">Gözləyir</option>
                         <option value="PAID">Ödənilib</option>
+                        <option value="COMPLETED">Ödənilib</option>
                         <option value="FAILED">Uğursuz</option>
                       </select>
                     </td>
