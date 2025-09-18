@@ -722,13 +722,6 @@ export function Header() {
               </Link>
             </nav>
 
-            {/* Mobile User Menu */}
-            <div className="mt-6 pt-4 border-t border-gray-200">
-              <div className="flex justify-center">
-                <UserPopup />
-              </div>
-            </div>
-
             {/* Mobile Brand Search */}
             <div className="mt-6 pt-4 border-t border-gray-200">
               <div className="bg-gray-50 rounded-lg p-4">
