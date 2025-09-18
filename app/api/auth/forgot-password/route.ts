@@ -6,9 +6,20 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function POST(request: NextRequest) {
   try {
-    const { email } = await request.json()
+    console.log('Forgot password request received')
+    
+    let email
+    try {
+      const body = await request.json()
+      email = body.email
+      console.log('Email extracted:', email)
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError)
+      return NextResponse.json({ error: 'Invalid request format' }, { status: 400 })
+    }
 
     if (!email) {
+      console.log('No email provided')
       return NextResponse.json({ error: 'Email ünvanı tələb olunur' }, { status: 400 })
     }
 

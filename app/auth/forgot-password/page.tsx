@@ -26,9 +26,23 @@ export default function ForgotPasswordPage() {
         body: JSON.stringify({ email }),
       })
 
-      const data = await response.json()
+      console.log('Response status:', response.status)
+      console.log('Response headers:', response.headers)
+
+      let data
+      try {
+        data = await response.json()
+        console.log('Response data:', data)
+      } catch (jsonError) {
+        console.error('JSON parse error:', jsonError)
+        const textResponse = await response.text()
+        console.error('Response text:', textResponse)
+        toast.error('Server cavabında xəta var')
+        return
+      }
 
       if (!response.ok) {
+        console.error('API error:', data)
         toast.error(data.error || 'Xəta baş verdi')
       } else {
         setEmailSent(true)
@@ -43,8 +57,8 @@ export default function ForgotPasswordPage() {
         }
       }
     } catch (error) {
-      console.error('Forgot password error:', error)
-      toast.error('Xəta baş verdi. Zəhmət olmasa yenidən cəhd edin.')
+      console.error('Fetch error:', error)
+      toast.error('Şəbəkə xətası. Zəhmət olmasa yenidən cəhd edin.')
     } finally {
       setIsLoading(false)
     }
