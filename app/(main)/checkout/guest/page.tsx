@@ -623,7 +623,7 @@ export default function GuestCheckoutPage() {
                 <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
                   <h3 className="text-sm font-medium text-blue-900 mb-3">Taksit Seçimi</h3>
                   <div className="grid grid-cols-2 gap-3">
-                    {[2, 3, 6, 12].map((months) => (
+                    {[2, 3, 6, 9, 12].map((months) => (
                       <label key={months} className="flex items-center">
                         <input
                           type="radio"

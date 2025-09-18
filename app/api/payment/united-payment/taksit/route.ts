@@ -32,7 +32,7 @@ function getApiUrl(): string {
 }
 
 // Valid installment options
-const VALID_INSTALLMENTS = [2, 3, 6, 12]
+const VALID_INSTALLMENTS = [2, 3, 6, 9, 12]
 
 // Create installment payment session
 export async function POST(request: NextRequest) {
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     // Validate installment
     if (!installment || !VALID_INSTALLMENTS.includes(installment)) {
       return NextResponse.json(
-        { error: 'Invalid installment period. Valid options: 2, 3, 6, 12 months' },
+        { error: 'Invalid installment period. Valid options: 2, 3, 6, 9, 12 months' },
         { status: 400 }
       )
     }
