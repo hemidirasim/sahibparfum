@@ -198,6 +198,11 @@ export async function POST(request: NextRequest) {
 
     // Send order confirmation email
     try {
+      if (!order) {
+        console.error('Order is null, cannot send email')
+        return NextResponse.json(order)
+      }
+
       const settings = await prisma.settings.findFirst()
       const deliveryCost = settings?.deliveryCost || 10
       const freeDeliveryThreshold = settings?.freeDeliveryThreshold || 100
