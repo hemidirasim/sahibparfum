@@ -244,8 +244,8 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({
-      orderNumber: order.orderNumber,
-      orderId: order.id,
+      orderNumber: order?.orderNumber || '',
+      orderId: order?.id || '',
       message: 'Sifariş uğurla yaradıldı'
     })
   } catch (error) {
