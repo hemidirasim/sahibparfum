@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { sendOrderConfirmationEmail } from '@/lib/email'
 
 export async function POST(request: NextRequest) {
   try {
@@ -82,8 +83,14 @@ export async function POST(request: NextRequest) {
           include: {
             product: {
               select: {
+                id: true,
                 name: true,
                 images: true
+              }
+            },
+            productVariant: {
+              select: {
+                volume: true
               }
             }
           }
@@ -92,6 +99,48 @@ export async function POST(request: NextRequest) {
         billingAddress: true
       }
     })
+
+    // Send order confirmation email
+    try {
+      const settings = await prisma.settings.findFirst()
+      const deliveryCost = settings?.deliveryCost || 10
+      const freeDeliveryThreshold = settings?.freeDeliveryThreshold || 100
+      
+      const subtotal = order.orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+      const shipping = subtotal >= freeDeliveryThreshold ? 0 : deliveryCost
+      const total = subtotal + shipping
+
+      const emailData = {
+        orderId: order.orderNumber,
+        customerName: order.guestName || 'Müştəri',
+        customerEmail: order.guestEmail || '',
+        orderItems: order.orderItems.map(item => ({
+          id: item.product.id,
+          name: item.product.name,
+          price: item.price,
+          quantity: item.quantity,
+          volume: item.productVariant?.volume
+        })),
+        subtotal,
+        shipping,
+        total,
+        deliveryAddress: order.shippingAddress ? 
+          `${order.shippingAddress.firstName} ${order.shippingAddress.lastName}\n${order.shippingAddress.address1}${order.shippingAddress.address2 ? '\n' + order.shippingAddress.address2 : ''}\n${order.shippingAddress.city}, ${order.shippingAddress.postalCode}\n${order.shippingAddress.phone}` : 
+          'Çatdırılma ünvanı təyin edilməyib',
+        orderDate: order.createdAt
+      }
+
+      const emailResult = await sendOrderConfirmationEmail(emailData)
+      
+      if (emailResult.success) {
+        console.log('Guest order confirmation email sent successfully:', order.orderNumber)
+      } else {
+        console.error('Failed to send guest order confirmation email:', emailResult.error)
+      }
+    } catch (emailError) {
+      console.error('Error sending guest order confirmation email:', emailError)
+      // Don't fail the order creation if email fails
+    }
 
     return NextResponse.json({
       orderNumber: order.orderNumber,
