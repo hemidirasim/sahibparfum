@@ -541,15 +541,14 @@ export default function AdminOrdersPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center justify-end space-x-2">
-                        {order.transactionId && (
-                          <button 
-                            onClick={() => checkPaymentStatus(order)}
-                            className="text-green-600 hover:text-green-900 p-1"
-                            title="Ödəniş statusunu yoxla"
-                          >
-                            <CheckCircle className="h-4 w-4" />
-                          </button>
-                        )}
+                        <button 
+                          onClick={() => checkPaymentStatus(order)}
+                          className="text-green-600 hover:text-green-900 p-1"
+                          title="Ödəniş statusunu yoxla"
+                          disabled={!order.transactionId}
+                        >
+                          <CheckCircle className="h-4 w-4" />
+                        </button>
                         <button 
                           onClick={() => fetchOrderDetails(order.id)}
                           className="text-blue-600 hover:text-blue-900 p-1"
@@ -769,15 +768,14 @@ export default function AdminOrdersPage() {
                 >
                   Bağla
                 </button>
-                {selectedOrder.transactionId && (
-                  <button
-                    onClick={() => checkPaymentStatus(selectedOrder)}
-                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
-                  >
-                    <CheckCircle className="h-4 w-4" />
-                    Ödəniş Statusunu Yoxla
-                  </button>
-                )}
+                <button
+                  onClick={() => checkPaymentStatus(selectedOrder)}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  disabled={!selectedOrder.transactionId}
+                >
+                  <CheckCircle className="h-4 w-4" />
+                  Ödəniş Statusunu Yoxla
+                </button>
                 <button
                   onClick={() => {
                     // Print or export functionality
