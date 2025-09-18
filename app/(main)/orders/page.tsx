@@ -528,15 +528,7 @@ export default function OrdersPage() {
 
                 {/* Order Footer */}
                 <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4 text-sm text-gray-600">
-                      <div className="flex items-center space-x-1">
-                        <CreditCard className="h-4 w-4" />
-                        <span>
-                          {order.paymentStatus === 'PAID' || order.paymentStatus === 'COMPLETED' ? 'Ödənildi' : 'Ödənilmədi'}
-                        </span>
-                      </div>
-                    </div>
+                  <div className="flex items-center justify-end">
                     <div className="flex items-center space-x-3">
                       {canRetryPayment(order) && (
                         <button
