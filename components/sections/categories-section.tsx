@@ -152,15 +152,6 @@ export function CategoriesSection() {
             </Link>
           ))}
         </div>
-
-        <div className="text-center mt-12">
-          <Link
-            href="/categories"
-            className="btn btn-primary btn-lg"
-          >
-            Bütün Kateqoriyaları Gör
-          </Link>
-        </div>
       </div>
     </section>
   )
