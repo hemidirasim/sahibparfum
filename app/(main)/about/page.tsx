@@ -119,58 +119,6 @@ export default function AboutPage() {
           </div>
         </div>
 
-        {/* Team Section */}
-        <div className="mb-20">
-          <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">Komandamız</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center">
-              <div className="relative w-48 h-48 mx-auto mb-4">
-                <Image
-                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face"
-                  alt="CEO"
-                  fill
-                  className="rounded-full object-cover"
-                />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Əli Məmmədov</h3>
-              <p className="text-primary-600 mb-2">CEO & Təsisçi</p>
-              <p className="text-gray-600 text-sm">
-                20 ildən artıq təcrübəsi olan parfüm sahəsində mütəxəssis.
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="relative w-48 h-48 mx-auto mb-4">
-                <Image
-                  src="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=200&h=200&fit=crop&crop=face"
-                  alt="Marketing Manager"
-                  fill
-                  className="rounded-full object-cover"
-                />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Aynur Əliyeva</h3>
-              <p className="text-primary-600 mb-2">Marketinq Meneceri</p>
-              <p className="text-gray-600 text-sm">
-                Müştəri məmnuniyyəti və marketinq strategiyaları sahəsində mütəxəssis.
-              </p>
-            </div>
-            <div className="text-center">
-              <div className="relative w-48 h-48 mx-auto mb-4">
-                <Image
-                  src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face"
-                  alt="Sales Manager"
-                  fill
-                  className="rounded-full object-cover"
-                />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Rəşad Hüseynov</h3>
-              <p className="text-primary-600 mb-2">Satış Meneceri</p>
-              <p className="text-gray-600 text-sm">
-                Satış və müştəri xidmətləri sahəsində 10 ildən artıq təcrübə.
-              </p>
-            </div>
-          </div>
-        </div>
-
         {/* Contact CTA */}
         <div className="bg-primary-600 text-white rounded-lg p-8 text-center">
           <h2 className="text-2xl font-bold mb-4">Bizimlə Əlaqə Saxlayın</h2>
