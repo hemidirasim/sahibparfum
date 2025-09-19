@@ -46,7 +46,7 @@ export function ProductGrid({
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [products, setProducts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [initialLoad, setInitialLoad] = useState(true)
+  const [showProducts, setShowProducts] = useState(false)
   const [favoriteStatus, setFavoriteStatus] = useState<{[key: string]: boolean}>({})
   const [updatingFavorites, setUpdatingFavorites] = useState<string | null>(null)
   const { addItem } = useCart()
@@ -129,6 +129,7 @@ export function ProductGrid({
     const fetchProducts = async () => {
       try {
         setLoading(true)
+        setShowProducts(false)
         
         // Clear previous data immediately to prevent showing wrong content
         setProducts([])
@@ -170,6 +171,7 @@ export function ProductGrid({
         if (response.ok) {
           const fetchedProducts = data.products || []
           setProducts(fetchedProducts)
+          setShowProducts(true)
           
           // Check favorite status for all products
           if (session?.user?.id) {
@@ -185,7 +187,6 @@ export function ProductGrid({
         toast.error('Məhsullar yüklənərkən xəta baş verdi')
       } finally {
         setLoading(false)
-        setInitialLoad(false)
       }
     }
 
@@ -207,7 +208,7 @@ export function ProductGrid({
     toast.success('Məhsul səbətə əlavə edildi')
   }
 
-  if (loading || initialLoad) {
+  if (loading || !showProducts) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>

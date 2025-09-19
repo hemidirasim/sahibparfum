@@ -56,7 +56,7 @@ export default function CategoryPageClient() {
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
   const [category, setCategory] = useState<Category | null>(null)
   const [loading, setLoading] = useState(true)
-  const [initialLoad, setInitialLoad] = useState(true)
+  const [showProducts, setShowProducts] = useState(false)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [filterData, setFilterData] = useState<FilterData>({
     brands: [],
@@ -158,6 +158,7 @@ export default function CategoryPageClient() {
     const fetchCategoryData = async () => {
       try {
         setLoading(true)
+        setShowProducts(false)
         
         // Clear previous data immediately to prevent showing wrong content
         setProducts([])
@@ -198,6 +199,7 @@ export default function CategoryPageClient() {
           // Set products and filtered products simultaneously
           setProducts(categoryProducts)
           setFilteredProducts(categoryProducts)
+          setShowProducts(true)
           
           // Check favorite status for all products
           if (session?.user?.id) {
@@ -218,7 +220,6 @@ export default function CategoryPageClient() {
         setFilteredProducts([])
       } finally {
         setLoading(false)
-        setInitialLoad(false)
       }
     }
 
@@ -391,7 +392,7 @@ export default function CategoryPageClient() {
     })
   }
 
-  if (loading || initialLoad) {
+  if (loading || !showProducts) {
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="container mx-auto px-4 py-8">
