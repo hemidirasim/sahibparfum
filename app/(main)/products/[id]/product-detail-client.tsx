@@ -70,6 +70,7 @@ export default function ProductDetailClient({ initialProduct }: ProductDetailCli
   const [selectedImage, setSelectedImage] = useState(0)
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null)
   const [quantities, setQuantities] = useState<{[key: string]: number}>({})
+  const [mainProductQuantity, setMainProductQuantity] = useState(1)
   const [addingToCart, setAddingToCart] = useState(false)
   const [productRating, setProductRating] = useState({ average: 0, count: 0 })
 
@@ -106,10 +107,10 @@ export default function ProductDetailClient({ initialProduct }: ProductDetailCli
         price: product.price,
         salePrice: product.salePrice,
         image: product.images[0],
-        quantity: 1,
+        quantity: mainProductQuantity,
         sku: product.sku
       })
-      toast.success('Məhsul səbətə əlavə edildi')
+      toast.success(`${mainProductQuantity} ədəd məhsul səbətə əlavə edildi`)
     } catch (error) {
       toast.error('Səbətə əlavə edilərkən xəta baş verdi')
     } finally {
@@ -125,6 +126,14 @@ export default function ProductDetailClient({ initialProduct }: ProductDetailCli
       setQuantities(prev => ({ ...prev, [variantId]: currentQuantity + 1 }))
     } else if (type === 'decrease' && currentQuantity > 1) {
       setQuantities(prev => ({ ...prev, [variantId]: currentQuantity - 1 }))
+    }
+  }
+
+  const handleMainProductQuantityChange = (type: 'increase' | 'decrease') => {
+    if (type === 'increase' && mainProductQuantity < product.stockCount) {
+      setMainProductQuantity(prev => prev + 1)
+    } else if (type === 'decrease' && mainProductQuantity > 1) {
+      setMainProductQuantity(prev => prev - 1)
     }
   }
 
@@ -429,6 +438,27 @@ export default function ProductDetailClient({ initialProduct }: ProductDetailCli
                             {product.price.toFixed(2)} ₼
                           </span>
                         )}
+                      </div>
+                      
+                      {/* Quantity Selector */}
+                      <div className="flex items-center border border-gray-300 rounded-lg">
+                        <button
+                          onClick={() => handleMainProductQuantityChange('decrease')}
+                          className="p-2 hover:bg-gray-100 transition-colors"
+                          disabled={mainProductQuantity <= 1}
+                        >
+                          <Minus className="w-4 h-4" />
+                        </button>
+                        <span className="px-4 py-2 border-x border-gray-300 min-w-[60px] text-center">
+                          {mainProductQuantity}
+                        </span>
+                        <button
+                          onClick={() => handleMainProductQuantityChange('increase')}
+                          className="p-2 hover:bg-gray-100 transition-colors"
+                          disabled={mainProductQuantity >= product.stockCount}
+                        >
+                          <Plus className="w-4 h-4" />
+                        </button>
                       </div>
                       
                       {/* Add to Cart Button */}
