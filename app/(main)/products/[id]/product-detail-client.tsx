@@ -251,7 +251,7 @@ export default function ProductDetailClient({ initialProduct }: ProductDetailCli
                     src={product.images[selectedImage]}
                     alt={product.name}
                     fill
-                    className="object-cover"
+                    className="object-contain"
                     onError={(e) => {
                       e.currentTarget.style.display = 'none'
                       const placeholder = e.currentTarget.nextElementSibling as HTMLElement
@@ -305,7 +305,7 @@ export default function ProductDetailClient({ initialProduct }: ProductDetailCli
                       src={image}
                       alt={`${product.name} ${index + 1}`}
                       fill
-                      className="object-cover"
+                      className="object-contain"
                       onError={(e) => {
                         e.currentTarget.style.display = 'none'
                         const placeholder = e.currentTarget.nextElementSibling as HTMLElement
@@ -393,80 +393,67 @@ export default function ProductDetailClient({ initialProduct }: ProductDetailCli
               <p className="text-gray-600 leading-relaxed">{product.description}</p>
             </div>
 
-            {/* Main Product - Always show */}
+            {/* Product Variants - All volumes including main product */}
             <div className="pt-4 border-t border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Əsas Məhsul</h3>
-              <div className="border border-gray-200 rounded-lg p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    {/* Product Icon */}
-                    <div className="w-8 h-8 bg-gradient-to-b from-primary-600 to-primary-400 rounded flex items-center justify-center">
-                      <span className="text-white text-xs font-bold">P</span>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Həcmlər</h3>
+              <div className="space-y-3">
+                {/* Main Product as first option */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      {/* Volume */}
+                      <div className="flex-1">
+                        <span className="text-sm font-medium text-gray-900">
+                          {product.volume || 'Standart'}
+                        </span>
+                        <div className="text-xs text-gray-500">
+                          SKU: {product.sku}
+                        </div>
+                      </div>
                     </div>
                     
-                    {/* Product Info */}
-                    <div className="flex-1">
-                      <span className="text-sm font-medium text-gray-900">
-                        {product.name}
-                      </span>
-                      <div className="text-xs text-gray-500">
-                        SKU: {product.sku}
+                    <div className="flex items-center space-x-4">
+                      {/* Price */}
+                      <div className="text-right">
+                        {product.isOnSale && product.salePrice ? (
+                          <div>
+                            <span className="text-lg font-bold text-red-600">
+                              {product.salePrice.toFixed(2)} ₼
+                            </span>
+                            <div className="text-sm text-gray-500 line-through">
+                              {product.price.toFixed(2)} ₼
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-lg font-bold text-gray-900">
+                            {product.price.toFixed(2)} ₼
+                          </span>
+                        )}
                       </div>
+                      
+                      {/* Add to Cart Button */}
+                      <button
+                        onClick={handleAddToCart}
+                        disabled={addingToCart || !product.inStock}
+                        className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                      >
+                        <ShoppingCart className="h-4 w-4" />
+                        {!product.inStock ? 'Stokda yoxdur' : 'Səbətə At'}
+                      </button>
                     </div>
                   </div>
                   
-                  <div className="flex items-center space-x-4">
-                    {/* Price */}
-                    <div className="text-right">
-                      {product.isOnSale && product.salePrice ? (
-                        <div>
-                          <span className="text-lg font-bold text-primary-600">
-                            {product.salePrice.toFixed(2)} ₼
-                          </span>
-                          <div className="text-sm text-gray-500 line-through">
-                            {product.price.toFixed(2)} ₼
-                          </div>
-                        </div>
-                      ) : (
-                        <span className="text-lg font-bold text-gray-900">
-                          {product.price.toFixed(2)} ₼
-                        </span>
-                      )}
-                    </div>
-                    
-                    {/* Add to Cart Button */}
-                    <button
-                      onClick={handleAddToCart}
-                      disabled={addingToCart || !product.inStock}
-                      className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                    >
-                      <ShoppingCart className="h-4 w-4" />
-                      {!product.inStock ? 'Stokda yoxdur' : 'Səbətə At'}
-                    </button>
+                  {/* Stock Info */}
+                  <div className="mt-2 text-sm text-gray-600">
+                    Stok: {product.stockCount} ədəd
                   </div>
                 </div>
-                
-                {/* Stock Info */}
-                <div className="mt-2 text-sm text-gray-600">
-                  Stok: {product.stockCount} ədəd
-                </div>
-              </div>
-            </div>
 
-            {/* Product Variants */}
-            {product.variants && product.variants.length > 0 && (
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-gray-900">Variantlar</h3>
-                <div className="space-y-3">
-                  {product.variants.filter(variant => variant.isActive).map((variant) => (
+                {/* Other Variants */}
+                {product.variants && product.variants.length > 0 && product.variants.filter(variant => variant.isActive).map((variant) => (
                     <div key={variant.id} className="border border-gray-200 rounded-lg p-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
-                          {/* Product Icon */}
-                          <div className="w-8 h-8 bg-gradient-to-b from-blue-900 to-blue-400 rounded flex items-center justify-center">
-                            <span className="text-white text-xs font-bold">V</span>
-                          </div>
-                          
                           {/* Volume */}
                           <div className="flex-1">
                             <span className="text-sm font-medium text-gray-900">
@@ -535,10 +522,9 @@ export default function ProductDetailClient({ initialProduct }: ProductDetailCli
                         Stok: {variant.stock} ədəd
                       </div>
                     </div>
-                  ))}
-                </div>
+                ))}
               </div>
-            )}
+            </div>
 
             {/* Social Sharing */}
             <div className="pt-4 border-t border-gray-200">
