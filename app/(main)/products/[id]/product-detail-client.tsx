@@ -465,10 +465,10 @@ export default function ProductDetailClient({ initialProduct }: ProductDetailCli
                       <button
                         onClick={handleAddToCart}
                         disabled={addingToCart || !product.inStock}
-                        className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                        title={!product.inStock ? 'Stokda yoxdur' : 'Səbətə əlavə et'}
                       >
-                        <ShoppingCart className="h-4 w-4" />
-                        {!product.inStock ? 'Stokda yoxdur' : 'Səbətə At'}
+                        <ShoppingCart className="h-5 w-5" />
                       </button>
                     </div>
                   </div>
@@ -539,10 +539,10 @@ export default function ProductDetailClient({ initialProduct }: ProductDetailCli
                           <button
                             onClick={() => handleAddToCartVariant(variant)}
                             disabled={addingToCart || variant.stock === 0}
-                            className="bg-primary-600 text-white px-6 py-2 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                            title={variant.stock === 0 ? 'Stokda yoxdur' : 'Səbətə əlavə et'}
                           >
-                            <ShoppingCart className="h-4 w-4" />
-                            {variant.stock === 0 ? 'Stokda yoxdur' : 'Səbətə At'}
+                            <ShoppingCart className="h-5 w-5" />
                           </button>
                         </div>
                       </div>
