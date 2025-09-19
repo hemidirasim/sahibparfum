@@ -46,6 +46,7 @@ export function ProductGrid({
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [products, setProducts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [initialLoad, setInitialLoad] = useState(true)
   const [favoriteStatus, setFavoriteStatus] = useState<{[key: string]: boolean}>({})
   const [updatingFavorites, setUpdatingFavorites] = useState<string | null>(null)
   const { addItem } = useCart()
@@ -128,6 +129,10 @@ export function ProductGrid({
     const fetchProducts = async () => {
       try {
         setLoading(true)
+        
+        // Clear previous data immediately to prevent showing wrong content
+        setProducts([])
+        
         const params = new URLSearchParams()
         
         if (search) params.append('search', search)
@@ -180,6 +185,7 @@ export function ProductGrid({
         toast.error('Məhsullar yüklənərkən xəta baş verdi')
       } finally {
         setLoading(false)
+        setInitialLoad(false)
       }
     }
 
@@ -201,7 +207,7 @@ export function ProductGrid({
     toast.success('Məhsul səbətə əlavə edildi')
   }
 
-  if (loading) {
+  if (loading || initialLoad) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary-600"></div>

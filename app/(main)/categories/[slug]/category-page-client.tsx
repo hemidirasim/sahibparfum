@@ -56,6 +56,7 @@ export default function CategoryPageClient() {
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
   const [category, setCategory] = useState<Category | null>(null)
   const [loading, setLoading] = useState(true)
+  const [initialLoad, setInitialLoad] = useState(true)
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [filterData, setFilterData] = useState<FilterData>({
     brands: [],
@@ -158,6 +159,11 @@ export default function CategoryPageClient() {
       try {
         setLoading(true)
         
+        // Clear previous data immediately to prevent showing wrong content
+        setProducts([])
+        setFilteredProducts([])
+        setCategory(null)
+        
         // Fetch category info
         const categoryResponse = await fetch('/api/categories')
         const categories = await categoryResponse.json()
@@ -188,6 +194,8 @@ export default function CategoryPageClient() {
           const productsResponse = await fetch(`/api/products?category=${encodeURIComponent(foundCategory.name)}`)
           const data = await productsResponse.json()
           const categoryProducts = data.products || []
+          
+          // Set products and filtered products simultaneously
           setProducts(categoryProducts)
           setFilteredProducts(categoryProducts)
           
@@ -206,8 +214,11 @@ export default function CategoryPageClient() {
       } catch (error) {
         console.error('Error fetching category data:', error)
         toast.error('Kateqoriya məlumatları yüklənərkən xəta baş verdi')
+        setProducts([])
+        setFilteredProducts([])
       } finally {
         setLoading(false)
+        setInitialLoad(false)
       }
     }
 
@@ -380,7 +391,7 @@ export default function CategoryPageClient() {
     })
   }
 
-  if (loading) {
+  if (loading || initialLoad) {
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="container mx-auto px-4 py-8">
