@@ -129,7 +129,14 @@ export async function DELETE(
     })
 
     if (!existingCategory) {
+      console.log(`Category with id ${params.id} not found`)
       return NextResponse.json({ error: 'Category not found' }, { status: 404 })
+    }
+
+    // Check if category is already inactive
+    if (!existingCategory.isActive) {
+      console.log(`Category ${existingCategory.name} is already inactive`)
+      return NextResponse.json({ error: 'Category is already inactive' }, { status: 400 })
     }
 
     console.log(`Deleting category: ${existingCategory.name} with ${existingCategory._count.products} products`)
@@ -143,22 +150,34 @@ export async function DELETE(
       console.log(`Soft deleted ${updateResult.count} products from category: ${existingCategory.name}`)
     }
 
-    // Delete category with transaction for better error handling
-    await prisma.$transaction(async (tx) => {
-      // Check if category still exists before deletion
-      const categoryToDelete = await tx.category.findUnique({
-        where: { id: params.id }
-      })
+    // Try to delete category with transaction for better error handling
+    try {
+      await prisma.$transaction(async (tx) => {
+        // Check if category still exists before deletion
+        const categoryToDelete = await tx.category.findUnique({
+          where: { id: params.id }
+        })
 
-      if (!categoryToDelete) {
-        throw new Error(`Category with id ${params.id} not found during deletion`)
-      }
+        if (!categoryToDelete) {
+          throw new Error(`Category with id ${params.id} not found during deletion`)
+        }
 
-      // Delete category
-      await tx.category.delete({
-        where: { id: params.id }
+        // Delete category
+        await tx.category.delete({
+          where: { id: params.id }
+        })
       })
-    })
+    } catch (deleteError) {
+      console.error('Hard delete failed, trying soft delete:', deleteError)
+      
+      // If hard delete fails, try soft delete as fallback
+      await prisma.category.update({
+        where: { id: params.id },
+        data: { isActive: false }
+      })
+      
+      console.log(`Soft deleted category: ${existingCategory.name} (hard delete failed)`)
+    }
 
     console.log(`Successfully deleted category: ${existingCategory.name}`)
 
