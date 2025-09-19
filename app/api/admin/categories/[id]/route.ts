@@ -136,16 +136,28 @@ export async function DELETE(
 
     // Delete all products in this category first (soft delete - set isActive to false)
     if (existingCategory._count.products > 0) {
-      await prisma.product.updateMany({
+      const updateResult = await prisma.product.updateMany({
         where: { categoryId: params.id },
         data: { isActive: false }
       })
-      console.log(`Soft deleted ${existingCategory._count.products} products from category: ${existingCategory.name}`)
+      console.log(`Soft deleted ${updateResult.count} products from category: ${existingCategory.name}`)
     }
 
-    // Delete category
-    await prisma.category.delete({
-      where: { id: params.id }
+    // Delete category with transaction for better error handling
+    await prisma.$transaction(async (tx) => {
+      // Check if category still exists before deletion
+      const categoryToDelete = await tx.category.findUnique({
+        where: { id: params.id }
+      })
+
+      if (!categoryToDelete) {
+        throw new Error(`Category with id ${params.id} not found during deletion`)
+      }
+
+      // Delete category
+      await tx.category.delete({
+        where: { id: params.id }
+      })
     })
 
     console.log(`Successfully deleted category: ${existingCategory.name}`)
@@ -163,6 +175,14 @@ export async function DELETE(
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Category deletion error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      categoryId: params.id
+    })
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 })
   }
 }

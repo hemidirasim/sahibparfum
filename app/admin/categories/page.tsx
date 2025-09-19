@@ -79,11 +79,12 @@ export default function AdminCategoriesPage() {
         alert(successMessage)
       } else {
         const error = await response.json()
-        alert(error.error || 'Kateqoriya silinərkən xəta baş verdi')
+        console.error('Delete API error:', error)
+        alert(`Kateqoriya silinərkən xəta baş verdi: ${error.error || 'Naməlum xəta'}${error.details ? `\n\nƏtraflı: ${error.details}` : ''}`)
       }
     } catch (error) {
       console.error('Delete error:', error)
-      alert('Kateqoriya silinərkən xəta baş verdi')
+      alert(`Kateqoriya silinərkən xəta baş verdi: ${error instanceof Error ? error.message : 'Naməlum xəta'}`)
     } finally {
       setDeleting(null)
     }
