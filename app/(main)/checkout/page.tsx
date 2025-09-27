@@ -39,6 +39,8 @@ export default function CheckoutPage() {
     fatherName: '',
     idCardFront: null as File | null,
     idCardBack: null as File | null,
+    idCardFrontUrl: '',
+    idCardBackUrl: '',
     registrationAddress: '',
     actualAddress: '',
     cityNumber: '',
@@ -147,6 +149,45 @@ export default function CheckoutPage() {
       ...prev,
       [field]: value
     }))
+  }
+
+  const handleFileUpload = async (file: File, type: 'front' | 'back') => {
+    if (!file) return
+
+    const formData = new FormData()
+    formData.append('file', file)
+
+    try {
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        const imageUrl = result.url || result.imageUrl
+        
+        if (type === 'front') {
+          setHisseliForm(prev => ({
+            ...prev,
+            idCardFrontUrl: imageUrl
+          }))
+        } else {
+          setHisseliForm(prev => ({
+            ...prev,
+            idCardBackUrl: imageUrl
+          }))
+        }
+        
+        toast.success(`${type === 'front' ? 'Ön' : 'Arxa'} tərəf şəkli uğurla yükləndi!`)
+      } else {
+        const error = await response.json()
+        toast.error('Şəkil yüklənərkən xəta: ' + (error.message || 'Naməlum xəta'))
+      }
+    } catch (error) {
+      console.error('File upload error:', error)
+      toast.error('Şəkil yüklənərkən xəta baş verdi')
+    }
   }
 
   const handleAddAddress = async () => {
@@ -872,20 +913,44 @@ export default function CheckoutPage() {
                           <input
                             type="file"
                             accept="image/*"
-                            onChange={(e) => setHisseliForm(prev => ({ ...prev, idCardFront: e.target.files?.[0] || null }))}
+                            onChange={(e) => {
+                              const file = e.target.files?.[0]
+                              if (file) {
+                                setHisseliForm(prev => ({ ...prev, idCardFront: file }))
+                                handleFileUpload(file, 'front')
+                              }
+                              e.target.value = '' // Clear input
+                            }}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
                             required
                           />
+                          {hisseliForm.idCardFrontUrl && (
+                            <div className="mt-2 text-xs text-green-600">
+                              ✅ Ön tərəf yükləndi
+                            </div>
+                          )}
                         </div>
                         <div>
                           <label className="block text-xs text-gray-600 mb-1">Arxa tərəf *</label>
                           <input
                             type="file"
                             accept="image/*"
-                            onChange={(e) => setHisseliForm(prev => ({ ...prev, idCardBack: e.target.files?.[0] || null }))}
+                            onChange={(e) => {
+                              const file = e.target.files?.[0]
+                              if (file) {
+                                setHisseliForm(prev => ({ ...prev, idCardBack: file }))
+                                handleFileUpload(file, 'back')
+                              }
+                              e.target.value = '' // Clear input
+                            }}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
                             required
                           />
+                          {hisseliForm.idCardBackUrl && (
+                            <div className="mt-2 text-xs text-green-600">
+                              ✅ Arxa tərəf yükləndi
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -1076,7 +1141,7 @@ export default function CheckoutPage() {
                   (formData.paymentMethod === 'TAKSIT' && !formData.installment) ||
                   (formData.paymentMethod === 'HISSELI' && (
                     !hisseliForm.firstName || !hisseliForm.lastName || !hisseliForm.fatherName ||
-                    !hisseliForm.idCardFront || !hisseliForm.idCardBack ||
+                    !hisseliForm.idCardFrontUrl || !hisseliForm.idCardBackUrl ||
                     !hisseliForm.registrationAddress || !hisseliForm.actualAddress || !hisseliForm.cityNumber ||
                     !hisseliForm.familyMembers.every(member => member.name && member.relationship && member.phone) ||
                     !hisseliForm.workplace || !hisseliForm.position || !hisseliForm.salary
