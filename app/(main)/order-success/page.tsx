@@ -12,6 +12,7 @@ export default function OrderSuccessPage() {
   const paymentStatus = searchParams.get('status')
   const paymentId = searchParams.get('paymentId')
   const transactionId = searchParams.get('transactionId')
+  const paymentMethod = searchParams.get('paymentMethod') // Payment method (HISSELI, etc.)
   const upParam = searchParams.get('up') // United Payment callback data
   
   const [orderStatus, setOrderStatus] = useState<string>('PENDING')
@@ -208,7 +209,19 @@ export default function OrderSuccessPage() {
   }
 
   const getStatusInfo = () => {
-    console.log('Getting status info for orderStatus:', orderStatus)
+    console.log('Getting status info for orderStatus:', orderStatus, 'paymentMethod:', paymentMethod)
+    
+    // Special case for installment payment
+    if (paymentMethod === 'HISSELI') {
+      return {
+        icon: Clock,
+        iconColor: 'text-blue-600',
+        title: 'Hissəli Ödəniş Müraciəti Qəbul Edildi!',
+        message: 'Hissəli ödəniş müraciətiniz uğurla qəbul edildi. Kredit mütəxəssisi 30-45 dəqiqə ərzində sizinlə əlaqə saxlayacaq.',
+        bgColor: 'bg-blue-50'
+      }
+    }
+    
     switch (orderStatus) {
       case 'PAID':
         return {
@@ -294,7 +307,15 @@ export default function OrderSuccessPage() {
           <div className={`${statusInfo.bgColor} rounded-lg p-4 mb-6`}>
             <h3 className="font-medium text-gray-900 mb-2">Növbəti addımlar:</h3>
             <ul className="text-sm text-gray-700 space-y-1">
-              {orderStatus === 'PAID' ? (
+              {paymentMethod === 'HISSELI' ? (
+                <>
+                  <li>• Kredit mütəxəssisi 30-45 dəqiqə ərzində sizinlə əlaqə saxlayacaq</li>
+                  <li>• Video zəng zamanı şəxsiyyət vəsiqəniz üzərinizdə olmalıdır</li>
+                  <li>• Müqavilə imzalanacaq və fotoşəkil çəkiləcək</li>
+                  <li>• Məhsul təhvil alınacaq</li>
+                  <li>• Hissəli ödəniş şərtləri izah ediləcək</li>
+                </>
+              ) : orderStatus === 'PAID' ? (
                 <>
                   <li>• Sifarişiniz təsdiqləndi</li>
                   <li>• Məhsullar hazırlanacaq</li>

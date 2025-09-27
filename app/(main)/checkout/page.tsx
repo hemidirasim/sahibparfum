@@ -33,6 +33,24 @@ export default function CheckoutPage() {
     installment: null as number | null,
     notes: ''
   })
+  const [hisseliForm, setHisseliForm] = useState({
+    firstName: '',
+    lastName: '',
+    fatherName: '',
+    idCardFront: null as File | null,
+    idCardBack: null as File | null,
+    registrationAddress: '',
+    actualAddress: '',
+    cityNumber: '',
+    familyMembers: [
+      { name: '', relationship: '', phone: '' },
+      { name: '', relationship: '', phone: '' },
+      { name: '', relationship: '', phone: '' }
+    ],
+    workplace: '',
+    position: '',
+    salary: ''
+  })
   const [settings, setSettings] = useState({
     deliveryCost: 10,
     freeDeliveryThreshold: 100
@@ -321,6 +339,11 @@ export default function CheckoutPage() {
             // Still redirect to success page for cash payment
             router.push(`/order-success?orderId=${result.orderNumber}`)
           }
+        } else if (formData.paymentMethod === 'HISSELI') {
+          // Hisseli payment - direct success without payment
+          clearCart()
+          toast.success('Hissəli ödəniş müraciətiniz uğurla yaradıldı! Kredit mütəxəssisi sizinlə əlaqə saxlayacaq.')
+          router.push(`/order-success?orderId=${result.orderNumber}&paymentMethod=HISSELI`)
         } else if (formData.paymentMethod === 'TAKSIT') {
           // Taksit payment - redirect to United Payment Taksit API
           if (!formData.installment) {
@@ -757,6 +780,18 @@ export default function CheckoutPage() {
                   />
                   <span className="ml-2 text-sm text-gray-700">Birbank Taksit</span>
                 </label>
+
+                <label className="flex items-center">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="HISSELI"
+                    checked={formData.paymentMethod === 'HISSELI'}
+                    onChange={(e) => handleInputChange('paymentMethod', e.target.value)}
+                    className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">Hissəli Ödəniş</span>
+                </label>
               </div>
 
               {/* Taksit Options */}
@@ -781,6 +816,195 @@ export default function CheckoutPage() {
                   <p className="text-xs text-blue-700 mt-2">
                     Taksit ödənişi Birbank kartları üçün mövcuddur
                   </p>
+                </div>
+              )}
+
+              {/* Hisseli Payment Form */}
+              {formData.paymentMethod === 'HISSELI' && (
+                <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                  <h3 className="text-sm font-medium text-green-900 mb-3">Hissəli Ödəniş Şərtləri</h3>
+                  <div className="text-xs text-green-700 space-y-1 mb-4">
+                    <p>1. Hissəli ödəniş 18-65 yaş aralığında olan Azərbaycan vətəndaşlarına şamil olunur.</p>
+                    <p>2. Rəsmi iş yeri mütləqdir. Sonuncu iş yerində minimum 3 ay staj tələb olunur.</p>
+                    <p>3. Qeydiyyat və faktiki yaşayış ünvanı: Bakı və Sumqayıt şəhərləri.</p>
+                    <p>4. Məhsul təhvil alınan zaman müqavilə imzalanır və fotoşəkil çəkilir.</p>
+                    <p>5. Müraciətinizdən sonra 30-45 dəqiqə ərzində kredit mütəxəssisi video zəng vasitəsi ilə sizinlə əlaqə saxlayır.</p>
+                  </div>
+
+                  <div className="space-y-4">
+                    {/* Personal Information */}
+                    <div>
+                      <h4 className="text-sm font-medium text-green-900 mb-2">Şəxsi Məlumatlar</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <input
+                          type="text"
+                          placeholder="Ad *"
+                          value={hisseliForm.firstName}
+                          onChange={(e) => setHisseliForm(prev => ({ ...prev, firstName: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
+                          required
+                        />
+                        <input
+                          type="text"
+                          placeholder="Soyad *"
+                          value={hisseliForm.lastName}
+                          onChange={(e) => setHisseliForm(prev => ({ ...prev, lastName: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
+                          required
+                        />
+                        <input
+                          type="text"
+                          placeholder="Ata adı *"
+                          value={hisseliForm.fatherName}
+                          onChange={(e) => setHisseliForm(prev => ({ ...prev, fatherName: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    {/* ID Card Upload */}
+                    <div>
+                      <h4 className="text-sm font-medium text-green-900 mb-2">Şəxsiyyət Vəsiqəsi</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1">Ön tərəf *</label>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => setHisseliForm(prev => ({ ...prev, idCardFront: e.target.files?.[0] || null }))}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-600 mb-1">Arxa tərəf *</label>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => setHisseliForm(prev => ({ ...prev, idCardBack: e.target.files?.[0] || null }))}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
+                            required
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Address Information */}
+                    <div>
+                      <h4 className="text-sm font-medium text-green-900 mb-2">Ünvan Məlumatları</h4>
+                      <div className="space-y-3">
+                        <input
+                          type="text"
+                          placeholder="Qeydiyyat ünvanı *"
+                          value={hisseliForm.registrationAddress}
+                          onChange={(e) => setHisseliForm(prev => ({ ...prev, registrationAddress: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
+                          required
+                        />
+                        <input
+                          type="text"
+                          placeholder="Faktiki yaşayış ünvanı *"
+                          value={hisseliForm.actualAddress}
+                          onChange={(e) => setHisseliForm(prev => ({ ...prev, actualAddress: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
+                          required
+                        />
+                        <input
+                          type="text"
+                          placeholder="Şəhər nömrəsi *"
+                          value={hisseliForm.cityNumber}
+                          onChange={(e) => setHisseliForm(prev => ({ ...prev, cityNumber: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    {/* Family Members */}
+                    <div>
+                      <h4 className="text-sm font-medium text-green-900 mb-2">Ailə Üzvləri / Qohumlar (3 nəfər)</h4>
+                      <div className="space-y-3">
+                        {hisseliForm.familyMembers.map((member, index) => (
+                          <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                            <input
+                              type="text"
+                              placeholder="Ad Soyad *"
+                              value={member.name}
+                              onChange={(e) => {
+                                const newMembers = [...hisseliForm.familyMembers]
+                                newMembers[index].name = e.target.value
+                                setHisseliForm(prev => ({ ...prev, familyMembers: newMembers }))
+                              }}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
+                              required
+                            />
+                            <input
+                              type="text"
+                              placeholder="Qohumluq dərəcəsi *"
+                              value={member.relationship}
+                              onChange={(e) => {
+                                const newMembers = [...hisseliForm.familyMembers]
+                                newMembers[index].relationship = e.target.value
+                                setHisseliForm(prev => ({ ...prev, familyMembers: newMembers }))
+                              }}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
+                              required
+                            />
+                            <input
+                              type="tel"
+                              placeholder="Telefon nömrəsi *"
+                              value={member.phone}
+                              onChange={(e) => {
+                                const newMembers = [...hisseliForm.familyMembers]
+                                newMembers[index].phone = e.target.value
+                                setHisseliForm(prev => ({ ...prev, familyMembers: newMembers }))
+                              }}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
+                              required
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Work Information */}
+                    <div>
+                      <h4 className="text-sm font-medium text-green-900 mb-2">İş Məlumatları</h4>
+                      <div className="space-y-3">
+                        <input
+                          type="text"
+                          placeholder="İş yeri *"
+                          value={hisseliForm.workplace}
+                          onChange={(e) => setHisseliForm(prev => ({ ...prev, workplace: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
+                          required
+                        />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                          <input
+                            type="text"
+                            placeholder="Vəzifə *"
+                            value={hisseliForm.position}
+                            onChange={(e) => setHisseliForm(prev => ({ ...prev, position: e.target.value }))}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
+                            required
+                          />
+                          <input
+                            type="number"
+                            placeholder="Maaş (₼) *"
+                            value={hisseliForm.salary}
+                            onChange={(e) => setHisseliForm(prev => ({ ...prev, salary: e.target.value }))}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
+                            required
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="text-xs text-green-700 bg-green-100 p-3 rounded">
+                      <strong>Qeyd:</strong> Məhsul təhvil alınan zaman şəxsiyyət vəsiqəniz üzərinizdə olmalıdır və müqavilə imzalanacaq.
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -846,7 +1070,18 @@ export default function CheckoutPage() {
 
               <button
                 type="submit"
-                disabled={loading || (!formData.shippingAddressId && !showAddAddress) || (formData.paymentMethod === 'TAKSIT' && !formData.installment)}
+                disabled={
+                  loading || 
+                  (!formData.shippingAddressId && !showAddAddress) || 
+                  (formData.paymentMethod === 'TAKSIT' && !formData.installment) ||
+                  (formData.paymentMethod === 'HISSELI' && (
+                    !hisseliForm.firstName || !hisseliForm.lastName || !hisseliForm.fatherName ||
+                    !hisseliForm.idCardFront || !hisseliForm.idCardBack ||
+                    !hisseliForm.registrationAddress || !hisseliForm.actualAddress || !hisseliForm.cityNumber ||
+                    !hisseliForm.familyMembers.every(member => member.name && member.relationship && member.phone) ||
+                    !hisseliForm.workplace || !hisseliForm.position || !hisseliForm.salary
+                  ))
+                }
                 className="w-full btn btn-primary btn-lg flex items-center justify-center gap-2"
               >
                 {loading ? (
