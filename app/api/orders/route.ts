@@ -80,6 +80,9 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
+    console.log('=== ORDER CREATION REQUEST ===')
+    console.log('Request body:', JSON.stringify(body, null, 2))
+    
     const { 
       userId, 
       totalAmount, 
@@ -91,6 +94,9 @@ export async function POST(request: NextRequest) {
       // Hissəli ödəniş məlumatları
       installmentData
     } = body
+
+    console.log('Payment method:', paymentMethod)
+    console.log('Installment data:', installmentData)
 
     // Check if user has any PENDING orders that can be reused
     const existingPendingOrder = await prisma.order.findFirst({
@@ -124,6 +130,9 @@ export async function POST(request: NextRequest) {
 
       // Add installment data if payment method is HISSELI
       if (paymentMethod === 'HISSELI' && installmentData) {
+        console.log('Adding installment data to existing order update')
+        console.log('Installment data to save:', installmentData)
+        
         updateData.installmentFirstName = installmentData.firstName
         updateData.installmentLastName = installmentData.lastName
         updateData.installmentFatherName = installmentData.fatherName
@@ -136,6 +145,8 @@ export async function POST(request: NextRequest) {
         updateData.installmentWorkplace = installmentData.workplace
         updateData.installmentPosition = installmentData.position
         updateData.installmentSalary = installmentData.salary
+        
+        console.log('Update data with installment:', updateData)
       }
 
       order = await prisma.order.update({
@@ -239,6 +250,9 @@ export async function POST(request: NextRequest) {
 
       // Add installment data if payment method is HISSELI
       if (paymentMethod === 'HISSELI' && installmentData) {
+        console.log('Adding installment data to new order creation')
+        console.log('Installment data to save:', installmentData)
+        
         createData.installmentFirstName = installmentData.firstName
         createData.installmentLastName = installmentData.lastName
         createData.installmentFatherName = installmentData.fatherName
@@ -251,6 +265,8 @@ export async function POST(request: NextRequest) {
         createData.installmentWorkplace = installmentData.workplace
         createData.installmentPosition = installmentData.position
         createData.installmentSalary = installmentData.salary
+        
+        console.log('Create data with installment:', createData)
       }
 
       order = await prisma.order.create({
