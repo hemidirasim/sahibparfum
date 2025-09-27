@@ -53,6 +53,10 @@ export default function CheckoutPage() {
     position: '',
     salary: ''
   })
+  const [uploadStatus, setUploadStatus] = useState({
+    front: { uploading: false, uploaded: false, error: false },
+    back: { uploading: false, uploaded: false, error: false }
+  })
   const [settings, setSettings] = useState({
     deliveryCost: 10,
     freeDeliveryThreshold: 100
@@ -154,10 +158,21 @@ export default function CheckoutPage() {
   const handleFileUpload = async (file: File, type: 'front' | 'back') => {
     if (!file) return
 
+    // Set uploading status
+    setUploadStatus(prev => ({
+      ...prev,
+      [type]: { uploading: true, uploaded: false, error: false }
+    }))
+
     const formData = new FormData()
     formData.append('file', file)
 
     try {
+      console.log(`Uploading ${type} image:`, file.name)
+      toast.loading(`${type === 'front' ? 'Ön' : 'Arxa'} tərəf şəkli yüklənir...`, {
+        duration: 2000
+      })
+
       const response = await fetch('/api/upload', {
         method: 'POST',
         body: formData
@@ -166,6 +181,8 @@ export default function CheckoutPage() {
       if (response.ok) {
         const result = await response.json()
         const imageUrl = result.url || result.imageUrl
+        
+        console.log(`Upload successful for ${type}:`, imageUrl)
         
         if (type === 'front') {
           setHisseliForm(prev => ({
@@ -179,13 +196,34 @@ export default function CheckoutPage() {
           }))
         }
         
+        // Set success status
+        setUploadStatus(prev => ({
+          ...prev,
+          [type]: { uploading: false, uploaded: true, error: false }
+        }))
+        
         toast.success(`${type === 'front' ? 'Ön' : 'Arxa'} tərəf şəkli uğurla yükləndi!`)
       } else {
         const error = await response.json()
+        console.error(`Upload failed for ${type}:`, error)
+        
+        // Set error status
+        setUploadStatus(prev => ({
+          ...prev,
+          [type]: { uploading: false, uploaded: false, error: true }
+        }))
+        
         toast.error('Şəkil yüklənərkən xəta: ' + (error.message || 'Naməlum xəta'))
       }
     } catch (error) {
       console.error('File upload error:', error)
+      
+      // Set error status
+      setUploadStatus(prev => ({
+        ...prev,
+        [type]: { uploading: false, uploaded: false, error: true }
+      }))
+      
       toast.error('Şəkil yüklənərkən xəta baş verdi')
     }
   }
@@ -913,6 +951,7 @@ export default function CheckoutPage() {
                           <input
                             type="file"
                             accept="image/*"
+                            disabled={uploadStatus.front.uploading}
                             onChange={(e) => {
                               const file = e.target.files?.[0]
                               if (file) {
@@ -921,20 +960,42 @@ export default function CheckoutPage() {
                               }
                               e.target.value = '' // Clear input
                             }}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
+                            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm ${
+                              uploadStatus.front.uploading 
+                                ? 'border-blue-300 bg-blue-50 cursor-not-allowed' 
+                                : uploadStatus.front.uploaded 
+                                  ? 'border-green-300 bg-green-50' 
+                                  : uploadStatus.front.error 
+                                    ? 'border-red-300 bg-red-50' 
+                                    : 'border-gray-300'
+                            }`}
                             required
                           />
-                          {hisseliForm.idCardFrontUrl && (
-                            <div className="mt-2 text-xs text-green-600">
-                              ✅ Ön tərəf yükləndi
-                            </div>
-                          )}
+                          <div className="mt-2 text-xs">
+                            {uploadStatus.front.uploading && (
+                              <div className="flex items-center text-blue-600">
+                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600 mr-2"></div>
+                                Yüklənir...
+                              </div>
+                            )}
+                            {uploadStatus.front.uploaded && (
+                              <div className="text-green-600">
+                                ✅ Ön tərəf uğurla yükləndi
+                              </div>
+                            )}
+                            {uploadStatus.front.error && (
+                              <div className="text-red-600">
+                                ❌ Yükləmə xətası - yenidən cəhd edin
+                              </div>
+                            )}
+                          </div>
                         </div>
                         <div>
                           <label className="block text-xs text-gray-600 mb-1">Arxa tərəf *</label>
                           <input
                             type="file"
                             accept="image/*"
+                            disabled={uploadStatus.back.uploading}
                             onChange={(e) => {
                               const file = e.target.files?.[0]
                               if (file) {
@@ -943,14 +1004,35 @@ export default function CheckoutPage() {
                               }
                               e.target.value = '' // Clear input
                             }}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
+                            className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm ${
+                              uploadStatus.back.uploading 
+                                ? 'border-blue-300 bg-blue-50 cursor-not-allowed' 
+                                : uploadStatus.back.uploaded 
+                                  ? 'border-green-300 bg-green-50' 
+                                  : uploadStatus.back.error 
+                                    ? 'border-red-300 bg-red-50' 
+                                    : 'border-gray-300'
+                            }`}
                             required
                           />
-                          {hisseliForm.idCardBackUrl && (
-                            <div className="mt-2 text-xs text-green-600">
-                              ✅ Arxa tərəf yükləndi
-                            </div>
-                          )}
+                          <div className="mt-2 text-xs">
+                            {uploadStatus.back.uploading && (
+                              <div className="flex items-center text-blue-600">
+                                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600 mr-2"></div>
+                                Yüklənir...
+                              </div>
+                            )}
+                            {uploadStatus.back.uploaded && (
+                              <div className="text-green-600">
+                                ✅ Arxa tərəf uğurla yükləndi
+                              </div>
+                            )}
+                            {uploadStatus.back.error && (
+                              <div className="text-red-600">
+                                ❌ Yükləmə xətası - yenidən cəhd edin
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
