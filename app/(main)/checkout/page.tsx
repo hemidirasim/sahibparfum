@@ -998,7 +998,7 @@ export default function CheckoutPage() {
                                 setHisseliForm(prev => ({ ...prev, idCardFront: file }))
                                 handleFileUpload(file, 'front')
                               }
-                              e.target.value = '' // Clear input
+                              // Don't clear input - let user see selected file
                             }}
                             className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm ${
                               uploadStatus.front.uploading 
@@ -1012,6 +1012,11 @@ export default function CheckoutPage() {
                             required
                           />
                           <div className="mt-2 text-xs">
+                            {hisseliForm.idCardFront && (
+                              <div className="text-gray-600 mb-1">
+                                📁 Seçilmiş fayl: {hisseliForm.idCardFront.name}
+                              </div>
+                            )}
                             {uploadStatus.front.uploading && (
                               <div className="flex items-center text-blue-600">
                                 <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600 mr-2"></div>
@@ -1042,7 +1047,7 @@ export default function CheckoutPage() {
                                 setHisseliForm(prev => ({ ...prev, idCardBack: file }))
                                 handleFileUpload(file, 'back')
                               }
-                              e.target.value = '' // Clear input
+                              // Don't clear input - let user see selected file
                             }}
                             className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm ${
                               uploadStatus.back.uploading 
@@ -1056,6 +1061,11 @@ export default function CheckoutPage() {
                             required
                           />
                           <div className="mt-2 text-xs">
+                            {hisseliForm.idCardBack && (
+                              <div className="text-gray-600 mb-1">
+                                📁 Seçilmiş fayl: {hisseliForm.idCardBack.name}
+                              </div>
+                            )}
                             {uploadStatus.back.uploading && (
                               <div className="flex items-center text-blue-600">
                                 <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600 mr-2"></div>
