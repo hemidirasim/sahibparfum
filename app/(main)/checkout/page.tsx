@@ -158,6 +158,19 @@ export default function CheckoutPage() {
   const handleFileUpload = async (file: File, type: 'front' | 'back') => {
     if (!file) return
 
+    // Validate file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      const fileSizeMB = (file.size / 1024 / 1024).toFixed(2)
+      toast.error(`Şəkil çox böyükdür! Fayl ölçüsü: ${fileSizeMB}MB, maksimum: 10MB`)
+      return
+    }
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Yalnız şəkil faylları qəbul edilir (JPG, PNG, WEBP)')
+      return
+    }
+
     // Set uploading status
     setUploadStatus(prev => ({
       ...prev,
@@ -204,8 +217,35 @@ export default function CheckoutPage() {
         
         toast.success(`${type === 'front' ? 'Ön' : 'Arxa'} tərəf şəkli uğurla yükləndi!`)
       } else {
-        const error = await response.json()
-        console.error(`Upload failed for ${type}:`, error)
+        let errorMessage = 'Naməlum xəta'
+        
+        try {
+          const error = await response.json()
+          console.error(`Upload failed for ${type}:`, error)
+          errorMessage = error.message || error.error || errorMessage
+          
+          // Handle specific error cases
+          if (response.status === 413) {
+            errorMessage = 'Şəkil çox böyükdür! Maksimum 10MB ola bilər.'
+          } else if (response.status === 401) {
+            errorMessage = 'Giriş tələb olunur. Zəhmət olmasa yenidən daxil olun.'
+          } else if (response.status === 400) {
+            errorMessage = error.details || errorMessage
+          }
+        } catch (parseError) {
+          console.error('Error parsing response:', parseError)
+          
+          // Handle specific HTTP status codes
+          if (response.status === 413) {
+            errorMessage = 'Şəkil çox böyükdür! Maksimum 10MB ola bilər.'
+          } else if (response.status === 401) {
+            errorMessage = 'Giriş tələb olunur. Zəhmət olmasa yenidən daxil olun.'
+          } else if (response.status === 400) {
+            errorMessage = 'Şəkil formatı düzgün deyil. Yalnız şəkil faylları qəbul edilir.'
+          } else {
+            errorMessage = `Server xətası (${response.status}). Zəhmət olmasa yenidən cəhd edin.`
+          }
+        }
         
         // Set error status
         setUploadStatus(prev => ({
@@ -213,7 +253,7 @@ export default function CheckoutPage() {
           [type]: { uploading: false, uploaded: false, error: true }
         }))
         
-        toast.error('Şəkil yüklənərkən xəta: ' + (error.message || 'Naməlum xəta'))
+        toast.error('Şəkil yüklənərkən xəta: ' + errorMessage)
       }
     } catch (error) {
       console.error('File upload error:', error)
@@ -947,7 +987,7 @@ export default function CheckoutPage() {
                       <h4 className="text-sm font-medium text-green-900 mb-2">Şəxsiyyət Vəsiqəsi</h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-xs text-gray-600 mb-1">Ön tərəf *</label>
+                          <label className="block text-xs text-gray-600 mb-1">Ön tərəf * (maksimum 10MB)</label>
                           <input
                             type="file"
                             accept="image/*"
@@ -991,7 +1031,7 @@ export default function CheckoutPage() {
                           </div>
                         </div>
                         <div>
-                          <label className="block text-xs text-gray-600 mb-1">Arxa tərəf *</label>
+                          <label className="block text-xs text-gray-600 mb-1">Arxa tərəf * (maksimum 10MB)</label>
                           <input
                             type="file"
                             accept="image/*"

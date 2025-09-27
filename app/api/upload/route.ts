@@ -90,9 +90,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Only image files are allowed' }, { status: 400 })
     }
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      return NextResponse.json({ error: 'File size must be less than 5MB' }, { status: 400 })
+    // Validate file size (max 10MB for ID cards)
+    if (file.size > 10 * 1024 * 1024) {
+      console.log('File too large:', { fileSize: file.size, maxSize: 10 * 1024 * 1024 })
+      return NextResponse.json({ 
+        error: 'File size must be less than 10MB',
+        details: `File size: ${(file.size / 1024 / 1024).toFixed(2)}MB, Max allowed: 10MB`
+      }, { status: 413 })
     }
 
     // Generate unique filename
