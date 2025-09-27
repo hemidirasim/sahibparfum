@@ -376,7 +376,24 @@ export default function CheckoutPage() {
           }
         }),
         shippingAddressId: shippingAddressId,
-        billingAddressId: billingAddressId
+        billingAddressId: billingAddressId,
+        // Add installment data if payment method is HISSELI
+        ...(formData.paymentMethod === 'HISSELI' && {
+          installmentData: {
+            firstName: hisseliForm.firstName,
+            lastName: hisseliForm.lastName,
+            fatherName: hisseliForm.fatherName,
+            idCardFrontUrl: hisseliForm.idCardFrontUrl,
+            idCardBackUrl: hisseliForm.idCardBackUrl,
+            registrationAddress: hisseliForm.registrationAddress,
+            actualAddress: hisseliForm.actualAddress,
+            cityNumber: hisseliForm.cityNumber,
+            familyMembers: hisseliForm.familyMembers,
+            workplace: hisseliForm.workplace,
+            position: hisseliForm.position,
+            salary: hisseliForm.salary
+          }
+        })
       }
 
       const response = await fetch('/api/orders', {

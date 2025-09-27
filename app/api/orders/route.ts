@@ -45,7 +45,26 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    return NextResponse.json(orders)
+    // Format orders with installment data
+    const formattedOrders = orders.map(order => ({
+      ...order,
+      installmentData: order.paymentMethod === 'HISSELI' ? {
+        firstName: order.installmentFirstName,
+        lastName: order.installmentLastName,
+        fatherName: order.installmentFatherName,
+        idCardFront: order.installmentIdCardFront,
+        idCardBack: order.installmentIdCardBack,
+        registrationAddress: order.installmentRegAddress,
+        actualAddress: order.installmentActualAddress,
+        cityNumber: order.installmentCityNumber,
+        familyMembers: order.installmentFamilyMembers ? JSON.parse(order.installmentFamilyMembers) : null,
+        workplace: order.installmentWorkplace,
+        position: order.installmentPosition,
+        salary: order.installmentSalary
+      } : null
+    }))
+
+    return NextResponse.json(formattedOrders)
   } catch (error) {
     console.error('Orders fetch error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -61,7 +80,17 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { userId, totalAmount, paymentMethod, notes, orderItems, shippingAddressId, billingAddressId } = body
+    const { 
+      userId, 
+      totalAmount, 
+      paymentMethod, 
+      notes, 
+      orderItems, 
+      shippingAddressId, 
+      billingAddressId,
+      // Hissəli ödəniş məlumatları
+      installmentData
+    } = body
 
     // Check if user has any PENDING orders that can be reused
     const existingPendingOrder = await prisma.order.findFirst({
@@ -84,16 +113,34 @@ export async function POST(request: NextRequest) {
       console.log('Reusing existing pending order:', existingPendingOrder.orderNumber)
       
       // Update existing order with new data
+      const updateData: any = {
+        totalAmount,
+        paymentMethod,
+        notes,
+        shippingAddressId,
+        billingAddressId,
+        updatedAt: new Date()
+      }
+
+      // Add installment data if payment method is HISSELI
+      if (paymentMethod === 'HISSELI' && installmentData) {
+        updateData.installmentFirstName = installmentData.firstName
+        updateData.installmentLastName = installmentData.lastName
+        updateData.installmentFatherName = installmentData.fatherName
+        updateData.installmentIdCardFront = installmentData.idCardFrontUrl
+        updateData.installmentIdCardBack = installmentData.idCardBackUrl
+        updateData.installmentRegAddress = installmentData.registrationAddress
+        updateData.installmentActualAddress = installmentData.actualAddress
+        updateData.installmentCityNumber = installmentData.cityNumber
+        updateData.installmentFamilyMembers = JSON.stringify(installmentData.familyMembers)
+        updateData.installmentWorkplace = installmentData.workplace
+        updateData.installmentPosition = installmentData.position
+        updateData.installmentSalary = installmentData.salary
+      }
+
       order = await prisma.order.update({
         where: { id: existingPendingOrder.id },
-        data: {
-          totalAmount,
-          paymentMethod,
-          notes,
-          shippingAddressId,
-          billingAddressId,
-          updatedAt: new Date()
-        },
+        data: updateData,
         include: {
           user: {
             select: {
@@ -171,25 +218,43 @@ export async function POST(request: NextRequest) {
       // Generate order number
       const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
 
+      const createData: any = {
+        orderNumber,
+        userId,
+        totalAmount,
+        paymentMethod,
+        notes,
+        status: 'PENDING',
+        shippingAddressId,
+        billingAddressId,
+        orderItems: {
+          create: orderItems.map((item: any) => ({
+            productId: item.productId,
+            productVariantId: item.productVariantId || null,
+            quantity: item.quantity,
+            price: item.price
+          }))
+        }
+      }
+
+      // Add installment data if payment method is HISSELI
+      if (paymentMethod === 'HISSELI' && installmentData) {
+        createData.installmentFirstName = installmentData.firstName
+        createData.installmentLastName = installmentData.lastName
+        createData.installmentFatherName = installmentData.fatherName
+        createData.installmentIdCardFront = installmentData.idCardFrontUrl
+        createData.installmentIdCardBack = installmentData.idCardBackUrl
+        createData.installmentRegAddress = installmentData.registrationAddress
+        createData.installmentActualAddress = installmentData.actualAddress
+        createData.installmentCityNumber = installmentData.cityNumber
+        createData.installmentFamilyMembers = JSON.stringify(installmentData.familyMembers)
+        createData.installmentWorkplace = installmentData.workplace
+        createData.installmentPosition = installmentData.position
+        createData.installmentSalary = installmentData.salary
+      }
+
       order = await prisma.order.create({
-        data: {
-          orderNumber,
-          userId,
-          totalAmount,
-          paymentMethod,
-          notes,
-          status: 'PENDING',
-          shippingAddressId,
-          billingAddressId,
-          orderItems: {
-            create: orderItems.map((item: any) => ({
-              productId: item.productId,
-              productVariantId: item.productVariantId || null,
-              quantity: item.quantity,
-              price: item.price
-            }))
-          }
-        },
+        data: createData,
         include: {
           user: {
             select: {

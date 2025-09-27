@@ -131,6 +131,21 @@ export async function GET(request: NextRequest) {
         phone: order.billingAddress.phone || ''
       } : null,
       notes: order.notes,
+      // Hissəli ödəniş məlumatları
+      installmentData: order.paymentMethod === 'HISSELI' ? {
+        firstName: order.installmentFirstName,
+        lastName: order.installmentLastName,
+        fatherName: order.installmentFatherName,
+        idCardFront: order.installmentIdCardFront,
+        idCardBack: order.installmentIdCardBack,
+        registrationAddress: order.installmentRegAddress,
+        actualAddress: order.installmentActualAddress,
+        cityNumber: order.installmentCityNumber,
+        familyMembers: order.installmentFamilyMembers ? JSON.parse(order.installmentFamilyMembers) : null,
+        workplace: order.installmentWorkplace,
+        position: order.installmentPosition,
+        salary: order.installmentSalary
+      } : null,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt
     }))
