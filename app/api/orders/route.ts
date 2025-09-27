@@ -73,9 +73,18 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('=== ORDERS API POST REQUEST START ===')
+    console.log('Request received at:', new Date().toISOString())
+    
     const session = await getServerSession(authOptions)
+    console.log('Session check:', {
+      hasSession: !!session,
+      userEmail: session?.user?.email,
+      userRole: session?.user?.role
+    })
     
     if (!session?.user?.email) {
+      console.log('Unauthorized access - no session or email')
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -99,6 +108,7 @@ export async function POST(request: NextRequest) {
     console.log('Installment data:', installmentData)
 
     // Check if user has any PENDING orders that can be reused
+    console.log('Checking for existing pending orders for user:', userId)
     const existingPendingOrder = await prisma.order.findFirst({
       where: {
         userId: userId,
@@ -112,6 +122,15 @@ export async function POST(request: NextRequest) {
         createdAt: 'desc'
       }
     })
+
+    console.log('Existing pending order found:', !!existingPendingOrder)
+    if (existingPendingOrder) {
+      console.log('Existing order details:', {
+        id: existingPendingOrder.id,
+        orderNumber: existingPendingOrder.orderNumber,
+        itemsCount: existingPendingOrder.orderItems.length
+      })
+    }
 
     let order
 
@@ -149,6 +168,7 @@ export async function POST(request: NextRequest) {
         console.log('Update data with installment:', updateData)
       }
 
+      console.log('Updating existing order with data:', updateData)
       order = await prisma.order.update({
         where: { id: existingPendingOrder.id },
         data: updateData,
@@ -269,6 +289,7 @@ export async function POST(request: NextRequest) {
         console.log('Create data with installment:', createData)
       }
 
+      console.log('Creating new order with data:', createData)
       order = await prisma.order.create({
         data: createData,
         include: {
@@ -298,6 +319,16 @@ export async function POST(request: NextRequest) {
         }
       })
     }
+
+    console.log('=== ORDER CREATION SUCCESS ===')
+    console.log('Order created/updated successfully:', {
+      orderId: order?.id,
+      orderNumber: order?.orderNumber,
+      status: order?.status,
+      paymentMethod: order?.paymentMethod,
+      totalAmount: order?.totalAmount,
+      itemsCount: order?.orderItems?.length || 0
+    })
 
     // Send order confirmation email
     try {
@@ -346,9 +377,23 @@ export async function POST(request: NextRequest) {
       // Don't fail the order creation if email fails
     }
 
+    console.log('=== RETURNING ORDER RESPONSE ===')
+    console.log('Final order object:', order ? {
+      id: order.id,
+      orderNumber: order.orderNumber,
+      status: order.status,
+      paymentMethod: order.paymentMethod
+    } : 'No order object')
+
     return NextResponse.json(order || {})
   } catch (error) {
-    console.error('Order creation error:', error)
+    console.error('=== ORDER CREATION ERROR ===')
+    console.error('Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      name: error instanceof Error ? error.name : undefined
+    })
+    console.error('Full error object:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

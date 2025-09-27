@@ -409,8 +409,13 @@ export default function CheckoutPage() {
         body: JSON.stringify(orderData),
       })
 
+      console.log('=== ORDER RESPONSE ===')
+      console.log('Response status:', response.status)
+      console.log('Response ok:', response.ok)
+      
       if (response.ok) {
         const result = await response.json()
+        console.log('Order creation result:', result)
         
         // If payment method is CARD, redirect to United Payment
         if (formData.paymentMethod === 'CARD') {
@@ -562,6 +567,9 @@ export default function CheckoutPage() {
         }
       } else {
         const error = await response.json()
+        console.error('Order creation failed:', error)
+        console.error('Response status:', response.status)
+        console.error('Response statusText:', response.statusText)
         toast.error('Xəta: ' + (error.message || 'Sifariş yaradılarkən xəta baş verdi'))
       }
     } catch (error) {
