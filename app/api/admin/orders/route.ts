@@ -166,6 +166,17 @@ export async function GET(request: NextRequest) {
       }
     })
 
+    console.log('=== FINAL ADMIN API RESPONSE ===')
+    console.log('Formatted orders count:', formattedOrders.length)
+    formattedOrders.forEach((order, index) => {
+      console.log(`Admin Order ${index + 1}:`, {
+        orderNumber: order.orderNumber,
+        paymentMethod: order.paymentMethod,
+        hasInstallmentData: !!order.installmentData,
+        installmentData: order.installmentData
+      })
+    })
+    
     return NextResponse.json({
       orders: formattedOrders,
       pagination: {

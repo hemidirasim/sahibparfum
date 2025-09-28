@@ -80,6 +80,17 @@ export async function GET(request: NextRequest) {
       }
     })
 
+    console.log('=== FINAL API RESPONSE ===')
+    console.log('Formatted orders count:', formattedOrders.length)
+    formattedOrders.forEach((order, index) => {
+      console.log(`Order ${index + 1}:`, {
+        orderNumber: order.orderNumber,
+        paymentMethod: order.paymentMethod,
+        hasInstallmentData: !!order.installmentData,
+        installmentData: order.installmentData
+      })
+    })
+    
     return NextResponse.json(formattedOrders)
   } catch (error) {
     console.error('Orders fetch error:', error)
