@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
       image: product.images || '/images/placeholder.jpg',
       images: product.images 
         ? (typeof product.images === 'string' 
-            ? product.images.split(',').filter(img => img.trim() !== '')
+            ? product.images.split(',').filter((img: string) => img.trim() !== '')
             : Array.isArray(product.images) 
               ? product.images 
               : [])
