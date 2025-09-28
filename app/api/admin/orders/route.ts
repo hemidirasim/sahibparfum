@@ -85,54 +85,18 @@ export async function GET(request: NextRequest) {
     const total = await prisma.order.count({ where })
 
     // Format orders
-    const formattedOrders = orders.map(order => ({
-      id: order.id,
-      orderNumber: order.orderNumber,
-      customer: order.user?.name || order.guestName || 'Qonaq',
-      email: order.user?.email || order.guestEmail,
-      phone: order.guestPhone,
-      amount: Number(order.totalAmount),
-      status: order.status,
-      paymentStatus: order.paymentStatus,
-      paymentMethod: order.paymentMethod,
-      transactionId: order.transactionId,
-      items: order.orderItems.map(item => ({
-        id: item.id,
-        quantity: item.quantity,
-        price: Number(item.price),
-        product: {
-          name: item.product.name,
-          sku: item.product.sku,
-          image: (() => {
-            try {
-              const images = typeof item.product.images === 'string' ? JSON.parse(item.product.images) : item.product.images
-              return images && images.length > 0 ? images[0] : '/placeholder-product.jpg'
-            } catch {
-              return '/placeholder-product.jpg'
-            }
-          })()
-        }
-      })),
-      itemCount: order.orderItems.length,
-      shippingAddress: order.shippingAddress ? {
-        id: order.shippingAddress.id,
-        fullName: `${order.shippingAddress.firstName} ${order.shippingAddress.lastName}`,
-        address: order.shippingAddress.address1 + (order.shippingAddress.address2 ? `, ${order.shippingAddress.address2}` : ''),
-        city: order.shippingAddress.city,
-        postalCode: order.shippingAddress.postalCode,
-        phone: order.shippingAddress.phone || ''
-      } : null,
-      billingAddress: order.billingAddress ? {
-        id: order.billingAddress.id,
-        fullName: `${order.billingAddress.firstName} ${order.billingAddress.lastName}`,
-        address: order.billingAddress.address1 + (order.billingAddress.address2 ? `, ${order.billingAddress.address2}` : ''),
-        city: order.billingAddress.city,
-        postalCode: order.billingAddress.postalCode,
-        phone: order.billingAddress.phone || ''
-      } : null,
-      notes: order.notes,
-      // Hissəli ödəniş məlumatları
-      installmentData: order.paymentMethod === 'HISSELI' ? {
+    const formattedOrders = orders.map(order => {
+      console.log('=== ADMIN ORDER FORMATTING ===')
+      console.log('Order ID:', order.id)
+      console.log('Payment Method:', order.paymentMethod)
+      console.log('Installment First Name:', order.installmentFirstName)
+      console.log('Installment Last Name:', order.installmentLastName)
+      console.log('Installment Father Name:', order.installmentFatherName)
+      console.log('Installment Workplace:', order.installmentWorkplace)
+      console.log('Installment Salary:', order.installmentSalary)
+      console.log('Installment Family Members:', order.installmentFamilyMembers)
+      
+      const installmentData = order.paymentMethod === 'HISSELI' ? {
         firstName: order.installmentFirstName,
         lastName: order.installmentLastName,
         fatherName: order.installmentFatherName,
@@ -145,10 +109,62 @@ export async function GET(request: NextRequest) {
         workplace: order.installmentWorkplace,
         position: order.installmentPosition,
         salary: order.installmentSalary
-      } : null,
-      createdAt: order.createdAt,
-      updatedAt: order.updatedAt
-    }))
+      } : null
+      
+      console.log('Formatted Installment Data:', installmentData)
+      
+      return {
+        id: order.id,
+        orderNumber: order.orderNumber,
+        customer: order.user?.name || order.guestName || 'Qonaq',
+        email: order.user?.email || order.guestEmail,
+        phone: order.guestPhone,
+        amount: Number(order.totalAmount),
+        status: order.status,
+        paymentStatus: order.paymentStatus,
+        paymentMethod: order.paymentMethod,
+        transactionId: order.transactionId,
+        items: order.orderItems.map(item => ({
+          id: item.id,
+          quantity: item.quantity,
+          price: Number(item.price),
+          product: {
+            name: item.product.name,
+            sku: item.product.sku,
+            image: (() => {
+              try {
+                const images = typeof item.product.images === 'string' ? JSON.parse(item.product.images) : item.product.images
+                return images && images.length > 0 ? images[0] : '/placeholder-product.jpg'
+              } catch {
+                return '/placeholder-product.jpg'
+              }
+            })()
+          }
+        })),
+        itemCount: order.orderItems.length,
+        shippingAddress: order.shippingAddress ? {
+          id: order.shippingAddress.id,
+          fullName: `${order.shippingAddress.firstName} ${order.shippingAddress.lastName}`,
+          address: order.shippingAddress.address1 + (order.shippingAddress.address2 ? `, ${order.shippingAddress.address2}` : ''),
+          city: order.shippingAddress.city,
+          postalCode: order.shippingAddress.postalCode,
+          phone: order.shippingAddress.phone || ''
+        } : null,
+        billingAddress: order.billingAddress ? {
+          id: order.billingAddress.id,
+          fullName: `${order.billingAddress.firstName} ${order.billingAddress.lastName}`,
+          address: order.billingAddress.address1 + (order.billingAddress.address2 ? `, ${order.billingAddress.address2}` : ''),
+          city: order.billingAddress.city,
+          postalCode: order.billingAddress.postalCode,
+          phone: order.billingAddress.phone || ''
+        } : null,
+        notes: order.notes,
+        // Hissəli ödəniş məlumatları
+        installmentData,
+        createdAt: order.createdAt,
+        updatedAt: order.updatedAt
+      }
+    })
 
     return NextResponse.json({
       orders: formattedOrders,

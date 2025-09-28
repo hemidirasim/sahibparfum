@@ -46,9 +46,18 @@ export async function GET(request: NextRequest) {
     })
 
     // Format orders with installment data
-    const formattedOrders = orders.map(order => ({
-      ...order,
-      installmentData: order.paymentMethod === 'HISSELI' ? {
+    const formattedOrders = orders.map(order => {
+      console.log('=== ORDER FORMATTING ===')
+      console.log('Order ID:', order.id)
+      console.log('Payment Method:', order.paymentMethod)
+      console.log('Installment First Name:', order.installmentFirstName)
+      console.log('Installment Last Name:', order.installmentLastName)
+      console.log('Installment Father Name:', order.installmentFatherName)
+      console.log('Installment Workplace:', order.installmentWorkplace)
+      console.log('Installment Salary:', order.installmentSalary)
+      console.log('Installment Family Members:', order.installmentFamilyMembers)
+      
+      const installmentData = order.paymentMethod === 'HISSELI' ? {
         firstName: order.installmentFirstName,
         lastName: order.installmentLastName,
         fatherName: order.installmentFatherName,
@@ -62,7 +71,14 @@ export async function GET(request: NextRequest) {
         position: order.installmentPosition,
         salary: order.installmentSalary
       } : null
-    }))
+      
+      console.log('Formatted Installment Data:', installmentData)
+      
+      return {
+        ...order,
+        installmentData
+      }
+    })
 
     return NextResponse.json(formattedOrders)
   } catch (error) {
