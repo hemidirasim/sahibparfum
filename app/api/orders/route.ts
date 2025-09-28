@@ -144,82 +144,81 @@ export async function POST(request: NextRequest) {
 
     // Always create new order - no reuse of pending orders
     console.log('Creating new order - no pending order reuse')
-      
-      // Generate order number
-      const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
+    
+    // Generate order number
+    const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
 
-      const createData: any = {
-        orderNumber,
-        userId,
-        totalAmount,
-        paymentMethod,
-        notes,
-        status: 'PENDING',
-        shippingAddressId,
-        billingAddressId,
+    const createData: any = {
+      orderNumber,
+      userId,
+      totalAmount,
+      paymentMethod,
+      notes,
+      status: 'PENDING',
+      shippingAddressId,
+      billingAddressId,
+      orderItems: {
+        create: orderItems.map((item: any) => ({
+          productId: item.productId,
+          productVariantId: item.productVariantId || null,
+          quantity: item.quantity,
+          price: item.price
+        }))
+      }
+    }
+
+    // Add installment data if payment method is HISSELI
+    if (paymentMethod === 'HISSELI' && installmentData) {
+      console.log('Adding installment data to new order creation')
+      console.log('Installment data to save:', installmentData)
+      
+      createData.installmentFirstName = installmentData.firstName
+      createData.installmentLastName = installmentData.lastName
+      createData.installmentFatherName = installmentData.fatherName
+      createData.installmentIdCardFront = installmentData.idCardFrontUrl
+      createData.installmentIdCardBack = installmentData.idCardBackUrl
+      createData.installmentRegAddress = installmentData.registrationAddress
+      createData.installmentActualAddress = installmentData.actualAddress
+      createData.installmentCityNumber = installmentData.cityNumber
+      createData.installmentFamilyMembers = JSON.stringify(installmentData.familyMembers)
+      createData.installmentWorkplace = installmentData.workplace
+      createData.installmentPosition = installmentData.position
+      createData.installmentSalary = installmentData.salary
+      
+      console.log('Create data with installment:', createData)
+    }
+
+    console.log('=== CREATING NEW ORDER ===')
+    console.log('Create data:', createData)
+    
+    const order = await prisma.order.create({
+      data: createData,
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true
+          }
+        },
         orderItems: {
-          create: orderItems.map((item: any) => ({
-            productId: item.productId,
-            productVariantId: item.productVariantId || null,
-            quantity: item.quantity,
-            price: item.price
-          }))
-        }
-      }
-
-      // Add installment data if payment method is HISSELI
-      if (paymentMethod === 'HISSELI' && installmentData) {
-        console.log('Adding installment data to new order creation')
-        console.log('Installment data to save:', installmentData)
-        
-        createData.installmentFirstName = installmentData.firstName
-        createData.installmentLastName = installmentData.lastName
-        createData.installmentFatherName = installmentData.fatherName
-        createData.installmentIdCardFront = installmentData.idCardFrontUrl
-        createData.installmentIdCardBack = installmentData.idCardBackUrl
-        createData.installmentRegAddress = installmentData.registrationAddress
-        createData.installmentActualAddress = installmentData.actualAddress
-        createData.installmentCityNumber = installmentData.cityNumber
-        createData.installmentFamilyMembers = JSON.stringify(installmentData.familyMembers)
-        createData.installmentWorkplace = installmentData.workplace
-        createData.installmentPosition = installmentData.position
-        createData.installmentSalary = installmentData.salary
-        
-        console.log('Create data with installment:', createData)
-      }
-
-      console.log('=== CREATING NEW ORDER ===')
-      console.log('Create data:', createData)
-      
-      order = await prisma.order.create({
-        data: createData,
-        include: {
-          user: {
-            select: {
-              name: true,
-              email: true
-            }
-          },
-          orderItems: {
-            include: {
-              product: {
-                select: {
-                  id: true,
-                  name: true,
-                  images: true
-                }
-              },
-              productVariant: {
-                select: {
-                  volume: true
-                }
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                images: true
+              }
+            },
+            productVariant: {
+              select: {
+                volume: true
               }
             }
-          },
-          shippingAddress: true
-        }
-      })
-    }
+          }
+        },
+        shippingAddress: true
+      }
+    })
 
     console.log('=== ORDER CREATION SUCCESS ===')
     console.log('Order created/updated successfully:', {
