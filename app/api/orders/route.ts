@@ -163,8 +163,14 @@ export async function POST(request: NextRequest) {
       console.log('Existing order details:', {
         id: existingPendingOrder.id,
         orderNumber: existingPendingOrder.orderNumber,
-        itemsCount: existingPendingOrder.orderItems.length
+        itemsCount: existingPendingOrder.orderItems.length,
+        status: existingPendingOrder.status,
+        paymentStatus: existingPendingOrder.paymentStatus,
+        totalAmount: existingPendingOrder.totalAmount
       })
+      console.log('Will UPDATE existing order instead of creating new one')
+    } else {
+      console.log('No existing pending order found, will CREATE new order')
     }
 
     let order
@@ -203,7 +209,10 @@ export async function POST(request: NextRequest) {
         console.log('Update data with installment:', updateData)
       }
 
-      console.log('Updating existing order with data:', updateData)
+      console.log('=== UPDATING EXISTING ORDER ===')
+      console.log('Order ID to update:', existingPendingOrder.id)
+      console.log('Update data:', updateData)
+      
       order = await prisma.order.update({
         where: { id: existingPendingOrder.id },
         data: updateData,
@@ -324,7 +333,9 @@ export async function POST(request: NextRequest) {
         console.log('Create data with installment:', createData)
       }
 
-      console.log('Creating new order with data:', createData)
+      console.log('=== CREATING NEW ORDER ===')
+      console.log('Create data:', createData)
+      
       order = await prisma.order.create({
         data: createData,
         include: {
