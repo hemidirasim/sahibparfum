@@ -49,7 +49,37 @@ export async function GET(
       return NextResponse.json({ error: 'Order not found' }, { status: 404 })
     }
 
-    return NextResponse.json(order)
+    // Format installment data if payment method is HISSELI
+    let installmentData = null
+    if (order.paymentMethod === 'HISSELI' && order.installmentFirstName) {
+      installmentData = {
+        firstName: order.installmentFirstName,
+        lastName: order.installmentLastName,
+        fatherName: order.installmentFatherName,
+        idCardFront: order.installmentIdCardFront,
+        idCardBack: order.installmentIdCardBack,
+        registrationAddress: order.installmentRegAddress,
+        actualAddress: order.installmentActualAddress,
+        cityNumber: order.installmentCityNumber,
+        familyMembers: order.installmentFamilyMembers ? JSON.parse(order.installmentFamilyMembers) : [],
+        workplace: order.installmentWorkplace,
+        position: order.installmentPosition,
+        salary: order.installmentSalary
+      }
+    }
+
+    console.log('=== ORDER DETAILS API ===')
+    console.log('Order ID:', order.id)
+    console.log('Payment Method:', order.paymentMethod)
+    console.log('Has installment data:', !!installmentData)
+    console.log('Installment data:', installmentData)
+
+    const formattedOrder = {
+      ...order,
+      installmentData
+    }
+
+    return NextResponse.json(formattedOrder)
   } catch (error) {
     console.error('Order details fetch error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
