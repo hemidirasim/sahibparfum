@@ -78,7 +78,13 @@ export async function GET(request: NextRequest) {
       stock: product.stockCount,
       status: product.isActive ? 'active' : 'inactive',
       image: product.images || '/images/placeholder.jpg',
-      images: product.images ? [product.images] : [],
+      images: product.images 
+        ? (typeof product.images === 'string' 
+            ? product.images.split(',').filter(img => img.trim() !== '')
+            : Array.isArray(product.images) 
+              ? product.images 
+              : [])
+        : [],
       sku: product.sku,
       brand: product.brand?.name || 'Brend məlumatı yoxdur',
       category: product.category.name,
