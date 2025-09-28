@@ -802,6 +802,13 @@ export default function OrdersPage() {
                 </div>
 
                 {/* Installment Data */}
+                {(() => {
+                  console.log('=== INSTALLMENT DATA CHECK ===')
+                  console.log('Payment Method:', selectedOrder.paymentMethod)
+                  console.log('Installment Data:', selectedOrder.installmentData)
+                  console.log('Should show installment data:', selectedOrder.paymentMethod === 'HISSELI' && selectedOrder.installmentData)
+                  return null
+                })()}
                 {selectedOrder.paymentMethod === 'HISSELI' && selectedOrder.installmentData && (
                   <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                     <h3 className="text-lg font-medium text-blue-900 mb-3 flex items-center">
