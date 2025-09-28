@@ -319,14 +319,27 @@ export default function CheckoutPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log('=== CHECKOUT FORM SUBMIT START ===')
+    console.log('Form data:', formData)
+    console.log('Items:', items)
+    console.log('Session:', session)
     setLoading(true)
 
     try {
       let shippingAddressId = formData.shippingAddressId
       let billingAddressId = formData.useSameAddress ? formData.shippingAddressId : formData.billingAddressId
 
+      console.log('Address handling:', {
+        shippingAddressId,
+        billingAddressId,
+        useSameAddress: formData.useSameAddress,
+        showAddAddress,
+        userAddresses: userAddresses.length
+      })
+
       // If no address is selected but we have a new address form, add it first
       if (!shippingAddressId && showAddAddress) {
+        console.log('Adding new address before order creation')
         const addressResponse = await fetch('/api/addresses', {
           method: 'POST',
           headers: {
@@ -400,6 +413,27 @@ export default function CheckoutPage() {
       console.log('Payment method:', formData.paymentMethod)
       console.log('Hisseli form data:', hisseliForm)
       console.log('Order data being sent:', JSON.stringify(orderData, null, 2))
+      
+      // Validate order data before sending
+      if (!orderData.userId) {
+        console.error('Missing userId in order data')
+        toast.error('User ID is missing. Please login again.')
+        return
+      }
+      
+      if (!orderData.orderItems || orderData.orderItems.length === 0) {
+        console.error('No order items')
+        toast.error('No items in cart')
+        return
+      }
+      
+      if (!orderData.shippingAddressId) {
+        console.error('No shipping address selected')
+        toast.error('Please select a shipping address')
+        return
+      }
+      
+      console.log('All validations passed, sending request to /api/orders')
 
       const response = await fetch('/api/orders', {
         method: 'POST',
