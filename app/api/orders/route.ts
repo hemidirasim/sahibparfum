@@ -80,11 +80,14 @@ export async function POST(request: NextRequest) {
     console.log('Session check:', {
       hasSession: !!session,
       userEmail: session?.user?.email,
-      userRole: session?.user?.role
+      userRole: session?.user?.role,
+      sessionKeys: session ? Object.keys(session) : [],
+      userKeys: session?.user ? Object.keys(session.user) : []
     })
     
     if (!session?.user?.email) {
       console.log('Unauthorized access - no session or email')
+      console.log('Session object:', session)
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
