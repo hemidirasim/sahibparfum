@@ -91,7 +91,7 @@ export default function EditProductPage() {
         setFormData({
           name: productData.name,
           description: productData.description,
-          brand: productData.brand || '',
+          brand: productData.brand?.name || '',
           categoryId: productData.categoryId,
           price: productData.price.toString(),
           salePrice: productData.salePrice?.toString() || '',

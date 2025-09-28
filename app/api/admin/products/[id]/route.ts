@@ -22,6 +22,7 @@ export async function GET(
       where: { id: params.id },
       include: {
         category: true,
+        brand: true,
         variants: true,
         attributes: true
       }
