@@ -115,6 +115,15 @@ export default function AdminOrdersPage() {
       const response = await fetch('/api/admin/orders')
       if (response.ok) {
         const data = await response.json()
+        console.log('=== ADMIN ORDERS FETCHED ===')
+        console.log('Admin orders data:', data.orders)
+        data.orders.forEach((order: any, index: number) => {
+          console.log(`Admin Order ${index + 1}:`, {
+            orderNumber: order.orderNumber,
+            paymentMethod: order.paymentMethod,
+            installmentData: order.installmentData
+          })
+        })
         setOrders(data.orders || [])
       } else {
         console.error('Failed to fetch orders')
