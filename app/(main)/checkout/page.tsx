@@ -43,7 +43,7 @@ export default function CheckoutPage() {
     idCardBackUrl: '',
     registrationAddress: '',
     actualAddress: '',
-    cityNumber: '',
+    contactNumber: '',
     familyMembers: [
       { name: '', relationship: '', phone: '' },
       { name: '', relationship: '', phone: '' },
@@ -400,7 +400,7 @@ export default function CheckoutPage() {
             idCardBackUrl: hisseliForm.idCardBackUrl,
             registrationAddress: hisseliForm.registrationAddress,
             actualAddress: hisseliForm.actualAddress,
-            cityNumber: hisseliForm.cityNumber,
+            cityNumber: hisseliForm.contactNumber,
             familyMembers: hisseliForm.familyMembers,
             workplace: hisseliForm.workplace,
             position: hisseliForm.position,
@@ -1173,9 +1173,9 @@ export default function CheckoutPage() {
                         />
                         <input
                           type="text"
-                          placeholder="Şəhər nömrəsi *"
-                          value={hisseliForm.cityNumber}
-                          onChange={(e) => setHisseliForm(prev => ({ ...prev, cityNumber: e.target.value }))}
+                          placeholder="Əlaqə nömrəsi *"
+                          value={hisseliForm.contactNumber}
+                          onChange={(e) => setHisseliForm(prev => ({ ...prev, contactNumber: e.target.value }))}
                           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 text-sm"
                           required
                         />
@@ -1338,7 +1338,7 @@ export default function CheckoutPage() {
                   (formData.paymentMethod === 'HISSELI' && (
                     !hisseliForm.firstName || !hisseliForm.lastName || !hisseliForm.fatherName ||
                     !hisseliForm.idCardFrontUrl || !hisseliForm.idCardBackUrl ||
-                    !hisseliForm.registrationAddress || !hisseliForm.actualAddress || !hisseliForm.cityNumber ||
+                    !hisseliForm.registrationAddress || !hisseliForm.actualAddress || !hisseliForm.contactNumber ||
                     !hisseliForm.familyMembers.every(member => member.name && member.relationship && member.phone) ||
                     !hisseliForm.workplace || !hisseliForm.position || !hisseliForm.salary
                   ))
