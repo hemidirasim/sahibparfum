@@ -59,7 +59,10 @@ async function getProductData(id: string): Promise<Product | null> {
     console.log(`🔍 Fetching product data for ID: ${id}`)
     
     const product = await prisma.product.findUnique({
-      where: { id },
+      where: { 
+        id,
+        isActive: true
+      },
       include: {
         brand: {
           select: {
@@ -71,7 +74,11 @@ async function getProductData(id: string): Promise<Product | null> {
             name: true
           }
         },
-        variants: true,
+        variants: {
+          where: {
+            isActive: true
+          }
+        },
         attributes: true,
         reviews: {
           include: {
