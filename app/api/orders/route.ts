@@ -106,6 +106,38 @@ export async function POST(request: NextRequest) {
 
     console.log('Payment method:', paymentMethod)
     console.log('Installment data:', installmentData)
+    
+    // Validate required fields
+    if (!userId) {
+      console.error('Missing userId')
+      return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
+    }
+    
+    if (!totalAmount || totalAmount <= 0) {
+      console.error('Invalid totalAmount:', totalAmount)
+      return NextResponse.json({ error: 'Valid total amount is required' }, { status: 400 })
+    }
+    
+    if (!paymentMethod) {
+      console.error('Missing paymentMethod')
+      return NextResponse.json({ error: 'Payment method is required' }, { status: 400 })
+    }
+    
+    if (!orderItems || orderItems.length === 0) {
+      console.error('Missing or empty orderItems')
+      return NextResponse.json({ error: 'Order items are required' }, { status: 400 })
+    }
+    
+    console.log('All validations passed')
+    
+    // Test database connection first
+    try {
+      const testConnection = await prisma.user.count()
+      console.log('Database connection test - user count:', testConnection)
+    } catch (dbError) {
+      console.error('Database connection failed:', dbError)
+      return NextResponse.json({ error: 'Database connection failed' }, { status: 500 })
+    }
 
     // Check if user has any PENDING orders that can be reused
     console.log('Checking for existing pending orders for user:', userId)
