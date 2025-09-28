@@ -189,7 +189,7 @@ export default function GuestCheckoutPage() {
     setLoading(true)
 
     try {
-      const orderData = {
+      const orderData: any = {
         guestName: formData.guestName,
         guestEmail: formData.guestEmail,
         guestPhone: formData.guestPhone,
