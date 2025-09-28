@@ -45,6 +45,24 @@ interface Order {
     phone: string
   }
   notes?: string
+  installmentData?: {
+    firstName: string
+    lastName: string
+    fatherName: string
+    idCardFront: string
+    idCardBack: string
+    registrationAddress: string
+    actualAddress: string
+    cityNumber: string
+    familyMembers: Array<{
+      name: string
+      relationship: string
+      phone: string
+    }>
+    workplace: string
+    position: string
+    salary: string
+  }
   createdAt: string
   updatedAt: string
 }
@@ -751,6 +769,121 @@ export default function AdminOrdersPage() {
                   </div>
                 </div>
               </div>
+
+              {/* Installment Data */}
+              {selectedOrder.paymentMethod === 'HISSELI' && selectedOrder.installmentData && (
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <h3 className="text-lg font-medium text-blue-900 mb-3 flex items-center">
+                    <CreditCard className="h-5 w-5 mr-2" />
+                    Hissəli Ödəniş Məlumatları
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-sm font-medium text-blue-800">Ad, Soyad, Ata adı:</label>
+                        <p className="text-blue-900">{selectedOrder.installmentData.firstName} {selectedOrder.installmentData.lastName} {selectedOrder.installmentData.fatherName}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-blue-800">Qeydiyyat ünvanı:</label>
+                        <p className="text-blue-900">{selectedOrder.installmentData.registrationAddress}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-blue-800">Faktiki yaşayış ünvanı:</label>
+                        <p className="text-blue-900">{selectedOrder.installmentData.actualAddress}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-blue-800">Şəhər nömrəsi:</label>
+                        <p className="text-blue-900">{selectedOrder.installmentData.cityNumber}</p>
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="text-sm font-medium text-blue-800">İş yeri:</label>
+                        <p className="text-blue-900">{selectedOrder.installmentData.workplace}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-blue-800">Vəzifə:</label>
+                        <p className="text-blue-900">{selectedOrder.installmentData.position}</p>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium text-blue-800">Maaş:</label>
+                        <p className="text-blue-900">{selectedOrder.installmentData.salary}</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Family Members */}
+                  {selectedOrder.installmentData.familyMembers && selectedOrder.installmentData.familyMembers.length > 0 && (
+                    <div className="mt-4">
+                      <label className="text-sm font-medium text-blue-800 block mb-2">Ailə üzvləri:</label>
+                      <div className="space-y-2">
+                        {selectedOrder.installmentData.familyMembers.map((member, index) => (
+                          <div key={index} className="bg-white p-3 rounded border border-blue-200">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
+                              <div><strong>Ad:</strong> {member.name}</div>
+                              <div><strong>Qohumluq:</strong> {member.relationship}</div>
+                              <div><strong>Telefon:</strong> {member.phone}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* ID Card Images */}
+                  <div className="mt-4">
+                    <label className="text-sm font-medium text-blue-800 block mb-2">Şəxsiyyət vəsiqəsi:</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {selectedOrder.installmentData.idCardFront && (
+                        <div>
+                          <label className="text-xs text-blue-700 block mb-1">Ön tərəf:</label>
+                          <img 
+                            src={selectedOrder.installmentData.idCardFront} 
+                            alt="ID Card Front" 
+                            className="w-full h-32 object-cover rounded border border-blue-200"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none'
+                              const placeholder = e.currentTarget.nextElementSibling as HTMLElement
+                              if (placeholder) {
+                                placeholder.style.display = 'flex'
+                              }
+                            }}
+                          />
+                          <div 
+                            className="w-full h-32 bg-gray-100 rounded border border-blue-200 flex items-center justify-center text-xs text-gray-500"
+                            style={{ display: 'none' }}
+                          >
+                            Şəkil yüklənmədi
+                          </div>
+                        </div>
+                      )}
+                      {selectedOrder.installmentData.idCardBack && (
+                        <div>
+                          <label className="text-xs text-blue-700 block mb-1">Arxa tərəf:</label>
+                          <img 
+                            src={selectedOrder.installmentData.idCardBack} 
+                            alt="ID Card Back" 
+                            className="w-full h-32 object-cover rounded border border-blue-200"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none'
+                              const placeholder = e.currentTarget.nextElementSibling as HTMLElement
+                              if (placeholder) {
+                                placeholder.style.display = 'flex'
+                              }
+                            }}
+                          />
+                          <div 
+                            className="w-full h-32 bg-gray-100 rounded border border-blue-200 flex items-center justify-center text-xs text-gray-500"
+                            style={{ display: 'none' }}
+                          >
+                            Şəkil yüklənmədi
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Notes */}
               {selectedOrder.notes && (
