@@ -30,7 +30,7 @@ export async function generateMetadata(): Promise<Metadata> {
           locale: settings.ogLocale || 'az_AZ',
         },
         twitter: {
-          card: settings.twitterCard || 'summary',
+          card: (settings.twitterCard as any) || 'summary',
           title: settings.twitterTitle || 'SAHIB perfumery & cosmetics - Premium Parfüm Mağazası',
           description: settings.twitterDescription || 'Ən yaxşı parfüm markaları, sərfəli qiymətlər və keyfiyyətli xidmət.',
         },

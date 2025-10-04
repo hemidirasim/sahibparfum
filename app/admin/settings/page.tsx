@@ -330,175 +330,174 @@ export default function SettingsPage() {
                 </label>
               </div>
             </div>
-          </div>
 
-          {/* SEO & Meta Data */}
-          <div className="md:col-span-2">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4 mt-6">SEO & Meta Məlumatları</h2>
-          </div>
+            {/* SEO & Meta Data */}
+            <div className="md:col-span-2">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4 mt-6">SEO & Meta Məlumatları</h2>
+            </div>
 
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Sayt Başlığı (Title)
-            </label>
-            <input
-              type="text"
-              value={settings.metaTitle || ''}
-              onChange={(e) => handleInputChange('metaTitle', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Sayt başlığı..."
-            />
-          </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Sayt Başlığı (Title)
+              </label>
+              <input
+                type="text"
+                value={settings.metaTitle || ''}
+                onChange={(e) => handleInputChange('metaTitle', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Sayt başlığı..."
+              />
+            </div>
 
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Meta Təsvir (Description)
-            </label>
-            <textarea
-              value={settings.metaDescription || ''}
-              onChange={(e) => handleInputChange('metaDescription', e.target.value)}
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Sayt haqqında qısa təsvir..."
-            />
-          </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Meta Təsvir (Description)
+              </label>
+              <textarea
+                value={settings.metaDescription || ''}
+                onChange={(e) => handleInputChange('metaDescription', e.target.value)}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Sayt haqqında qısa təsvir..."
+              />
+            </div>
 
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Açar Sözlər (Keywords)
-            </label>
-            <input
-              type="text"
-              value={settings.metaKeywords || ''}
-              onChange={(e) => handleInputChange('metaKeywords', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="parfüm, ətir, online mağaza..."
-            />
-          </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Açar Sözlər (Keywords)
+              </label>
+              <input
+                type="text"
+                value={settings.metaKeywords || ''}
+                onChange={(e) => handleInputChange('metaKeywords', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="parfüm, ətir, online mağaza..."
+              />
+            </div>
 
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Müəllif (Author)
-            </label>
-            <input
-              type="text"
-              value={settings.metaAuthor || ''}
-              onChange={(e) => handleInputChange('metaAuthor', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Müəllif adı..."
-            />
-          </div>
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Müəllif (Author)
+              </label>
+              <input
+                type="text"
+                value={settings.metaAuthor || ''}
+                onChange={(e) => handleInputChange('metaAuthor', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Müəllif adı..."
+              />
+            </div>
 
-          {/* Open Graph Settings */}
-          <div className="md:col-span-2">
-            <h3 className="text-md font-semibold text-gray-900 mb-4 mt-6">Open Graph (Facebook, LinkedIn)</h3>
-          </div>
+            {/* Open Graph Settings */}
+            <div className="md:col-span-2">
+              <h3 className="text-md font-semibold text-gray-900 mb-4 mt-6">Open Graph (Facebook, LinkedIn)</h3>
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              OG Başlıq
-            </label>
-            <input
-              type="text"
-              value={settings.ogTitle || ''}
-              onChange={(e) => handleInputChange('ogTitle', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Social media üçün başlıq..."
-            />
-          </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                OG Başlıq
+              </label>
+              <input
+                type="text"
+                value={settings.ogTitle || ''}
+                onChange={(e) => handleInputChange('ogTitle', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Social media üçün başlıq..."
+              />
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              OG Təsvir
-            </label>
-            <textarea
-              value={settings.ogDescription || ''}
-              onChange={(e) => handleInputChange('ogDescription', e.target.value)}
-              rows={2}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Social media üçün təsvir..."
-            />
-          </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                OG Təsvir
+              </label>
+              <textarea
+                value={settings.ogDescription || ''}
+                onChange={(e) => handleInputChange('ogDescription', e.target.value)}
+                rows={2}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Social media üçün təsvir..."
+              />
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Dil (Locale)
-            </label>
-            <select
-              value={settings.ogLocale || 'az_AZ'}
-              onChange={(e) => handleInputChange('ogLocale', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="az_AZ">Azərbaycan (az_AZ)</option>
-              <option value="en_US">İngilis (en_US)</option>
-              <option value="tr_TR">Türk (tr_TR)</option>
-              <option value="ru_RU">Rus (ru_RU)</option>
-            </select>
-          </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Dil (Locale)
+              </label>
+              <select
+                value={settings.ogLocale || 'az_AZ'}
+                onChange={(e) => handleInputChange('ogLocale', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="az_AZ">Azərbaycan (az_AZ)</option>
+                <option value="en_US">İngilis (en_US)</option>
+                <option value="tr_TR">Türk (tr_TR)</option>
+                <option value="ru_RU">Rus (ru_RU)</option>
+              </select>
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Məzmun Tipi
-            </label>
-            <select
-              value={settings.ogType || 'website'}
-              onChange={(e) => handleInputChange('ogType', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="website">Website</option>
-              <option value="article">Məqalə</option>
-              <option value="product">Məhsul</option>
-              <option value="business">Biznes</option>
-            </select>
-          </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Məzmun Tipi
+              </label>
+              <select
+                value={settings.ogType || 'website'}
+                onChange={(e) => handleInputChange('ogType', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="website">Website</option>
+                <option value="article">Məqalə</option>
+                <option value="product">Məhsul</option>
+                <option value="business">Biznes</option>
+              </select>
+            </div>
 
-          {/* Twitter Settings */}
-          <div className="md:col-span-2">
-            <h3 className="text-md font-semibold text-gray-900 mb-4 mt-6">Twitter</h3>
-          </div>
+            {/* Twitter Settings */}
+            <div className="md:col-span-2">
+              <h3 className="text-md font-semibold text-gray-900 mb-4 mt-6">Twitter</h3>
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Twitter Kart Tipi
-            </label>
-            <select
-              value={settings.twitterCard || 'summary'}
-              onChange={(e) => handleInputChange('twitterCard', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="summary">Summary</option>
-              <option value="summary_large_image">Summary Large Image</option>
-              <option value="app">App</option>
-              <option value="player">Player</option>
-            </select>
-          </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Twitter Kart Tipi
+              </label>
+              <select
+                value={settings.twitterCard || 'summary'}
+                onChange={(e) => handleInputChange('twitterCard', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="summary">Summary</option>
+                <option value="summary_large_image">Summary Large Image</option>
+                <option value="app">App</option>
+                <option value="player">Player</option>
+              </select>
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Twitter Başlıq
-            </label>
-            <input
-              type="text"
-              value={settings.twitterTitle || ''}
-              onChange={(e) => handleInputChange('twitterTitle', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Twitter üçün başlıq..."
-            />
-          </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Twitter Başlıq
+              </label>
+              <input
+                type="text"
+                value={settings.twitterTitle || ''}
+                onChange={(e) => handleInputChange('twitterTitle', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Twitter üçün başlıq..."
+              />
+            </div>
 
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Twitter Təsvir
-            </label>
-            <textarea
-              value={settings.twitterDescription || ''}
-              onChange={(e) => handleInputChange('twitterDescription', e.target.value)}
-              rows={2}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="Twitter üçün təsvir..."
-            />
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Twitter Təsvir
+              </label>
+              <textarea
+                value={settings.twitterDescription || ''}
+                onChange={(e) => handleInputChange('twitterDescription', e.target.value)}
+                rows={2}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Twitter üçün təsvir..."
+              />
+            </div>
           </div>
-        </div>
 
           {/* Save Button */}
           <div className="mt-8 flex justify-end">
