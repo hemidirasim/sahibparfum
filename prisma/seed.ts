@@ -321,6 +321,29 @@ Bu notların uyğun birləşməsi parfümün unikal xarakterini yaradır.`,
 
   console.log('✅ Support content created')
 
+  // Create default settings
+  const settings = await prisma.settings.upsert({
+    where: { id: 'default-settings' },
+    update: {},
+    create: {
+      id: 'default-settings',
+      siteName: 'SAHIB perfumery & cosmetics',
+      siteDescription: 'Premium Parfüm Mağazası',
+      contactEmail: 'info@sahibparfum.az',
+      contactPhone: '+994 51 366 66 63',
+      address: 'Bakı şəhəri, Nərimanov rayonu',
+      currency: 'AZN',
+      taxRate: 18.0,
+      deliveryCost: 10.0,
+      freeDeliveryThreshold: 100.0,
+      maintenanceMode: false,
+      allowRegistration: true,
+      requireEmailVerification: true
+    }
+  })
+
+  console.log('✅ Settings created')
+
   console.log('🎉 Database seeding completed!')
 }
 

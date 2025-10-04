@@ -76,10 +76,13 @@ export function Header() {
         if (response.ok) {
           const data = await response.json()
           
-          console.log('Header: Settings fetched:', {
-            timestamp: new Date().toISOString(),
-            freeDeliveryThreshold: data.freeDeliveryThreshold
-          })
+        console.log('Header: Settings fetched:', {
+          timestamp: new Date().toISOString(),
+          siteName: data.siteName,
+          contactPhone: data.contactPhone,
+          contactEmail: data.contactEmail,
+          freeDeliveryThreshold: data.freeDeliveryThreshold
+        })
           
         setSettings({
           siteName: data.siteName || 'SAHIB perfumery & cosmetics',
