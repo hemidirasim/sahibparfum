@@ -225,6 +225,18 @@ model Settings {
   maintenanceMode          Boolean  @default(false)
   allowRegistration        Boolean  @default(true)
   requireEmailVerification Boolean  @default(true)
+  // Meta data fields
+  metaTitle                String?  @default("SAHIB perfumery & cosmetics - Premium Parfüm Mağazası")
+  metaDescription          String?  @default("Ən yaxşı parfüm markaları, sərfəli qiymətlər və keyfiyyətli xidmət. Online parfüm alış-verişi üçün etibarlı platforma.")
+  metaKeywords             String?  @default("parfüm, ətir, sahib parfumeriya, online mağaza, parfüm alış-verişi")
+  metaAuthor               String?  @default("SAHIB perfumery & cosmetics")
+  ogTitle                  String?  @default("SAHIB perfumery & cosmetics - Premium Parfüm Mağazası")
+  ogDescription            String?  @default("Ən yaxşı parfüm markaları, sərfəli qiymətlər və keyfiyyətli xidmət.")
+  ogLocale                 String?  @default("az_AZ")
+  ogType                   String?  @default("website")
+  twitterCard              String?  @default("summary")
+  twitterTitle             String?  @default("SAHIB perfumery & cosmetics - Premium Parfüm Mağazası")
+  twitterDescription       String?  @default("Ən yaxşı parfüm markaları, sərfəli qiymətlər və keyfiyyətli xidmət.")
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
 

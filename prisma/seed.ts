@@ -338,7 +338,19 @@ Bu notların uyğun birləşməsi parfümün unikal xarakterini yaradır.`,
       freeDeliveryThreshold: 100.0,
       maintenanceMode: false,
       allowRegistration: true,
-      requireEmailVerification: true
+      requireEmailVerification: true,
+      // Meta data fields
+      metaTitle: 'SAHIB perfumery & cosmetics - Premium Parfüm Mağazası',
+      metaDescription: 'Ən yaxşı parfüm markaları, sərfəli qiymətlər və keyfiyyətli xidmət. Online parfüm alış-verişi üçün etibarlı platforma.',
+      metaKeywords: 'parfüm, ətir, sahib parfumeriya, online mağaza, parfüm alış-verişi',
+      metaAuthor: 'SAHIB perfumery & cosmetics',
+      ogTitle: 'SAHIB perfumery & cosmetics - Premium Parfüm Mağazası',
+      ogDescription: 'Ən yaxşı parfüm markaları, sərfəli qiymətlər və keyfiyyətli xidmət.',
+      ogLocale: 'az_AZ',
+      ogType: 'website',
+      twitterCard: 'summary',
+      twitterTitle: 'SAHIB perfumery & cosmetics - Premium Parfüm Mağazası',
+      twitterDescription: 'Ən yaxşı parfüm markaları, sərfəli qiymətlər və keyfiyyətli xidmət.'
     }
   })
 
