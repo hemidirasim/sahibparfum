@@ -10,6 +10,7 @@ import { useCart } from '@/hooks/use-cart'
 import { UserPopup } from './user-popup'
 
 interface Settings {
+  siteName: string
   contactPhone: string
   contactEmail: string
   freeDeliveryThreshold: number
@@ -40,6 +41,7 @@ export function Header() {
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const isHoverDisabledRef = useRef<boolean>(false)
   const [settings, setSettings] = useState<Settings>({
+    siteName: 'SAHIB perfumery & cosmetics',
     contactPhone: '+994 50 123 45 67',
     contactEmail: 'info@sahibparfumeriya.az',
     freeDeliveryThreshold: 100
@@ -79,11 +81,12 @@ export function Header() {
             freeDeliveryThreshold: data.freeDeliveryThreshold
           })
           
-          setSettings({
-            contactPhone: data.contactPhone || '+994 50 123 45 67',
-            contactEmail: data.contactEmail || 'info@sahibparfumeriya.az',
-            freeDeliveryThreshold: data.freeDeliveryThreshold || 100
-          })
+        setSettings({
+          siteName: data.siteName || 'SAHIB perfumery & cosmetics',
+          contactPhone: data.contactPhone || '+994 50 123 45 67',
+          contactEmail: data.contactEmail || 'info@sahibparfumeriya.az',
+          freeDeliveryThreshold: data.freeDeliveryThreshold || 100
+        })
         }
       } catch (error) {
         console.error('Error fetching settings:', error)
@@ -277,7 +280,7 @@ export function Header() {
             <Link href="/" className="flex items-center">
               <Image
                 src="https://i.ibb.co/cX2Gyv2T/Sahib-Logo-PNG.png"
-                alt="SAHIB perfumery & cosmetics"
+                alt={settings.siteName}
                 width={77}
                 height={77}
                 className="h-[77px] w-auto"
