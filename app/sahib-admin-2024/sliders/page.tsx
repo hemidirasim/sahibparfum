@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { SliderForm } from '@/components/sahib-admin-2024/slider-form'
+import { SliderForm } from '@/components/admin/slider-form'
 import { Plus, Edit, Trash2, Eye, EyeOff, ArrowUp, ArrowDown, RefreshCw } from 'lucide-react'
 
 interface Slider {
