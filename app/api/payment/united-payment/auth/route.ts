@@ -65,8 +65,6 @@ export async function POST(request: NextRequest) {
       password: UNITED_PAYMENT_AUTH_CONFIG.password
     }
 
-    console.log('Attempting login to:', `${apiUrl}/api/auth/`)
-    console.log('Login data:', { ...loginData, password: '***' })
 
     // Make login request
     const response = await fetch(`${apiUrl}/api/auth/`, {
@@ -79,7 +77,6 @@ export async function POST(request: NextRequest) {
     })
 
     const result = await response.json()
-    console.log('Login response:', result)
 
     if (!response.ok) {
       console.error('United Payment login error:', result)
@@ -147,7 +144,6 @@ export async function PUT(request: NextRequest) {
       refreshToken: tokenCache.refreshToken
     }
 
-    console.log('Attempting token refresh')
 
     // Make refresh request
     const response = await fetch(`${apiUrl}/api/auth/refresh`, {

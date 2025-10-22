@@ -57,7 +57,6 @@ async function getCategoriesData(): Promise<Category[]> {
 export async function generateMetadata({ searchParams }: { 
   searchParams: { [key: string]: string | string[] | undefined } 
 }): Promise<Metadata> {
-  console.log('🔍 Generating metadata for categories page with params:', searchParams)
   
   const categories = await getCategoriesData()
   const categoryIds = searchParams.categoryIds as string | string[]

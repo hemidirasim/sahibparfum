@@ -2,15 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('Payment check-order-status API called')
     
     const body = await request.json()
-    console.log('Request body:', body)
     
     const { orderId } = body
 
     if (!orderId) {
-      console.log('No orderId provided')
       return NextResponse.json({ 
         success: false, 
         error: 'Order ID is required' 
@@ -33,14 +30,12 @@ export async function POST(request: NextRequest) {
       })
 
       if (!order) {
-        console.log('Order not found in database:', orderId)
         return NextResponse.json({
           success: false,
           error: 'Order not found'
         }, { status: 404 })
       }
 
-      console.log('Order found in database:', order)
       
       // Return current order status from database
       return NextResponse.json({

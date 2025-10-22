@@ -32,11 +32,9 @@ export default function AdminSlidersPage() {
   const fetchSliders = async () => {
     try {
       setRefreshing(true)
-      console.log('Fetching sliders from server...')
       const response = await fetch('/api/sahib-admin-2024/sliders')
       if (response.ok) {
         const data = await response.json()
-        console.log('Sliders fetched from server:', data.map((s: any) => ({ id: s.id, order: s.order, title: s.title })))
         setSliders(data)
       } else {
         console.error('Failed to fetch sliders')
@@ -91,7 +89,6 @@ export default function AdminSlidersPage() {
     
     // Update server
     try {
-      console.log('Updating slider orders:', updatedSliders.map(s => ({ id: s.id, order: s.order, title: s.title })))
       
       const promises = updatedSliders.map(async (slider) => {
         const response = await fetch(`/api/sahib-admin-2024/sliders/${slider.id}`, {
@@ -110,12 +107,10 @@ export default function AdminSlidersPage() {
         }
         
         const result = await response.json()
-        console.log(`Slider ${slider.id} updated successfully:`, result.slider)
         return result
       })
       
       await Promise.all(promises)
-      console.log('All slider orders updated successfully')
       
       // Refresh the list to ensure consistency
       setTimeout(() => {
@@ -145,7 +140,6 @@ export default function AdminSlidersPage() {
     
     // Update server
     try {
-      console.log('Updating slider orders (move down):', updatedSliders.map(s => ({ id: s.id, order: s.order, title: s.title })))
       
       const promises = updatedSliders.map(async (slider) => {
         const response = await fetch(`/api/sahib-admin-2024/sliders/${slider.id}`, {
@@ -164,12 +158,10 @@ export default function AdminSlidersPage() {
         }
         
         const result = await response.json()
-        console.log(`Slider ${slider.id} updated successfully (move down):`, result.slider)
         return result
       })
       
       await Promise.all(promises)
-      console.log('All slider orders updated successfully (move down)')
       
       // Refresh the list to ensure consistency
       setTimeout(() => {

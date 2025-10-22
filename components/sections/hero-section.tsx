@@ -37,7 +37,6 @@ export function HeroSection() {
         if (response.ok) {
           const data = await response.json()
           
-          console.log('Sliders fetched:', {
             timestamp: new Date().toISOString(),
             slidersCount: data?.length || 0,
             url: `/api/sliders?_t=${timestamp}`

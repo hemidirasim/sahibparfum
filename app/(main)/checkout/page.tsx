@@ -92,7 +92,6 @@ export default function CheckoutPage() {
             deliveryCost: data.deliveryCost || 10,
             freeDeliveryThreshold: data.freeDeliveryThreshold || 100
           })
-          console.log('Checkout: Settings loaded:', data)
         }
       } catch (error) {
         console.error('Error loading settings:', error)
@@ -181,7 +180,6 @@ export default function CheckoutPage() {
     formData.append('file', file)
 
     try {
-      console.log(`Uploading ${type} image:`, file.name)
       toast.loading(`${type === 'front' ? 'Ön' : 'Arxa'} tərəf şəkli yüklənir...`, {
         duration: 2000
       })
@@ -195,7 +193,6 @@ export default function CheckoutPage() {
         const result = await response.json()
         const imageUrl = result.url || result.imageUrl
         
-        console.log(`Upload successful for ${type}:`, imageUrl)
         
         if (type === 'front') {
           setHisseliForm(prev => ({
@@ -319,17 +316,12 @@ export default function CheckoutPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('=== CHECKOUT FORM SUBMIT START ===')
-    console.log('Form data:', formData)
-    console.log('Items:', items)
-    console.log('Session:', session)
     setLoading(true)
 
     try {
       let shippingAddressId = formData.shippingAddressId
       let billingAddressId = formData.useSameAddress ? formData.shippingAddressId : formData.billingAddressId
 
-      console.log('Address handling:', {
         shippingAddressId,
         billingAddressId,
         useSameAddress: formData.useSameAddress,
@@ -339,7 +331,6 @@ export default function CheckoutPage() {
 
       // If no address is selected but we have a new address form, add it first
       if (!shippingAddressId && showAddAddress) {
-        console.log('Adding new address before order creation')
         const addressResponse = await fetch('/api/addresses', {
           method: 'POST',
           headers: {
@@ -409,10 +400,6 @@ export default function CheckoutPage() {
         })
       }
 
-      console.log('=== CHECKOUT ORDER DATA ===')
-      console.log('Payment method:', formData.paymentMethod)
-      console.log('Hisseli form data:', hisseliForm)
-      console.log('Order data being sent:', JSON.stringify(orderData, null, 2))
       
       // Validate order data before sending
       if (!orderData.userId) {
@@ -433,7 +420,6 @@ export default function CheckoutPage() {
         return
       }
       
-      console.log('All validations passed, sending request to /api/orders')
 
       const response = await fetch('/api/orders', {
         method: 'POST',
@@ -443,13 +429,9 @@ export default function CheckoutPage() {
         body: JSON.stringify(orderData),
       })
 
-      console.log('=== ORDER RESPONSE ===')
-      console.log('Response status:', response.status)
-      console.log('Response ok:', response.ok)
       
       if (response.ok) {
         const result = await response.json()
-        console.log('Order creation result:', result)
         
         // If payment method is CARD, redirect to United Payment
         if (formData.paymentMethod === 'CARD') {
@@ -469,7 +451,6 @@ export default function CheckoutPage() {
               }
             }
 
-            console.log('Sending payment request:', paymentData)
             const paymentResponse = await fetch('/api/payment/united-payment', {
               method: 'POST',
               headers: {
@@ -478,20 +459,16 @@ export default function CheckoutPage() {
               body: JSON.stringify(paymentData),
             })
             
-            console.log('Payment response status:', paymentResponse.status)
 
             if (paymentResponse.ok) {
               const paymentResult = await paymentResponse.json()
-              console.log('Payment API Response:', paymentResult)
               
               if (paymentResult.isMock) {
-                console.log('Mock payment - redirecting to:', paymentResult.paymentUrl)
                 clearCart()
                 toast.success('Test rejimində ödəniş simulyasiya edilir...')
                 // For mock payments, redirect directly to success page
                 router.push(paymentResult.paymentUrl)
               } else {
-                console.log('Real payment - redirecting to:', paymentResult.paymentUrl)
                 toast.success('Ödəniş səhifəsinə yönləndirilirsiniz...')
                 // Redirect to United Payment (don't clear cart yet, wait for payment completion)
                 window.location.href = paymentResult.paymentUrl
@@ -548,7 +525,6 @@ export default function CheckoutPage() {
               }
             }
 
-            console.log('Sending taksit payment request:', paymentData)
             const paymentResponse = await fetch('/api/payment/united-payment/taksit', {
               method: 'POST',
               headers: {
@@ -557,19 +533,15 @@ export default function CheckoutPage() {
               body: JSON.stringify(paymentData),
             })
             
-            console.log('Taksit payment response status:', paymentResponse.status)
 
             if (paymentResponse.ok) {
               const paymentResult = await paymentResponse.json()
-              console.log('Taksit Payment API Response:', paymentResult)
               
               if (paymentResult.isMock) {
-                console.log('Mock taksit payment - redirecting to:', paymentResult.paymentUrl)
                 clearCart()
                 toast.success(`Test rejimində ${formData.installment} aylıq taksit ödənişi simulyasiya edilir...`)
                 router.push(paymentResult.paymentUrl)
               } else {
-                console.log('Real taksit payment - redirecting to:', paymentResult.paymentUrl)
                 toast.success(`${formData.installment} aylıq taksit ödəniş səhifəsinə yönləndirilirsiniz...`)
                 window.location.href = paymentResult.paymentUrl
               }

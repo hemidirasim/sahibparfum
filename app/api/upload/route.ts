@@ -7,10 +7,8 @@ import { join } from 'path'
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('=== UPLOAD API REQUEST START ===')
     
     // Environment variables check
-    console.log('Environment variables check:', {
       hasBlobToken: !!process.env.BLOB_READ_WRITE_TOKEN,
       blobTokenLength: process.env.BLOB_READ_WRITE_TOKEN?.length,
       blobTokenPrefix: process.env.BLOB_READ_WRITE_TOKEN?.substring(0, 20) + '...',
@@ -30,7 +28,6 @@ export async function POST(request: NextRequest) {
     const referer = request.headers.get('referer')
     const origin = request.headers.get('origin')
     
-    console.log('Domain check:', {
       referer,
       origin,
       allowedDomains
@@ -41,14 +38,11 @@ export async function POST(request: NextRequest) {
     )
     
     if (!isValidDomain && process.env.NODE_ENV === 'production') {
-      console.log('Unauthorized domain access')
       return NextResponse.json({ error: 'Unauthorized domain' }, { status: 403 })
     }
     
     // Admin authentication check
-    console.log('Starting session check...')
     const session = await getServerSession(authOptions)
-    console.log('Session check result:', {
       hasSession: !!session,
       userEmail: session?.user?.email,
       userRole: session?.user?.role,
@@ -58,7 +52,6 @@ export async function POST(request: NextRequest) {
     })
     
     if (!session?.user?.email || session.user?.role !== 'ADMIN') {
-      console.log('Unauthorized access attempt - redirecting to login')
       return NextResponse.json({ 
         error: 'Unauthorized',
         details: 'Admin authentication required',
@@ -73,7 +66,6 @@ export async function POST(request: NextRequest) {
     const data = await request.formData()
     const file: File | null = data.get('file') as unknown as File
 
-    console.log('File received:', {
       hasFile: !!file,
       fileName: file?.name,
       fileSize: file?.size,
@@ -81,7 +73,6 @@ export async function POST(request: NextRequest) {
     })
 
     if (!file) {
-      console.log('No file in request')
       return NextResponse.json({ error: 'No file uploaded' }, { status: 400 })
     }
 
@@ -92,7 +83,6 @@ export async function POST(request: NextRequest) {
 
     // Validate file size (max 10MB for ID cards)
     if (file.size > 10 * 1024 * 1024) {
-      console.log('File too large:', { fileSize: file.size, maxSize: 10 * 1024 * 1024 })
       return NextResponse.json({ 
         error: 'File size must be less than 10MB',
         details: `File size: ${(file.size / 1024 / 1024).toFixed(2)}MB, Max allowed: 10MB`
@@ -110,7 +100,6 @@ export async function POST(request: NextRequest) {
     
     if (isDevelopment) {
       // Use local file system for development
-      console.log('Using local file system for development')
       
       // Ensure uploads directory exists
       const uploadsDir = join(process.cwd(), 'public', 'uploads')
@@ -127,7 +116,6 @@ export async function POST(request: NextRequest) {
       // Return local URL
       const localUrl = `/uploads/${filename}`
       
-      console.log('Local upload successful:', {
         localUrl,
         filename,
         filePath
@@ -140,7 +128,6 @@ export async function POST(request: NextRequest) {
       })
     } else {
       // Use Vercel Blob for production
-      console.log('Uploading to Vercel Blob:', {
         filename,
         hasBlobToken: !!process.env.BLOB_READ_WRITE_TOKEN,
         blobTokenPrefix: process.env.BLOB_READ_WRITE_TOKEN?.substring(0, 10) + '...'
@@ -151,7 +138,6 @@ export async function POST(request: NextRequest) {
         access: 'public',
       })
 
-      console.log('Upload successful:', {
         blobUrl: blob.url,
         filename: blob.pathname
       })

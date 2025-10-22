@@ -110,7 +110,6 @@ export default function EditProductPage() {
             ? productData.images.split(',').filter((img: string) => img.trim() !== '')
             : []
         setImages(imagesArray)
-        console.log('Product images loaded:', imagesArray)
       } else {
         console.error('Failed to fetch product')
         router.push('/sahib-admin-2024/products')
@@ -227,11 +226,9 @@ export default function EditProductPage() {
       })
 
       const uploadedUrls = await Promise.all(uploadPromises)
-      console.log('Uploaded URLs:', uploadedUrls)
       
       setImages(prev => {
         const newImages = [...prev, ...uploadedUrls]
-        console.log('Updated images array:', newImages)
         return newImages
       })
       
@@ -308,7 +305,6 @@ export default function EditProductPage() {
         images
       }
       
-      console.log('Updating product with data:', JSON.stringify(requestData, null, 2))
       
       const response = await fetch(`/api/sahib-admin-2024/products/${productId}`, {
         method: 'PATCH',

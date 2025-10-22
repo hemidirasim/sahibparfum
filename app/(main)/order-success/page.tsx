@@ -21,17 +21,14 @@ export default function OrderSuccessPage() {
 
   useEffect(() => {
     if (orderId) {
-      console.log('Order success page loaded with:', { orderId, paymentStatus, transactionId, upParam })
       
       // Parse United Payment callback data if available
       if (upParam) {
         try {
           const decodedData = JSON.parse(atob(upParam))
-          console.log('United Payment callback data:', decodedData)
           
           // If we have United Payment data showing APPROVED, set status immediately
           if (decodedData.Status === 'APPROVED' || decodedData.ExternalStatusDesc === 'FullyPaid') {
-            console.log('United Payment shows APPROVED, setting status to PAID')
             setOrderStatus('PAID')
             clearCart()
             setLoading(false)
@@ -43,10 +40,8 @@ export default function OrderSuccessPage() {
       }
       
       // Always check payment status first using our API
-      console.log('Checking payment status for orderId:', orderId)
       checkPaymentStatus()
     } else {
-      console.log('No orderId found')
       setLoading(false)
     }
   }, [orderId, paymentStatus, transactionId, upParam, clearCart])
@@ -59,7 +54,6 @@ export default function OrderSuccessPage() {
     }
 
     try {
-      console.log('Checking payment status for orderId:', orderId)
       // Use order ID to check payment status (more reliable)
       const response = await fetch('/api/payment/check-order-status', {
         method: 'POST',
@@ -71,15 +65,12 @@ export default function OrderSuccessPage() {
 
       if (response.ok) {
         const result = await response.json()
-        console.log('Payment status check result:', result)
         
         if (result.success) {
-          console.log('Setting order status to:', result.orderStatus)
           setOrderStatus(result.orderStatus)
           
           // Clear cart if payment is successful
           if (result.orderStatus === 'PAID') {
-            console.log('Payment successful, clearing cart')
             clearCart()
           }
 
@@ -115,7 +106,6 @@ export default function OrderSuccessPage() {
       })
 
       if (response.ok) {
-        console.log('Order status updated successfully')
       } else {
         console.error('Failed to update order status')
       }
@@ -133,7 +123,6 @@ export default function OrderSuccessPage() {
         
         // If order has transactionId, check payment status
         if (order.transactionId) {
-          console.log('Order has transactionId, checking payment status:', order.transactionId)
           const paymentResponse = await fetch('/api/payment/check-status', {
             method: 'POST',
             headers: {
@@ -144,7 +133,6 @@ export default function OrderSuccessPage() {
 
           if (paymentResponse.ok) {
             const paymentResult = await paymentResponse.json()
-            console.log('Payment status check result:', paymentResult)
             
             // Map United Payment status to our order status
             let mappedStatus = status
@@ -209,7 +197,6 @@ export default function OrderSuccessPage() {
   }
 
   const getStatusInfo = () => {
-    console.log('Getting status info for orderStatus:', orderStatus, 'paymentMethod:', paymentMethod)
     
     // Special case for installment payment
     if (paymentMethod === 'HISSELI') {

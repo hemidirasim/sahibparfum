@@ -114,10 +114,7 @@ export default function OrdersPage() {
       const response = await fetch('/api/orders')
       if (response.ok) {
         const data = await response.json()
-        console.log('=== ORDERS FETCHED ===')
-        console.log('Orders data:', data)
         data.forEach((order: any, index: number) => {
-          console.log(`Order ${index + 1}:`, {
             orderNumber: order.orderNumber,
             paymentMethod: order.paymentMethod,
             installmentData: order.installmentData
@@ -252,8 +249,6 @@ export default function OrdersPage() {
   const handleRetryPayment = async (orderId: string) => {
     setRetryingPayment(orderId)
     try {
-      console.log('=== PAYMENT RETRY START ===')
-      console.log('Starting payment retry for order:', orderId)
       
       const requestBody = {
         orderId: orderId,
@@ -261,8 +256,6 @@ export default function OrdersPage() {
         source: 'orders' // Specify that payment is initiated from orders page
       }
       
-      console.log('Request body:', requestBody)
-      console.log('Request URL:', '/api/payment/united-payment')
       
       const response = await fetch(`/api/payment/united-payment`, {
         method: 'POST',
@@ -272,25 +265,17 @@ export default function OrdersPage() {
         body: JSON.stringify(requestBody),
       })
 
-      console.log('=== PAYMENT API RESPONSE ===')
-      console.log('Response status:', response.status)
-      console.log('Response statusText:', response.statusText)
-      console.log('Response headers:', Object.fromEntries(response.headers.entries()))
       
       let data
       try {
         data = await response.json()
-        console.log('Response JSON data:', data)
       } catch (jsonError) {
         console.error('Failed to parse response as JSON:', jsonError)
         const textResponse = await response.text()
-        console.log('Response as text:', textResponse)
         throw new Error(`Invalid JSON response: ${textResponse}`)
       }
 
       if (response.ok && data.paymentUrl) {
-        console.log('=== PAYMENT SUCCESS ===')
-        console.log('Redirecting to payment URL:', data.paymentUrl)
         // Redirect to payment page
         window.location.href = data.paymentUrl
       } else {
@@ -313,7 +298,6 @@ export default function OrdersPage() {
       toast.error('Ödəniş yenidən cəhdində xəta baş verdi')
     } finally {
       setRetryingPayment(null)
-      console.log('=== PAYMENT RETRY END ===')
     }
   }
 
@@ -325,10 +309,8 @@ export default function OrdersPage() {
   }
 
   const getImageSrc = (images: string[] | string) => {
-    console.log('getImageSrc received:', images, 'type:', typeof images)
     
     if (!images) {
-      console.log('No images, returning placeholder')
       return '/placeholder-product.jpg'
     }
     
@@ -341,50 +323,40 @@ export default function OrdersPage() {
         const parsed = JSON.parse(images)
         if (Array.isArray(parsed) && parsed.length > 0) {
           firstImage = parsed[0]
-          console.log('Parsed JSON array, first image:', firstImage)
         } else {
           // If not an array, treat as single image URL
           firstImage = images
-          console.log('Single string image:', firstImage)
         }
       } catch (error) {
         // If JSON parse fails, treat as single image URL
         firstImage = images
-        console.log('JSON parse failed, treating as single URL:', firstImage)
       }
     } else if (Array.isArray(images)) {
       if (images.length === 0) {
-        console.log('Empty array, returning placeholder')
         return '/placeholder-product.jpg'
       }
       firstImage = images[0]
-      console.log('Array input, first image:', firstImage)
     } else {
-      console.log('Unknown input type, returning placeholder')
       return '/placeholder-product.jpg'
     }
     
     // Validate the image
     if (!firstImage || firstImage.trim() === '' || firstImage === 'h' || firstImage.length < 3) {
-      console.log('Invalid image, returning placeholder')
       return '/placeholder-product.jpg'
     }
     
     // Check if it's a valid URL
     if (firstImage.startsWith('http://') || firstImage.startsWith('https://')) {
-      console.log('Valid URL:', firstImage)
       return firstImage
     }
     
     // Check if it starts with slash
     if (firstImage.startsWith('/')) {
-      console.log('Absolute path:', firstImage)
       return firstImage
     }
     
     // If it's a relative path, add leading slash
     const result = `/${firstImage}`
-    console.log('Relative path result:', result)
     return result
   }
 
@@ -482,7 +454,6 @@ export default function OrdersPage() {
                               alt={item.product.name}
                               className="w-full h-full object-cover"
                               onError={(e) => {
-                                console.log('Image load error for:', e.currentTarget.src)
                                 e.currentTarget.style.display = 'none'
                                 const placeholder = e.currentTarget.nextElementSibling as HTMLElement
                                 if (placeholder) {
@@ -490,7 +461,6 @@ export default function OrdersPage() {
                                 }
                               }}
                               onLoad={(e) => {
-                                console.log('Image loaded successfully:', item.product.name)
                                 const placeholder = e.currentTarget.nextElementSibling as HTMLElement
                                 if (placeholder) {
                                   placeholder.style.display = 'none'
@@ -728,7 +698,6 @@ export default function OrdersPage() {
                               alt={item.product.name}
                               className="w-full h-full object-cover rounded"
                               onError={(e) => {
-                                console.log('Modal image load error for:', e.currentTarget.src)
                                 e.currentTarget.style.display = 'none'
                                 const placeholder = e.currentTarget.nextElementSibling as HTMLElement
                                 if (placeholder) {
@@ -803,10 +772,6 @@ export default function OrdersPage() {
 
                 {/* Installment Data */}
                 {(() => {
-                  console.log('=== INSTALLMENT DATA CHECK ===')
-                  console.log('Payment Method:', selectedOrder.paymentMethod)
-                  console.log('Installment Data:', selectedOrder.installmentData)
-                  console.log('Should show installment data:', selectedOrder.paymentMethod === 'HISSELI' && selectedOrder.installmentData)
                   return null
                 })()}
                 {selectedOrder.paymentMethod === 'HISSELI' && selectedOrder.installmentData && (

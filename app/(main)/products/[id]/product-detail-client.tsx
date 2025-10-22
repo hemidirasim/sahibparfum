@@ -98,14 +98,6 @@ export default function ProductDetailClient({ initialProduct }: ProductDetailCli
   const handleAddToCart = async () => {
     if (!product) return
     
-    console.log('handleAddToCart called:', { 
-      productId: product.id, 
-      productName: product.name, 
-      quantity: mainProductQuantity,
-      inStock: product.inStock,
-      stockCount: product.stockCount 
-    })
-    
     try {
       setAddingToCart(true)
       addItem({
@@ -118,10 +110,8 @@ export default function ProductDetailClient({ initialProduct }: ProductDetailCli
         quantity: mainProductQuantity,
         sku: product.sku
       })
-      console.log('Product added to cart successfully')
       toast.success(`${mainProductQuantity} ədəd məhsul səbətə əlavə edildi`)
     } catch (error) {
-      console.error('Error adding to cart:', error)
       toast.error('Səbətə əlavə edilərkən xəta baş verdi')
     } finally {
       setAddingToCart(false)
@@ -140,16 +130,10 @@ export default function ProductDetailClient({ initialProduct }: ProductDetailCli
   }
 
   const handleMainProductQuantityChange = (type: 'increase' | 'decrease') => {
-    console.log('handleMainProductQuantityChange called:', { type, currentQuantity: mainProductQuantity, stockCount: product.stockCount })
-    
     if (type === 'increase' && mainProductQuantity < product.stockCount) {
-      console.log('Increasing quantity')
       setMainProductQuantity(prev => prev + 1)
     } else if (type === 'decrease' && mainProductQuantity > 1) {
-      console.log('Decreasing quantity')
       setMainProductQuantity(prev => prev - 1)
-    } else {
-      console.log('Quantity change blocked:', { type, currentQuantity: mainProductQuantity, stockCount: product.stockCount })
     }
   }
 
@@ -211,7 +195,6 @@ export default function ProductDetailClient({ initialProduct }: ProductDetailCli
             })
             return
           } catch (error) {
-            console.log('Native sharing cancelled')
           }
         }
         // Fallback to clipboard
@@ -459,10 +442,7 @@ export default function ProductDetailClient({ initialProduct }: ProductDetailCli
                       {/* Quantity Selector */}
                       <div className="flex items-center border border-gray-300 rounded-lg">
                         <button
-                          onClick={() => {
-                            console.log('Decrease button clicked')
-                            handleMainProductQuantityChange('decrease')
-                          }}
+                          onClick={() => handleMainProductQuantityChange('decrease')}
                           className="p-2 hover:bg-gray-100 transition-colors"
                           disabled={mainProductQuantity <= 1}
                         >
@@ -472,10 +452,7 @@ export default function ProductDetailClient({ initialProduct }: ProductDetailCli
                           {mainProductQuantity}
                         </span>
                         <button
-                          onClick={() => {
-                            console.log('Increase button clicked')
-                            handleMainProductQuantityChange('increase')
-                          }}
+                          onClick={() => handleMainProductQuantityChange('increase')}
                           className="p-2 hover:bg-gray-100 transition-colors"
                           disabled={mainProductQuantity >= product.stockCount}
                         >
@@ -485,10 +462,7 @@ export default function ProductDetailClient({ initialProduct }: ProductDetailCli
                       
                       {/* Add to Cart Button */}
                       <button
-                        onClick={() => {
-                          console.log('Add to cart button clicked')
-                          handleAddToCart()
-                        }}
+                        onClick={handleAddToCart}
                         disabled={addingToCart || !product.inStock}
                         className="bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
                         title={!product.inStock ? 'Stokda yoxdur' : 'Səbətə əlavə et'}

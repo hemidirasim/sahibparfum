@@ -3,9 +3,6 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('=== PRODUCTS API REQUEST START ===')
-    console.log('Request URL:', request.url)
-    console.log('Request headers:', Object.fromEntries(request.headers.entries()))
     
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1')
@@ -194,7 +191,6 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    console.log('Products API response:', {
       totalProducts: total,
       returnedProducts: transformedProducts.length,
       page,

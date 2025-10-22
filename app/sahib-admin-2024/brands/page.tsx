@@ -97,10 +97,8 @@ export default function BrandsPage() {
       
       // Auto upload the file
       try {
-        console.log('Auto uploading brand logo:', file.name)
         const uploadedUrl = await handleFileUpload(file)
         if (uploadedUrl) {
-          console.log('Brand logo uploaded successfully:', uploadedUrl)
           setNewBrandLogo(uploadedUrl)
           setLogoPreview(uploadedUrl)
         }
@@ -117,7 +115,6 @@ export default function BrandsPage() {
     try {
       setSaving(true)
       
-      console.log('Adding brand with data:', {
         name: newBrandName.trim(),
         description: newBrandDescription.trim(),
         logo: newBrandLogo.trim()
@@ -136,7 +133,6 @@ export default function BrandsPage() {
       })
 
       if (response.ok) {
-        console.log('Brand added successfully')
         setNewBrandName('')
         setNewBrandDescription('')
         setNewBrandLogo('')
@@ -164,7 +160,6 @@ export default function BrandsPage() {
     try {
       setSaving(true)
       
-      console.log('Editing brand with data:', {
         id: editingBrand.id,
         name: newBrandName.trim(),
         description: newBrandDescription.trim(),
@@ -184,7 +179,6 @@ export default function BrandsPage() {
       })
 
       if (response.ok) {
-        console.log('Brand edited successfully')
         setNewBrandName('')
         setNewBrandDescription('')
         setNewBrandLogo('')

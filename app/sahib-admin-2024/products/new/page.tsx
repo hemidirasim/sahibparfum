@@ -165,7 +165,6 @@ export default function NewProductPage() {
           body: formData
         })
 
-        console.log('Upload response for', file.name, ':', {
           status: response.status,
           statusText: response.statusText,
           ok: response.ok
@@ -173,7 +172,6 @@ export default function NewProductPage() {
 
         if (response.ok) {
           const result = await response.json()
-          console.log('Upload success for', file.name, ':', result)
           uploadedUrls.push(result.url)
         } else {
           const error = await response.json().catch(() => ({ error: 'Unknown error' }))
@@ -280,7 +278,6 @@ export default function NewProductPage() {
         attributes
       }
       
-      console.log('Sending product data:', JSON.stringify(requestData, null, 2))
       
       const response = await fetch('/api/sahib-admin-2024/products', {
         method: 'POST',

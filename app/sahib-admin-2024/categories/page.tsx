@@ -29,7 +29,6 @@ export default function AdminCategoriesPage() {
       const response = await fetch('/api/sahib-admin-2024/categories')
       if (response.ok) {
         const data = await response.json()
-        console.log('Categories data:', data)
         setCategories(data)
       } else {
         console.error('Failed to fetch categories')

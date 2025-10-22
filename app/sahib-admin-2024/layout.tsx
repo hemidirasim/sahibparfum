@@ -48,9 +48,6 @@ export default function AdminLayout({
 
   // Debug session info
   useEffect(() => {
-    console.log('Admin Layout - Session Status:', status)
-    console.log('Admin Layout - Session:', session)
-    console.log('Admin Layout - User Role:', session?.user?.role)
   }, [session, status])
 
   // Login səhifəsi üçün layout tətbiq etmə

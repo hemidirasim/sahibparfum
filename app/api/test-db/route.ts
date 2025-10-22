@@ -3,11 +3,9 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('=== TEST DB API ===')
     
     // Test database connection
     const userCount = await prisma.user.count()
-    console.log('User count:', userCount)
     
     // Test order creation
     const testOrder = await prisma.order.create({
@@ -20,7 +18,6 @@ export async function GET(request: NextRequest) {
       }
     })
     
-    console.log('Test order created:', testOrder)
     
     return NextResponse.json({
       success: true,

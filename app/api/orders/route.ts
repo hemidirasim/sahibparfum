@@ -47,15 +47,6 @@ export async function GET(request: NextRequest) {
 
     // Format orders with installment data
     const formattedOrders = orders.map(order => {
-      console.log('=== ORDER FORMATTING ===')
-      console.log('Order ID:', order.id)
-      console.log('Payment Method:', order.paymentMethod)
-      console.log('Installment First Name:', order.installmentFirstName)
-      console.log('Installment Last Name:', order.installmentLastName)
-      console.log('Installment Father Name:', order.installmentFatherName)
-      console.log('Installment Workplace:', order.installmentWorkplace)
-      console.log('Installment Salary:', order.installmentSalary)
-      console.log('Installment Family Members:', order.installmentFamilyMembers)
       
       const installmentData = order.paymentMethod === 'HISSELI' ? {
         firstName: order.installmentFirstName,
@@ -72,7 +63,6 @@ export async function GET(request: NextRequest) {
         salary: order.installmentSalary
       } : null
       
-      console.log('Formatted Installment Data:', installmentData)
       
       return {
         ...order,
@@ -80,10 +70,7 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    console.log('=== FINAL API RESPONSE ===')
-    console.log('Formatted orders count:', formattedOrders.length)
     formattedOrders.forEach((order, index) => {
-      console.log(`Order ${index + 1}:`, {
         orderNumber: order.orderNumber,
         paymentMethod: order.paymentMethod,
         hasInstallmentData: !!order.installmentData,
@@ -100,11 +87,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('=== ORDERS API POST REQUEST START ===')
-    console.log('Request received at:', new Date().toISOString())
     
     const session = await getServerSession(authOptions)
-    console.log('Session check:', {
       hasSession: !!session,
       userEmail: session?.user?.email,
       userRole: session?.user?.role,
@@ -113,14 +97,10 @@ export async function POST(request: NextRequest) {
     })
     
     if (!session?.user?.email) {
-      console.log('Unauthorized access - no session or email')
-      console.log('Session object:', session)
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
     const body = await request.json()
-    console.log('=== ORDER CREATION REQUEST ===')
-    console.log('Request body:', JSON.stringify(body, null, 2))
     
     const { 
       userId, 
@@ -134,8 +114,6 @@ export async function POST(request: NextRequest) {
       installmentData
     } = body
 
-    console.log('Payment method:', paymentMethod)
-    console.log('Installment data:', installmentData)
     
     // Validate required fields
     if (!userId) {
@@ -158,19 +136,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Order items are required' }, { status: 400 })
     }
     
-    console.log('All validations passed')
     
     // Test database connection first
     try {
       const testConnection = await prisma.user.count()
-      console.log('Database connection test - user count:', testConnection)
     } catch (dbError) {
       console.error('Database connection failed:', dbError)
       return NextResponse.json({ error: 'Database connection failed' }, { status: 500 })
     }
 
     // Always create new order - no reuse of pending orders
-    console.log('Creating new order - no pending order reuse')
     
     // Generate order number
     const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
@@ -196,8 +171,6 @@ export async function POST(request: NextRequest) {
 
     // Add installment data if payment method is HISSELI
     if (paymentMethod === 'HISSELI' && installmentData) {
-      console.log('Adding installment data to new order creation')
-      console.log('Installment data to save:', installmentData)
       
       createData.installmentFirstName = installmentData.firstName
       createData.installmentLastName = installmentData.lastName
@@ -212,11 +185,8 @@ export async function POST(request: NextRequest) {
       createData.installmentPosition = installmentData.position
       createData.installmentSalary = installmentData.salary
       
-      console.log('Create data with installment:', createData)
     }
 
-    console.log('=== CREATING NEW ORDER ===')
-    console.log('Create data:', createData)
     
     const order = await prisma.order.create({
       data: createData,
@@ -247,8 +217,6 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    console.log('=== ORDER CREATION SUCCESS ===')
-    console.log('Order created/updated successfully:', {
       orderId: order?.id,
       orderNumber: order?.orderNumber,
       status: order?.status,
@@ -295,7 +263,6 @@ export async function POST(request: NextRequest) {
       const emailResult = await sendOrderConfirmationEmail(emailData)
       
       if (emailResult.success) {
-        console.log('Order confirmation email sent successfully:', order.orderNumber)
       } else {
         console.error('Failed to send order confirmation email:', emailResult.error)
       }
@@ -304,8 +271,6 @@ export async function POST(request: NextRequest) {
       // Don't fail the order creation if email fails
     }
 
-    console.log('=== RETURNING ORDER RESPONSE ===')
-    console.log('Final order object:', order ? {
       id: order.id,
       orderNumber: order.orderNumber,
       status: order.status,

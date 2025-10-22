@@ -112,11 +112,6 @@ export async function GET(
       }
     }
 
-    console.log('=== ADMIN ORDER DETAILS API ===')
-    console.log('Order ID:', order.id)
-    console.log('Payment Method:', order.paymentMethod)
-    console.log('Has installment data:', !!installmentData)
-    console.log('Installment data:', installmentData)
 
     const finalOrder = {
       ...formattedOrder,

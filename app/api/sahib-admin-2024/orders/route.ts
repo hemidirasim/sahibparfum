@@ -86,15 +86,6 @@ export async function GET(request: NextRequest) {
 
     // Format orders
     const formattedOrders = orders.map(order => {
-      console.log('=== ADMIN ORDER FORMATTING ===')
-      console.log('Order ID:', order.id)
-      console.log('Payment Method:', order.paymentMethod)
-      console.log('Installment First Name:', order.installmentFirstName)
-      console.log('Installment Last Name:', order.installmentLastName)
-      console.log('Installment Father Name:', order.installmentFatherName)
-      console.log('Installment Workplace:', order.installmentWorkplace)
-      console.log('Installment Salary:', order.installmentSalary)
-      console.log('Installment Family Members:', order.installmentFamilyMembers)
       
       const installmentData = order.paymentMethod === 'HISSELI' ? {
         firstName: order.installmentFirstName,
@@ -111,7 +102,6 @@ export async function GET(request: NextRequest) {
         salary: order.installmentSalary
       } : null
       
-      console.log('Formatted Installment Data:', installmentData)
       
       return {
         id: order.id,
@@ -166,10 +156,7 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    console.log('=== FINAL ADMIN API RESPONSE ===')
-    console.log('Formatted orders count:', formattedOrders.length)
     formattedOrders.forEach((order, index) => {
-      console.log(`Admin Order ${index + 1}:`, {
         orderNumber: order.orderNumber,
         paymentMethod: order.paymentMethod,
         hasInstallmentData: !!order.installmentData,

@@ -68,11 +68,6 @@ export async function GET(
       }
     }
 
-    console.log('=== ORDER DETAILS API ===')
-    console.log('Order ID:', order.id)
-    console.log('Payment Method:', order.paymentMethod)
-    console.log('Has installment data:', !!installmentData)
-    console.log('Installment data:', installmentData)
 
     const formattedOrder = {
       ...order,
@@ -127,7 +122,6 @@ export async function PATCH(
       }
     })
 
-    console.log('Order status updated:', updatedOrder.id, 'Status:', status, 'Payment Status:', paymentStatus)
 
     return NextResponse.json({
       success: true,

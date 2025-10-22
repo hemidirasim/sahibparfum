@@ -115,10 +115,7 @@ export default function AdminOrdersPage() {
       const response = await fetch('/api/sahib-admin-2024/orders')
       if (response.ok) {
         const data = await response.json()
-        console.log('=== ADMIN ORDERS FETCHED ===')
-        console.log('Admin orders data:', data.orders)
         data.orders.forEach((order: any, index: number) => {
-          console.log(`Admin Order ${index + 1}:`, {
             orderNumber: order.orderNumber,
             paymentMethod: order.paymentMethod,
             installmentData: order.installmentData
@@ -781,10 +778,6 @@ export default function AdminOrdersPage() {
 
               {/* Installment Data */}
               {(() => {
-                console.log('=== ADMIN INSTALLMENT DATA CHECK ===')
-                console.log('Payment Method:', selectedOrder.paymentMethod)
-                console.log('Installment Data:', selectedOrder.installmentData)
-                console.log('Should show installment data:', selectedOrder.paymentMethod === 'HISSELI' && selectedOrder.installmentData)
                 return null
               })()}
               {selectedOrder.paymentMethod === 'HISSELI' && selectedOrder.installmentData && (

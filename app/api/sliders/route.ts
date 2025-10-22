@@ -3,8 +3,6 @@ import { prisma } from '@/lib/prisma'
 
 export async function GET(request: NextRequest) {
   try {
-    console.log('=== SLIDERS API REQUEST START ===')
-    console.log('Request URL:', request.url)
     
     // Get only active sliders, ordered by order field
     const sliders = await prisma.slider.findMany({
@@ -16,7 +14,6 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    console.log('Sliders from database:', {
       count: sliders.length,
       orders: sliders.map(s => ({ id: s.id, order: s.order, title: s.title }))
     })
@@ -33,7 +30,6 @@ export async function GET(request: NextRequest) {
       order: slider.order
     }))
 
-    console.log('Formatted sliders response:', {
       count: formattedSliders.length,
       orders: formattedSliders.map(s => ({ id: s.id, order: s.order, title: s.title }))
     })

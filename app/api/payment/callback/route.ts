@@ -46,15 +46,12 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     
     // Security logging (without sensitive data)
-    console.log('Payment callback received from IP:', clientIP)
-    console.log('Callback data (sanitized):', {
       clientOrderId: body.clientOrderId,
       transactionId: body.transactionId,
       status: body.status,
       amount: body.amount,
       currency: body.currency
     })
-    console.log('Callback headers (sanitized):', {
       'user-agent': request.headers.get('user-agent'),
       'content-type': request.headers.get('content-type'),
       'x-forwarded-for': request.headers.get('x-forwarded-for')
@@ -83,7 +80,6 @@ export async function POST(request: NextRequest) {
     const finalOrderId = clientOrderId || orderId || OrderId
     const initialStatus = status || Status
 
-    console.log('Processing callback for order:', finalOrderId, 'transactionId:', finalTransactionId, 'status:', initialStatus)
 
     if (!finalOrderId) {
       console.error('No order ID found in callback')
@@ -110,7 +106,6 @@ export async function POST(request: NextRequest) {
       paymentStatus = 'CANCELLED'
     }
 
-    console.log('Mapped status - Order:', orderStatus, 'Payment:', paymentStatus)
 
     // Update order in database
     try {
@@ -124,7 +119,6 @@ export async function POST(request: NextRequest) {
         }
       })
 
-      console.log('Order updated successfully:', updatedOrder.id, 'Status:', orderStatus)
 
       // If payment successful, reduce product stock
       if (orderStatus === 'PAID') {
@@ -144,7 +138,6 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        console.log('Product stock updated for order:', finalOrderId)
       }
 
       return NextResponse.json({ 

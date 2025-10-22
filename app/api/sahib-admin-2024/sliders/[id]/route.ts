@@ -62,7 +62,6 @@ export async function PATCH(
       order
     } = body
 
-    console.log('Slider update request:', {
       id: params.id,
       body,
       hasTitle: !!title,
@@ -75,7 +74,6 @@ export async function PATCH(
     
     // Validate required fields only for full updates
     if (!isOrderOnlyUpdate && (!title || !image)) {
-      console.log('Validation failed - missing required fields:', { title: !!title, image: !!image })
       return NextResponse.json({ error: 'Title and image are required' }, { status: 400 })
     }
 
@@ -90,7 +88,6 @@ export async function PATCH(
     if (isActive !== undefined) updateData.isActive = isActive
     if (order !== undefined) updateData.order = order
 
-    console.log('Updating slider with data:', updateData)
 
     // Update slider
     const slider = await prisma.slider.update({

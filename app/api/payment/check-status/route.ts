@@ -12,7 +12,6 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    console.log('Checking transaction status for ID:', transactionId)
     
     const statusCheck = await checkTransactionStatus(transactionId)
     

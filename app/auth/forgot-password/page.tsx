@@ -26,13 +26,10 @@ export default function ForgotPasswordPage() {
         body: JSON.stringify({ email }),
       })
 
-      console.log('Response status:', response.status)
-      console.log('Response headers:', response.headers)
 
       let data
       try {
         data = await response.json()
-        console.log('Response data:', data)
       } catch (jsonError) {
         console.error('JSON parse error:', jsonError)
         const textResponse = await response.text()

@@ -33,7 +33,6 @@ export function CategoriesSection() {
         if (response.ok) {
           const data = await response.json()
           
-          console.log('Categories Section: Categories fetched:', {
             timestamp: new Date().toISOString(),
             categoriesCount: data?.length || 0,
             url: `/api/categories?_t=${timestamp}`,

@@ -57,19 +57,16 @@ function isSuspiciousRequest(request: NextRequest): boolean {
   
   // Check for suspicious user agents
   if (SUSPICIOUS_PATTERNS.some(pattern => pattern.test(userAgent))) {
-    console.log('Suspicious user agent detected:', userAgent)
     return true
   }
   
   // Check for missing or suspicious referer
   if (!referer && !origin && request.method === 'POST') {
-    console.log('Missing referer/origin for POST request')
     return true
   }
   
   // Check for suspicious referer patterns
   if (referer && !referer.includes('localhost') && !referer.includes('sahibparfum.az')) {
-    console.log('Suspicious referer:', referer)
     return true
   }
   
@@ -84,7 +81,6 @@ export function middleware(request: NextRequest) {
   
   // Log all requests to payment endpoints
   if (pathname.startsWith('/api/payment/')) {
-    console.log('Payment API request:', {
       path: pathname,
       method: request.method,
       ip: clientIP,
@@ -96,7 +92,6 @@ export function middleware(request: NextRequest) {
   
   // Block specific IPs
   if (BLOCKED_IPS.has(clientIP)) {
-    console.log('Blocked IP attempted access:', clientIP)
     return NextResponse.json(
       { error: 'Access denied' },
       { status: 403 }
@@ -105,7 +100,6 @@ export function middleware(request: NextRequest) {
   
   // Check for suspicious requests
   if (isSuspiciousRequest(request)) {
-    console.log('Suspicious request detected:', {
       ip: clientIP,
       path: pathname,
       userAgent: request.headers.get('user-agent'),
@@ -120,7 +114,6 @@ export function middleware(request: NextRequest) {
   // Rate limiting for payment endpoints
   if (pathname.startsWith('/api/payment/')) {
     if (!checkRateLimit(clientIP, pathname)) {
-      console.log('Rate limit exceeded for IP:', clientIP, 'on path:', pathname)
       return NextResponse.json(
         { error: 'Too many requests', message: 'Rate limit exceeded' },
         { status: 429 }

@@ -123,7 +123,6 @@ export async function POST(request: NextRequest) {
       revalidatePath('/api/categories')
       revalidatePath('/')
       revalidatePath('/categories')
-      console.log('Revalidated category paths after creation')
     } catch (revalidateError) {
       console.error('Revalidation error:', revalidateError)
     }

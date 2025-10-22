@@ -48,7 +48,6 @@ export function SliderForm({ slider, onSave, onCancel }: SliderFormProps) {
           body: formData,
         })
 
-        console.log('Upload response:', {
           status: response.status,
           statusText: response.statusText,
           ok: response.ok
@@ -56,7 +55,6 @@ export function SliderForm({ slider, onSave, onCancel }: SliderFormProps) {
 
         if (response.ok) {
           const data = await response.json()
-          console.log('Upload success:', data)
           setFormData(prev => ({ ...prev, image: data.url }))
           setImagePreview(data.url)
         } else {

@@ -22,10 +22,8 @@ export default function OrdersSupportPage() {
         
         if (response.ok) {
           const data = await response.json()
-          console.log('Fetched support content:', data)
           // Sort by order field
           const sortedData = data.sort((a: SupportContent, b: SupportContent) => a.order - b.order)
-          console.log('Sorted support content:', sortedData)
           setSupportContent(sortedData)
         }
       } catch (error) {

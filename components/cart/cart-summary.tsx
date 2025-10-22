@@ -34,7 +34,6 @@ export function CartSummary() {
         })
         const data = await response.json()
         
-        console.log('Cart Summary: Settings fetched:', {
           timestamp: new Date().toISOString(),
           deliveryCost: data.deliveryCost,
           freeDeliveryThreshold: data.freeDeliveryThreshold

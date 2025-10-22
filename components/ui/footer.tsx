@@ -36,7 +36,6 @@ export function Footer() {
         })
         const data = await response.json()
         
-        console.log('Footer: Settings fetched:', {
           timestamp: new Date().toISOString(),
           siteName: data.siteName,
           contactPhone: data.contactPhone,

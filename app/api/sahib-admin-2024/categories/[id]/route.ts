@@ -129,17 +129,14 @@ export async function DELETE(
     })
 
     if (!existingCategory) {
-      console.log(`Category with id ${params.id} not found`)
       return NextResponse.json({ error: 'Category not found' }, { status: 404 })
     }
 
     // Check if category is already inactive
     if (!existingCategory.isActive) {
-      console.log(`Category ${existingCategory.name} is already inactive`)
       return NextResponse.json({ error: 'Category is already inactive' }, { status: 400 })
     }
 
-    console.log(`Deleting category: ${existingCategory.name} with ${existingCategory._count.products} products`)
 
     // Delete all products in this category first (soft delete - set isActive to false)
     if (existingCategory._count.products > 0) {
@@ -147,7 +144,6 @@ export async function DELETE(
         where: { categoryId: params.id },
         data: { isActive: false }
       })
-      console.log(`Soft deleted ${updateResult.count} products from category: ${existingCategory.name}`)
     }
 
     // Try to delete category with transaction for better error handling
@@ -176,17 +172,14 @@ export async function DELETE(
         data: { isActive: false }
       })
       
-      console.log(`Soft deleted category: ${existingCategory.name} (hard delete failed)`)
     }
 
-    console.log(`Successfully deleted category: ${existingCategory.name}`)
 
     // Revalidate category-related pages
     try {
       revalidatePath('/api/categories')
       revalidatePath('/')
       revalidatePath('/categories')
-      console.log('Revalidated category paths after deletion')
     } catch (revalidateError) {
       console.error('Revalidation error:', revalidateError)
     }

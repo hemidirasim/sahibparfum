@@ -76,7 +76,6 @@ export function Header() {
         if (response.ok) {
           const data = await response.json()
           
-        console.log('Header: Settings fetched:', {
           timestamp: new Date().toISOString(),
           siteName: data.siteName,
           contactPhone: data.contactPhone,
@@ -123,7 +122,6 @@ export function Header() {
         if (response.ok) {
           const data = await response.json()
           
-          console.log('Header: Categories fetched:', {
             timestamp: new Date().toISOString(),
             categoriesCount: data?.length || 0,
             url: `/api/categories?_t=${timestamp}`,
@@ -158,7 +156,6 @@ export function Header() {
         const response = await fetch('/api/brands')
         if (response.ok) {
           const data = await response.json()
-          console.log('Header: Fetched brands:', data.brands)
           setBrands(data.brands || {})
         }
       } catch (error) {

@@ -77,7 +77,6 @@ export async function PUT(request: NextRequest) {
       revalidatePath('/')
       revalidatePath('/cart')
       revalidatePath('/checkout')
-      console.log('Revalidated settings paths after update')
     } catch (revalidateError) {
       console.error('Settings revalidation error:', revalidateError)
     }

@@ -24,7 +24,6 @@ function getApiUrl(): string {
 // United Payment API requires fresh token for each transaction
 export async function getValidToken(): Promise<string | null> {
   try {
-    console.log('Getting fresh authentication token...')
     
     // Check if credentials are configured
     if (!UNITED_PAYMENT_AUTH_CONFIG.email || !UNITED_PAYMENT_AUTH_CONFIG.password) {
@@ -38,7 +37,6 @@ export async function getValidToken(): Promise<string | null> {
     }
 
     const apiUrl = getApiUrl()
-    console.log('Making authentication request to:', `${apiUrl}/api/auth/`)
     
     const response = await fetch(`${apiUrl}/api/auth/`, {
       method: 'POST',
@@ -49,14 +47,11 @@ export async function getValidToken(): Promise<string | null> {
       body: JSON.stringify(loginData)
     })
 
-    console.log('Authentication response status:', response.status)
 
     if (response.ok) {
       const result = await response.json()
-      console.log('Authentication successful, token received')
       
       if (result.token) {
-        console.log('Token obtained successfully')
         return result.token
       } else {
         console.error('No token in response:', result)
@@ -87,7 +82,6 @@ export async function checkTransactionStatus(transactionId: number): Promise<{
   error?: string;
 }> {
   try {
-    console.log('Checking transaction status for ID:', transactionId)
     
     const token = await getValidToken()
     if (!token) {
@@ -102,8 +96,6 @@ export async function checkTransactionStatus(transactionId: number): Promise<{
       transactionId: transactionId
     }
 
-    console.log('Making status check request to:', `${apiUrl}/api/transactions/transaction-status-by-trx-id`)
-    console.log('Request body:', requestBody)
 
     const response = await fetch(`${apiUrl}/api/transactions/transaction-status-by-trx-id`, {
       method: 'POST',
@@ -115,11 +107,9 @@ export async function checkTransactionStatus(transactionId: number): Promise<{
       body: JSON.stringify(requestBody)
     })
 
-    console.log('Status check response status:', response.status)
 
     if (response.ok) {
       const result = await response.json()
-      console.log('Transaction status response:', result)
       
       return {
         success: true,

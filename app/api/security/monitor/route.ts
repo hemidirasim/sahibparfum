@@ -91,7 +91,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { event, details, severity = 'info' } = body
     
-    console.log('Security event logged:', {
       event,
       details,
       severity,

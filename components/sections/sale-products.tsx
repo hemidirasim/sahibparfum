@@ -121,7 +121,6 @@ export function SaleProducts() {
         })
         const data = await response.json()
         
-        console.log('Sale products fetched:', {
           timestamp: new Date().toISOString(),
           productsCount: data.products?.length || 0,
           url: `/api/products?sale=true&_t=${timestamp}`

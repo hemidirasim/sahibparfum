@@ -134,7 +134,6 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    console.log('Product creation request body:', JSON.stringify(body, null, 2))
     
     const {
       name,
@@ -159,7 +158,6 @@ export async function POST(request: NextRequest) {
     const trimmedCategoryId = categoryId?.toString().trim()
     const trimmedSku = sku?.toString().trim()
     
-    console.log('Validation check:', {
       name: !!trimmedName,
       description: !!trimmedDescription,
       categoryId: !!trimmedCategoryId,

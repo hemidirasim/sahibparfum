@@ -45,7 +45,6 @@ async function getCategoryData(slug: string): Promise<Category | null> {
           .replace(/ı/g, 'i')  // ı -> i
               .replace(/\s+/g, '-')
             
-        console.log(`🔍 Comparing: "${categorySlug}" === "${slug}"`)
             return categorySlug === slug
           })
         }
@@ -58,13 +57,10 @@ async function getCategoryData(slug: string): Promise<Category | null> {
 }
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  console.log('🔍 Generating metadata for slug:', params.slug)
   
   const category = await getCategoryData(params.slug)
-  console.log('📊 Found category:', category)
   
   if (!category) {
-    console.log('❌ Category not found, using default metadata')
     return {
       title: 'Kateqoriya tapılmadı - Sahib Parfumeriya',
       description: 'Axtardığınız kateqoriya mövcud deyil.',
@@ -100,7 +96,6 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     },
   }
   
-  console.log('✅ Generated metadata:', metadata)
   return metadata
 }
 

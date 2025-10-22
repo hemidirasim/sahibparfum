@@ -153,7 +153,6 @@ export default function GuestCheckoutPage() {
             deliveryCost: data.deliveryCost || 10,
             freeDeliveryThreshold: data.freeDeliveryThreshold || 100
           })
-          console.log('Guest Checkout: Settings loaded:', data)
         }
       } catch (error) {
         console.error('Error loading settings:', error)
@@ -275,7 +274,6 @@ export default function GuestCheckoutPage() {
               }
             }
 
-            console.log('Sending guest payment request:', paymentData)
             const paymentResponse = await fetch('/api/payment/united-payment', {
               method: 'POST',
               headers: {
@@ -284,20 +282,16 @@ export default function GuestCheckoutPage() {
               body: JSON.stringify(paymentData),
             })
             
-            console.log('Guest payment response status:', paymentResponse.status)
 
             if (paymentResponse.ok) {
               const paymentResult = await paymentResponse.json()
-              console.log('Guest Payment API Response:', paymentResult)
               
               if (paymentResult.isMock) {
-                console.log('Mock payment - redirecting to:', paymentResult.paymentUrl)
                 clearCart()
                 toast.success('Test rejimində ödəniş simulyasiya edilir...')
                 // For mock payments, redirect directly to success page
                 router.push(paymentResult.paymentUrl)
               } else {
-                console.log('Real payment - redirecting to:', paymentResult.paymentUrl)
                 toast.success('Ödəniş səhifəsinə yönləndirilirsiniz...')
                 // Redirect to United Payment (don't clear cart yet, wait for payment completion)
                 window.location.href = paymentResult.paymentUrl
@@ -347,7 +341,6 @@ export default function GuestCheckoutPage() {
               }
             }
 
-            console.log('Sending guest taksit payment request:', paymentData)
             const paymentResponse = await fetch('/api/payment/united-payment/taksit', {
               method: 'POST',
               headers: {
@@ -356,19 +349,15 @@ export default function GuestCheckoutPage() {
               body: JSON.stringify(paymentData),
             })
             
-            console.log('Guest taksit payment response status:', paymentResponse.status)
 
             if (paymentResponse.ok) {
               const paymentResult = await paymentResponse.json()
-              console.log('Guest Taksit Payment API Response:', paymentResult)
               
               if (paymentResult.isMock) {
-                console.log('Mock guest taksit payment - redirecting to:', paymentResult.paymentUrl)
                 clearCart()
                 toast.success(`Test rejimində ${formData.installment} aylıq taksit ödənişi simulyasiya edilir...`)
                 router.push(paymentResult.paymentUrl)
               } else {
-                console.log('Real guest taksit payment - redirecting to:', paymentResult.paymentUrl)
                 toast.success(`${formData.installment} aylıq taksit ödəniş səhifəsinə yönləndirilirsiniz...`)
                 window.location.href = paymentResult.paymentUrl
               }

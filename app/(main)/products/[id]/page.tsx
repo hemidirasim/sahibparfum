@@ -56,7 +56,6 @@ const prisma = new PrismaClient()
 
 async function getProductData(id: string): Promise<Product | null> {
   try {
-    console.log(`🔍 Fetching product data for ID: ${id}`)
     
     const product = await prisma.product.findUnique({
       where: { 
@@ -96,11 +95,9 @@ async function getProductData(id: string): Promise<Product | null> {
     })
 
     if (!product) {
-      console.log(`❌ Product not found for ID: ${id}`)
       return null
     }
 
-    console.log(`✅ Found product: ${product.name}`)
     await prisma.$disconnect()
     
     return {
@@ -123,19 +120,16 @@ async function getProductData(id: string): Promise<Product | null> {
 }
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
-  console.log(`🔍 Generating metadata for product ID: ${params.id}`)
   
   const product = await getProductData(params.id)
   
   if (!product) {
-    console.log(`❌ Product not found for metadata generation`)
     return {
       title: 'Məhsul tapılmadı - Sahib Parfumeriya',
       description: 'Axtardığınız məhsul mövcud deyil.',
     }
   }
 
-  console.log(`📊 Found product for metadata: ${product.name}`)
 
   const currentPrice = product.salePrice || product.price
   const originalPrice = product.salePrice ? product.price : undefined
@@ -187,7 +181,6 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
     },
   }
 
-  console.log(`✅ Generated metadata for product: ${product.name}`)
   return metadata
 }
 

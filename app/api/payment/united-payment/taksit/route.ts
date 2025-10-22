@@ -77,14 +77,8 @@ export async function POST(request: NextRequest) {
     }
     
     // Security logging (without sensitive data)
-    console.log('=== TAKSIT PAYMENT API REQUEST START ===')
-    console.log('Request URL:', request.url)
-    console.log('Request method:', request.method)
-    console.log('Client IP:', clientIP)
-    console.log('User Agent:', request.headers.get('user-agent'))
     
     const body = await request.json()
-    console.log('Request body received (sanitized):', {
       orderId: body.orderId,
       amount: body.amount,
       currency: body.currency,
@@ -103,7 +97,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Log request details for debugging
-    console.log('Taksit payment request parsed:', {
       orderId,
       amount,
       currency,
@@ -118,8 +111,6 @@ export async function POST(request: NextRequest) {
 
     // Handle retry payment - fetch order data from database
     if (retry && orderId) {
-      console.log('=== RETRY TAKSIT PAYMENT LOGIC ===')
-      console.log('Fetching order from database:', orderId)
       
       const existingOrder = await prisma.order.findUnique({
         where: { id: orderId },
@@ -132,7 +123,6 @@ export async function POST(request: NextRequest) {
         }
       })
 
-      console.log('Database order found:', {
         orderExists: !!existingOrder,
         orderId: existingOrder?.id,
         totalAmount: existingOrder?.totalAmount,
@@ -143,7 +133,6 @@ export async function POST(request: NextRequest) {
       })
 
       if (!existingOrder) {
-        console.log('Order not found in database')
         return NextResponse.json(
           { error: 'Sifariş tapılmadı' },
           { status: 404 }
@@ -163,12 +152,10 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      console.log('Retry data prepared:', retryData)
 
       // Update body with retry data
       Object.assign(body, retryData)
       
-      console.log('Body after retry data assignment:', body)
     }
 
     // Validate required fields (use updated body after retry logic)
@@ -176,7 +163,6 @@ export async function POST(request: NextRequest) {
     const finalAmount = body.amount || amount
     const finalCustomerInfo = body.customerInfo || customerInfo
     
-    console.log('Validation check:', {
       finalOrderId: !!finalOrderId,
       finalAmount: !!finalAmount,
       finalCustomerInfo: !!finalCustomerInfo,
@@ -188,7 +174,6 @@ export async function POST(request: NextRequest) {
     })
     
     if (!finalOrderId || !finalAmount || !finalCustomerInfo) {
-      console.log('Validation failed - missing required fields:', {
         orderId: finalOrderId,
         amount: finalAmount,
         customerInfo: finalCustomerInfo
@@ -201,7 +186,6 @@ export async function POST(request: NextRequest) {
 
     // Check if credentials are configured
     if (!UNITED_PAYMENT_CONFIG.email || !UNITED_PAYMENT_CONFIG.password) {
-      console.log('United Payment credentials not configured, using mock mode')
       
       // Return mock payment URL for testing
       return NextResponse.json({
@@ -217,7 +201,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Get valid authentication token
-    console.log('Attempting to get authentication token...')
     const authToken = await getValidToken()
     
     if (!authToken) {
@@ -239,7 +222,6 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    console.log('Authentication token obtained successfully')
 
     // Determine cancel URL based on payment source
     let cancelUrl = UNITED_PAYMENT_CONFIG.cancelUrl
@@ -251,7 +233,6 @@ export async function POST(request: NextRequest) {
       cancelUrl = `${process.env.NEXTAUTH_URL || 'https://sahibparfum.az'}/checkout/guest`
     }
 
-    console.log('Payment source and URLs:', {
       source,
       cancelUrl,
       successUrl: UNITED_PAYMENT_CONFIG.successUrl,
@@ -283,7 +264,6 @@ export async function POST(request: NextRequest) {
     }
 
     // Log payment data structure for debugging
-    console.log('Taksit payment data structure:', {
       hasOrderId: !!paymentData.orderId,
       hasAmount: !!paymentData.amount,
       hasLanguage: !!paymentData.language,
@@ -302,11 +282,6 @@ export async function POST(request: NextRequest) {
     })
 
     const apiUrl = getApiUrl()
-    console.log('Making request to:', `${apiUrl}/api/transactions/taksit`)
-    console.log('Payment data:', paymentData)
-    console.log('Auth token:', authToken ? 'Present' : 'Missing')
-    console.log('Partner ID configured:', UNITED_PAYMENT_CONFIG.partnerId ? 'Yes' : 'No')
-    console.log('Partner ID value:', UNITED_PAYMENT_CONFIG.partnerId)
 
     // Make request to United Payment Taksit API
     const response = await fetch(`${apiUrl}/api/transactions/taksit`, {
@@ -320,12 +295,8 @@ export async function POST(request: NextRequest) {
     })
 
     const result = await response.json()
-    console.log('United Payment Taksit API Response:', result)
-    console.log('Response status:', response.status)
-    console.log('Response headers:', Object.fromEntries(response.headers.entries()))
     
     // Debug response structure
-    console.log('Response structure analysis:', {
       hasUrl: 'url' in result,
       hasPaymentUrl: 'paymentUrl' in result,
       hasRedirectUrl: 'redirectUrl' in result,

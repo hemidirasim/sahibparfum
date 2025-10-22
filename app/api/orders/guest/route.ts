@@ -40,7 +40,6 @@ export async function POST(request: NextRequest) {
     let order
 
     if (existingPendingOrder) {
-      console.log('Reusing existing pending guest order:', existingPendingOrder.orderNumber)
       
       // Update existing order with new data
       order = await prisma.order.update({
@@ -115,7 +114,6 @@ export async function POST(request: NextRequest) {
         }
       })
     } else {
-      console.log('Creating new guest order')
       
       // Generate unique order number
       const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`
@@ -234,7 +232,6 @@ export async function POST(request: NextRequest) {
       const emailResult = await sendOrderConfirmationEmail(emailData)
       
       if (emailResult.success) {
-        console.log('Guest order confirmation email sent successfully:', order.orderNumber)
       } else {
         console.error('Failed to send guest order confirmation email:', emailResult.error)
       }

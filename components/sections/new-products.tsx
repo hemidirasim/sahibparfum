@@ -122,7 +122,6 @@ export function NewProducts() {
         })
         const data = await response.json()
         
-        console.log('New products fetched:', {
           timestamp: new Date().toISOString(),
           productsCount: data.products?.length || 0,
           url: `/api/products?new=true&_t=${timestamp}`
