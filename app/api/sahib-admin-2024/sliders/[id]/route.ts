@@ -62,13 +62,6 @@ export async function PATCH(
       order
     } = body
 
-      id: params.id,
-      body,
-      hasTitle: !!title,
-      hasImage: !!image,
-      hasOrder: order !== undefined
-    })
-
     // If only order is being updated, skip validation
     const isOrderOnlyUpdate = Object.keys(body).length === 1 && body.hasOwnProperty('order')
     

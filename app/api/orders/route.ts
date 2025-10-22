@@ -248,12 +248,6 @@ export async function POST(request: NextRequest) {
       // Don't fail the order creation if email fails
     }
 
-      id: order.id,
-      orderNumber: order.orderNumber,
-      status: order.status,
-      paymentMethod: order.paymentMethod
-    } : 'No order object')
-
     return NextResponse.json(order || {})
   } catch (error) {
     console.error('=== ORDER CREATION ERROR ===')

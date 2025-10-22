@@ -91,12 +91,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { event, details, severity = 'info' } = body
     
-      event,
-      details,
-      severity,
-      timestamp: new Date().toISOString()
-    })
-    
     return NextResponse.json({
       success: true,
       message: 'Security event logged'

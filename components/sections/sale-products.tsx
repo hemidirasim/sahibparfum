@@ -121,11 +121,6 @@ export function SaleProducts() {
         })
         const data = await response.json()
         
-          timestamp: new Date().toISOString(),
-          productsCount: data.products?.length || 0,
-          url: `/api/products?sale=true&_t=${timestamp}`
-        })
-        
         if (data.products) {
           // Endirimli məhsulları götür (salePrice olan məhsullar)
           const saleProducts = data.products
