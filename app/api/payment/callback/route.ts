@@ -1,13 +1,64 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+// Rate limiting storage for callbacks
+const callbackRateLimitMap = new Map<string, { count: number; resetTime: number }>()
+
+// Rate limiting function for callbacks
+function checkCallbackRateLimit(ip: string): boolean {
+  const now = Date.now()
+  const windowMs = 5 * 60 * 1000 // 5 minutes
+  const maxRequests = 50 // Max 50 callbacks per 5 minutes (United Payment might send multiple)
+  
+  const key = ip
+  const current = callbackRateLimitMap.get(key)
+  
+  if (!current || now > current.resetTime) {
+    callbackRateLimitMap.set(key, { count: 1, resetTime: now + windowMs })
+    return true
+  }
+  
+  if (current.count >= maxRequests) {
+    return false
+  }
+  
+  current.count++
+  return true
+}
+
 // Handle payment callback from United Payment
 export async function POST(request: NextRequest) {
   try {
+    // Get client IP
+    const clientIP = request.headers.get('x-forwarded-for') || 
+                     request.headers.get('x-real-ip') || 
+                     'unknown'
+    
+    // Rate limiting check
+    if (!checkCallbackRateLimit(clientIP)) {
+      console.error('Callback rate limit exceeded for IP:', clientIP)
+      return NextResponse.json(
+        { error: 'Too many callback requests', message: 'Rate limit exceeded' },
+        { status: 429 }
+      )
+    }
+    
     const body = await request.json()
     
-    console.log('Payment callback received:', body)
-    console.log('Callback headers:', Object.fromEntries(request.headers.entries()))
+    // Security logging (without sensitive data)
+    console.log('Payment callback received from IP:', clientIP)
+    console.log('Callback data (sanitized):', {
+      clientOrderId: body.clientOrderId,
+      transactionId: body.transactionId,
+      status: body.status,
+      amount: body.amount,
+      currency: body.currency
+    })
+    console.log('Callback headers (sanitized):', {
+      'user-agent': request.headers.get('user-agent'),
+      'content-type': request.headers.get('content-type'),
+      'x-forwarded-for': request.headers.get('x-forwarded-for')
+    })
 
     // Extract callback data
     const { 

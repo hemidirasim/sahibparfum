@@ -34,16 +34,63 @@ function getApiUrl(): string {
 // Valid installment options
 const VALID_INSTALLMENTS = [2, 3, 6, 9, 12]
 
+// Rate limiting storage for taksit
+const taksitRateLimitMap = new Map<string, { count: number; resetTime: number }>()
+
+// Rate limiting function for taksit
+function checkTaksitRateLimit(ip: string): boolean {
+  const now = Date.now()
+  const windowMs = 15 * 60 * 1000 // 15 minutes
+  const maxRequests = 10 // Max 10 requests per 15 minutes
+  
+  const key = ip
+  const current = taksitRateLimitMap.get(key)
+  
+  if (!current || now > current.resetTime) {
+    taksitRateLimitMap.set(key, { count: 1, resetTime: now + windowMs })
+    return true
+  }
+  
+  if (current.count >= maxRequests) {
+    return false
+  }
+  
+  current.count++
+  return true
+}
+
 // Create installment payment session
 export async function POST(request: NextRequest) {
   try {
+    // Get client IP
+    const clientIP = request.headers.get('x-forwarded-for') || 
+                     request.headers.get('x-real-ip') || 
+                     'unknown'
+    
+    // Rate limiting check
+    if (!checkTaksitRateLimit(clientIP)) {
+      console.error('Taksit rate limit exceeded for IP:', clientIP)
+      return NextResponse.json(
+        { error: 'Too many requests', message: 'Rate limit exceeded' },
+        { status: 429 }
+      )
+    }
+    
+    // Security logging (without sensitive data)
     console.log('=== TAKSIT PAYMENT API REQUEST START ===')
     console.log('Request URL:', request.url)
     console.log('Request method:', request.method)
-    console.log('Request headers:', Object.fromEntries(request.headers.entries()))
+    console.log('Client IP:', clientIP)
+    console.log('User Agent:', request.headers.get('user-agent'))
     
     const body = await request.json()
-    console.log('Request body received:', body)
+    console.log('Request body received (sanitized):', {
+      orderId: body.orderId,
+      amount: body.amount,
+      currency: body.currency,
+      installment: body.installment,
+      hasCustomerInfo: !!body.customerInfo
+    })
     
     const { orderId, amount, currency = 'AZN', description, customerInfo, installment, retry, source } = body
 

@@ -31,16 +31,62 @@ function getApiUrl(): string {
     : UNITED_PAYMENT_CONFIG.testApiUrl
 }
 
+// Rate limiting storage (in production, use Redis)
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>()
+
+// Rate limiting function
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now()
+  const windowMs = 15 * 60 * 1000 // 15 minutes
+  const maxRequests = 10 // Max 10 requests per 15 minutes
+  
+  const key = ip
+  const current = rateLimitMap.get(key)
+  
+  if (!current || now > current.resetTime) {
+    rateLimitMap.set(key, { count: 1, resetTime: now + windowMs })
+    return true
+  }
+  
+  if (current.count >= maxRequests) {
+    return false
+  }
+  
+  current.count++
+  return true
+}
+
 // Create payment session
 export async function POST(request: NextRequest) {
   try {
+    // Get client IP
+    const clientIP = request.headers.get('x-forwarded-for') || 
+                     request.headers.get('x-real-ip') || 
+                     'unknown'
+    
+    // Rate limiting check
+    if (!checkRateLimit(clientIP)) {
+      console.error('Rate limit exceeded for IP:', clientIP)
+      return NextResponse.json(
+        { error: 'Too many requests', message: 'Rate limit exceeded' },
+        { status: 429 }
+      )
+    }
+    
+    // Security logging (without sensitive data)
     console.log('=== PAYMENT API REQUEST START ===')
     console.log('Request URL:', request.url)
     console.log('Request method:', request.method)
-    console.log('Request headers:', Object.fromEntries(request.headers.entries()))
+    console.log('Client IP:', clientIP)
+    console.log('User Agent:', request.headers.get('user-agent'))
     
     const body = await request.json()
-    console.log('Request body received:', body)
+    console.log('Request body received (sanitized):', {
+      orderId: body.orderId,
+      amount: body.amount,
+      currency: body.currency,
+      hasCustomerInfo: !!body.customerInfo
+    })
     
     const { orderId, amount, currency = 'AZN', description, customerInfo, retry, source } = body
 
