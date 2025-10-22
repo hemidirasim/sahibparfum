@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 // Blocked IPs list (add suspicious IPs here)
-const BLOCKED_IPS = new Set([
+const BLOCKED_IPS = new Set<string>([
   // Add suspicious IPs here
   // '192.168.1.100',
   // '10.0.0.50'
