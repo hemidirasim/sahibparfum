@@ -88,11 +88,6 @@ export async function POST(request: NextRequest) {
       // Return local URL
       const localUrl = `/uploads/${filename}`
       
-        localUrl,
-        filename,
-        filePath
-      })
-      
       return NextResponse.json({ 
         success: true, 
         url: localUrl,
@@ -100,18 +95,9 @@ export async function POST(request: NextRequest) {
       })
     } else {
       // Use Vercel Blob for production
-        filename,
-        hasBlobToken: !!process.env.BLOB_READ_WRITE_TOKEN,
-        blobTokenPrefix: process.env.BLOB_READ_WRITE_TOKEN?.substring(0, 10) + '...'
-      })
-
       // Upload to Vercel Blob
       const blob = await put(filename, file, {
         access: 'public',
-      })
-
-        blobUrl: blob.url,
-        filename: blob.pathname
       })
 
       return NextResponse.json({ 

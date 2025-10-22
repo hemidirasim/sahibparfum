@@ -89,11 +89,6 @@ export function middleware(request: NextRequest) {
   
   // Check for suspicious requests
   if (isSuspiciousRequest(request)) {
-      ip: clientIP,
-      path: pathname,
-      userAgent: request.headers.get('user-agent'),
-      referer: request.headers.get('referer')
-    })
     return NextResponse.json(
       { error: 'Suspicious activity detected' },
       { status: 403 }

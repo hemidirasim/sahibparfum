@@ -115,12 +115,6 @@ export function Header() {
         if (response.ok) {
           const data = await response.json()
           
-            timestamp: new Date().toISOString(),
-            categoriesCount: data?.length || 0,
-            url: `/api/categories?_t=${timestamp}`,
-            categories: data?.map((cat: any) => ({ name: cat.name, productCount: cat.productCount }))
-          })
-          
           // API already filters for active categories with products
           const activeCategories = data.map((cat: any) => ({
             name: cat.name,
