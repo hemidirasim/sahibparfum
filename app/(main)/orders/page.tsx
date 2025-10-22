@@ -114,12 +114,6 @@ export default function OrdersPage() {
       const response = await fetch('/api/orders')
       if (response.ok) {
         const data = await response.json()
-        data.forEach((order: any, index: number) => {
-            orderNumber: order.orderNumber,
-            paymentMethod: order.paymentMethod,
-            installmentData: order.installmentData
-          })
-        })
         setOrders(data)
         
         // Hər məhsul üçün rating status-unu yoxla (yalnız giriş edən istifadəçilər üçün)

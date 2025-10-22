@@ -32,12 +32,6 @@ export function CategoriesSection() {
         })
         if (response.ok) {
           const data = await response.json()
-          
-            timestamp: new Date().toISOString(),
-            categoriesCount: data?.length || 0,
-            url: `/api/categories?_t=${timestamp}`,
-            categories: data?.map((cat: any) => ({ name: cat.name, productCount: cat.productCount }))
-          })
           // Show only first 4 categories (API already filters for active categories with products)
           const activeCategories = data.slice(0, 4)
           setCategories(activeCategories)

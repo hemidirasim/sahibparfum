@@ -322,13 +322,6 @@ export default function CheckoutPage() {
       let shippingAddressId = formData.shippingAddressId
       let billingAddressId = formData.useSameAddress ? formData.shippingAddressId : formData.billingAddressId
 
-        shippingAddressId,
-        billingAddressId,
-        useSameAddress: formData.useSameAddress,
-        showAddAddress,
-        userAddresses: userAddresses.length
-      })
-
       // If no address is selected but we have a new address form, add it first
       if (!shippingAddressId && showAddAddress) {
         const addressResponse = await fetch('/api/addresses', {

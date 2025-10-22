@@ -69,14 +69,6 @@ export async function GET(request: NextRequest) {
         installmentData
       }
     })
-
-    formattedOrders.forEach((order, index) => {
-        orderNumber: order.orderNumber,
-        paymentMethod: order.paymentMethod,
-        hasInstallmentData: !!order.installmentData,
-        installmentData: order.installmentData
-      })
-    })
     
     return NextResponse.json(formattedOrders)
   } catch (error) {

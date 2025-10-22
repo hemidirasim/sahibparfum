@@ -34,11 +34,6 @@ export function CartSummary() {
         })
         const data = await response.json()
         
-          timestamp: new Date().toISOString(),
-          deliveryCost: data.deliveryCost,
-          freeDeliveryThreshold: data.freeDeliveryThreshold
-        })
-        
         setSettings({
           deliveryCost: data.deliveryCost || 10,
           freeDeliveryThreshold: data.freeDeliveryThreshold || 100
