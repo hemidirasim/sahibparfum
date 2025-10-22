@@ -178,12 +178,6 @@ export async function POST(request: NextRequest) {
       cancelUrl = `${process.env.NEXTAUTH_URL || 'https://sahibparfum.az'}/checkout/guest`
     }
 
-      source,
-      cancelUrl,
-      successUrl: UNITED_PAYMENT_CONFIG.successUrl,
-      declineUrl: UNITED_PAYMENT_CONFIG.declineUrl
-    })
-
     // Prepare payment data according to United Payment API format
     const paymentData: any = {
       orderId: finalOrderId, // United Payment API expects 'orderId' not 'clientOrderId'

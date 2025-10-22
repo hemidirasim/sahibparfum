@@ -14,10 +14,6 @@ export async function GET(request: NextRequest) {
       }
     })
 
-      count: sliders.length,
-      orders: sliders.map(s => ({ id: s.id, order: s.order, title: s.title }))
-    })
-
     // Format sliders for public use
     const formattedSliders = sliders.map(slider => ({
       id: slider.id,

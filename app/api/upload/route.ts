@@ -8,16 +8,6 @@ import { join } from 'path'
 export async function POST(request: NextRequest) {
   try {
     
-    // Environment variables check
-      hasBlobToken: !!process.env.BLOB_READ_WRITE_TOKEN,
-      blobTokenLength: process.env.BLOB_READ_WRITE_TOKEN?.length,
-      blobTokenPrefix: process.env.BLOB_READ_WRITE_TOKEN?.substring(0, 20) + '...',
-      nextAuthUrl: process.env.NEXTAUTH_URL,
-      nodeEnv: process.env.NODE_ENV,
-      databaseUrl: !!process.env.DATABASE_URL,
-      nextAuthSecret: !!process.env.NEXTAUTH_SECRET
-    })
-    
     // Domain validation
     const allowedDomains = [
       'sahibparfum.az',

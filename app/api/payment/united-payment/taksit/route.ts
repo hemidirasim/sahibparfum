@@ -133,16 +133,6 @@ export async function POST(request: NextRequest) {
     const finalAmount = body.amount || amount
     const finalCustomerInfo = body.customerInfo || customerInfo
     
-      finalOrderId: !!finalOrderId,
-      finalAmount: !!finalAmount,
-      finalCustomerInfo: !!finalCustomerInfo,
-      installment: installment,
-      originalOrderId: !!orderId,
-      originalAmount: !!amount,
-      originalCustomerInfo: !!customerInfo,
-      isRetry: retry
-    })
-    
     if (!finalOrderId || !finalAmount || !finalCustomerInfo) {
         orderId: finalOrderId,
         amount: finalAmount,
