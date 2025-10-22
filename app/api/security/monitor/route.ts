@@ -29,8 +29,9 @@ export async function GET(request: NextRequest) {
         paymentStatus: true,
         totalAmount: true,
         createdAt: true,
-        customerEmail: true,
-        customerPhone: true
+        guestEmail: true,
+        guestPhone: true,
+        guestName: true
       },
       orderBy: {
         createdAt: 'desc'
