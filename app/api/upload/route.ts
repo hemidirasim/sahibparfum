@@ -28,13 +28,6 @@ export async function POST(request: NextRequest) {
     
     // Admin authentication check
     const session = await getServerSession(authOptions)
-      hasSession: !!session,
-      userEmail: session?.user?.email,
-      userRole: session?.user?.role,
-      isAdmin: session?.user?.role === 'ADMIN',
-      sessionKeys: session ? Object.keys(session) : [],
-      userKeys: session?.user ? Object.keys(session.user) : []
-    })
     
     if (!session?.user?.email || session.user?.role !== 'ADMIN') {
       return NextResponse.json({ 

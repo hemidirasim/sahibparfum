@@ -115,12 +115,6 @@ export default function AdminOrdersPage() {
       const response = await fetch('/api/sahib-admin-2024/orders')
       if (response.ok) {
         const data = await response.json()
-        data.orders.forEach((order: any, index: number) => {
-            orderNumber: order.orderNumber,
-            paymentMethod: order.paymentMethod,
-            installmentData: order.installmentData
-          })
-        })
         setOrders(data.orders || [])
       } else {
         console.error('Failed to fetch orders')
