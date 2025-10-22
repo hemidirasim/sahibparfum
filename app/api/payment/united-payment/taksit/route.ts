@@ -134,10 +134,6 @@ export async function POST(request: NextRequest) {
     const finalCustomerInfo = body.customerInfo || customerInfo
     
     if (!finalOrderId || !finalAmount || !finalCustomerInfo) {
-        orderId: finalOrderId,
-        amount: finalAmount,
-        customerInfo: finalCustomerInfo
-      })
       return NextResponse.json(
         { error: 'Missing required fields: orderId, amount, customerInfo' },
         { status: 400 }

@@ -18,11 +18,6 @@ export async function POST(request: NextRequest) {
     const referer = request.headers.get('referer')
     const origin = request.headers.get('origin')
     
-      referer,
-      origin,
-      allowedDomains
-    })
-    
     const isValidDomain = allowedDomains.some(domain => 
       referer?.includes(domain) || origin?.includes(domain)
     )

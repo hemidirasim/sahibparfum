@@ -154,12 +154,6 @@ export default function BrandsPage() {
 
     try {
       setSaving(true)
-      
-        id: editingBrand.id,
-        name: newBrandName.trim(),
-        description: newBrandDescription.trim(),
-        logo: newBrandLogo.trim()
-      })
 
       const response = await fetch(`/api/sahib-admin-2024/brands/${editingBrand.id}`, {
         method: 'PUT',

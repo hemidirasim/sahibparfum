@@ -26,10 +26,6 @@ export async function GET(request: NextRequest) {
       order: slider.order
     }))
 
-      count: formattedSliders.length,
-      orders: formattedSliders.map(s => ({ id: s.id, order: s.order, title: s.title }))
-    })
-
     const response = NextResponse.json(formattedSliders)
 
     // Disable caching for dynamic content
