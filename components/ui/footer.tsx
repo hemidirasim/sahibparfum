@@ -36,13 +36,6 @@ export function Footer() {
         })
         const data = await response.json()
         
-          timestamp: new Date().toISOString(),
-          siteName: data.siteName,
-          contactPhone: data.contactPhone,
-          contactEmail: data.contactEmail,
-          address: data.address
-        })
-        
         setSettings({
           siteName: data.siteName || 'Sahib Parfumeriya',
           siteDescription: data.siteDescription || 'Premium parfüm markalarını sərfəli qiymətlərlə təqdim edən etibarlı platforma.',

@@ -213,24 +213,6 @@ export async function POST(request: NextRequest) {
       paymentData.partnerId = UNITED_PAYMENT_CONFIG.partnerId
     }
 
-    // Log payment data structure for debugging
-      hasOrderId: !!paymentData.orderId,
-      hasAmount: !!paymentData.amount,
-      hasLanguage: !!paymentData.language,
-      hasSuccessUrl: !!paymentData.successUrl,
-      hasCancelUrl: !!paymentData.cancelUrl,
-      hasDeclineUrl: !!paymentData.declineUrl,
-      hasDescription: !!paymentData.description,
-      hasMemberId: !!paymentData.memberId,
-      hasEmail: !!paymentData.email,
-      hasPhoneNumber: !!paymentData.phoneNumber,
-      hasClientName: !!paymentData.clientName,
-      hasCurrency: !!paymentData.currency,
-      hasAddcard: !!paymentData.addcard,
-      hasInstallment: !!paymentData.installment,
-      installmentValue: paymentData.installment
-    })
-
     const apiUrl = getApiUrl()
 
     // Make request to United Payment Taksit API

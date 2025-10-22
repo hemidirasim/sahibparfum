@@ -165,11 +165,6 @@ export default function NewProductPage() {
           body: formData
         })
 
-          status: response.status,
-          statusText: response.statusText,
-          ok: response.ok
-        })
-
         if (response.ok) {
           const result = await response.json()
           uploadedUrls.push(result.url)

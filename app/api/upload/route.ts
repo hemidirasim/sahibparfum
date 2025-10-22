@@ -44,12 +44,6 @@ export async function POST(request: NextRequest) {
     const data = await request.formData()
     const file: File | null = data.get('file') as unknown as File
 
-      hasFile: !!file,
-      fileName: file?.name,
-      fileSize: file?.size,
-      fileType: file?.type
-    })
-
     if (!file) {
       return NextResponse.json({ error: 'No file uploaded' }, { status: 400 })
     }

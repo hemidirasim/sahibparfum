@@ -76,13 +76,6 @@ export function Header() {
         if (response.ok) {
           const data = await response.json()
           
-          timestamp: new Date().toISOString(),
-          siteName: data.siteName,
-          contactPhone: data.contactPhone,
-          contactEmail: data.contactEmail,
-          freeDeliveryThreshold: data.freeDeliveryThreshold
-        })
-          
         setSettings({
           siteName: data.siteName || 'SAHIB perfumery & cosmetics',
           contactPhone: data.contactPhone || '+994 50 123 45 67',
