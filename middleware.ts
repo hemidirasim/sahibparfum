@@ -79,17 +79,6 @@ export function middleware(request: NextRequest) {
                   request.headers.get('x-real-ip') || 
                   'unknown'
   
-  // Log all requests to payment endpoints
-  if (pathname.startsWith('/api/payment/')) {
-      path: pathname,
-      method: request.method,
-      ip: clientIP,
-      userAgent: request.headers.get('user-agent'),
-      referer: request.headers.get('referer'),
-      timestamp: new Date().toISOString()
-    })
-  }
-  
   // Block specific IPs
   if (BLOCKED_IPS.has(clientIP)) {
     return NextResponse.json(
