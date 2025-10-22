@@ -92,15 +92,6 @@ export async function POST(request: NextRequest) {
         }
       })
 
-        orderExists: !!existingOrder,
-        orderId: existingOrder?.id,
-        totalAmount: existingOrder?.totalAmount,
-        orderNumber: existingOrder?.orderNumber,
-        guestName: existingOrder?.guestName,
-        guestEmail: existingOrder?.guestEmail,
-        guestPhone: existingOrder?.guestPhone
-      })
-
       if (!existingOrder) {
         return NextResponse.json(
           { error: 'Sifariş tapılmadı' },

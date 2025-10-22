@@ -76,15 +76,7 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // Security logging (without sensitive data)
-    
     const body = await request.json()
-      orderId: body.orderId,
-      amount: body.amount,
-      currency: body.currency,
-      installment: body.installment,
-      hasCustomerInfo: !!body.customerInfo
-    })
     
     const { orderId, amount, currency = 'AZN', description, customerInfo, installment, retry, source } = body
 

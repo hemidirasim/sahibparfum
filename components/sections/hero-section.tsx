@@ -36,12 +36,6 @@ export function HeroSection() {
         })
         if (response.ok) {
           const data = await response.json()
-          
-            timestamp: new Date().toISOString(),
-            slidersCount: data?.length || 0,
-            url: `/api/sliders?_t=${timestamp}`
-          })
-          
           setSliderData(data)
         }
       } catch (error) {

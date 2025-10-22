@@ -44,18 +44,6 @@ export async function POST(request: NextRequest) {
     }
     
     const body = await request.json()
-    
-    // Security logging (without sensitive data)
-      clientOrderId: body.clientOrderId,
-      transactionId: body.transactionId,
-      status: body.status,
-      amount: body.amount,
-      currency: body.currency
-    })
-      'user-agent': request.headers.get('user-agent'),
-      'content-type': request.headers.get('content-type'),
-      'x-forwarded-for': request.headers.get('x-forwarded-for')
-    })
 
     // Extract callback data
     const { 

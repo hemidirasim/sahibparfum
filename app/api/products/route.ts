@@ -191,16 +191,6 @@ export async function GET(request: NextRequest) {
       }
     })
 
-      totalProducts: total,
-      returnedProducts: transformedProducts.length,
-      page,
-      limit,
-      search: searchParams.get('search'),
-      sale: searchParams.get('sale'),
-      category: searchParams.get('category'),
-      brands: searchParams.getAll('brands')
-    })
-
     const response = NextResponse.json({
       success: true,
       products: transformedProducts,

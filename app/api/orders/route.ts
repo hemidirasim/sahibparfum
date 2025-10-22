@@ -79,14 +79,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    
     const session = await getServerSession(authOptions)
-      hasSession: !!session,
-      userEmail: session?.user?.email,
-      userRole: session?.user?.role,
-      sessionKeys: session ? Object.keys(session) : [],
-      userKeys: session?.user ? Object.keys(session.user) : []
-    })
     
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
