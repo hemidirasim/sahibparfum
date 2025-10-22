@@ -122,11 +122,6 @@ export function NewProducts() {
         })
         const data = await response.json()
         
-          timestamp: new Date().toISOString(),
-          productsCount: data.products?.length || 0,
-          url: `/api/products?new=true&_t=${timestamp}`
-        })
-        
         if (data.products) {
           // Son 30 gün ərzində əlavə edilmiş məhsulları götür
           const thirtyDaysAgo = new Date()

@@ -158,16 +158,6 @@ export async function POST(request: NextRequest) {
     const trimmedCategoryId = categoryId?.toString().trim()
     const trimmedSku = sku?.toString().trim()
     
-      name: !!trimmedName,
-      description: !!trimmedDescription,
-      categoryId: !!trimmedCategoryId,
-      sku: !!trimmedSku,
-      nameValue: trimmedName,
-      descriptionValue: trimmedDescription,
-      categoryIdValue: trimmedCategoryId,
-      skuValue: trimmedSku
-    })
-    
     if (!trimmedName || !trimmedDescription || !trimmedCategoryId || !trimmedSku) {
       return NextResponse.json({ error: 'Name, description, category and SKU are required' }, { status: 400 })
     }

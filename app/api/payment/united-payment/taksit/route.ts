@@ -88,19 +88,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Log request details for debugging
-      orderId,
-      amount,
-      currency,
-      description,
-      customerInfo,
-      installment,
-      retry,
-      hasCredentials: !!(UNITED_PAYMENT_CONFIG.email && UNITED_PAYMENT_CONFIG.password),
-      isProduction: UNITED_PAYMENT_CONFIG.isProduction,
-      apiUrl: getApiUrl()
-    })
-
     // Handle retry payment - fetch order data from database
     if (retry && orderId) {
       

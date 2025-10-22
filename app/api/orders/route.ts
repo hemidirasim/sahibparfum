@@ -202,14 +202,6 @@ export async function POST(request: NextRequest) {
       }
     })
 
-      orderId: order?.id,
-      orderNumber: order?.orderNumber,
-      status: order?.status,
-      paymentMethod: order?.paymentMethod,
-      totalAmount: order?.totalAmount,
-      itemsCount: order?.orderItems?.length || 0
-    })
-
     // Send order confirmation email
     try {
       if (!order) {

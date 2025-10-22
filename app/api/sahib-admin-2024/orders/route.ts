@@ -155,14 +155,6 @@ export async function GET(request: NextRequest) {
         updatedAt: order.updatedAt
       }
     })
-
-    formattedOrders.forEach((order, index) => {
-        orderNumber: order.orderNumber,
-        paymentMethod: order.paymentMethod,
-        hasInstallmentData: !!order.installmentData,
-        installmentData: order.installmentData
-      })
-    })
     
     return NextResponse.json({
       orders: formattedOrders,
