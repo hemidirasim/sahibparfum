@@ -250,7 +250,7 @@ export default function AdminOrdersPage() {
       case 'CONFIRMED':
         return 'bg-blue-100 text-blue-800'
       case 'PROCESSING':
-        return 'bg-orange-100 text-orange-800'
+        return 'bg-[#e6eef5] text-[#022763]'
       case 'SHIPPED':
         return 'bg-purple-100 text-purple-800'
       case 'DELIVERED':

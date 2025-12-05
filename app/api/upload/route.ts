@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { put } from '@vercel/blob'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { writeFile, mkdir } from 'fs/promises'
@@ -67,45 +66,31 @@ export async function POST(request: NextRequest) {
     const fileExtension = file.name.split('.').pop()
     const filename = `products/${timestamp}-${randomString}.${fileExtension}`
 
-    // Check if we're in development or production
-    const isDevelopment = process.env.NODE_ENV === 'development'
+    // Always use local file system (server storage)
+    // Ensure uploads directory exists
+    const uploadsDir = join(process.cwd(), 'public', 'uploads')
+    await mkdir(uploadsDir, { recursive: true })
     
-    if (isDevelopment) {
-      // Use local file system for development
-      
-      // Ensure uploads directory exists
-      const uploadsDir = join(process.cwd(), 'public', 'uploads')
-      await mkdir(uploadsDir, { recursive: true })
-      
-      // Convert file to buffer
-      const bytes = await file.arrayBuffer()
-      const buffer = Buffer.from(bytes)
-      
-      // Write file to local filesystem
-      const filePath = join(uploadsDir, filename)
-      await writeFile(filePath, buffer)
-      
-      // Return local URL
-      const localUrl = `/uploads/${filename}`
-      
-      return NextResponse.json({ 
-        success: true, 
-        url: localUrl,
-        filename: filename
-      })
-    } else {
-      // Use Vercel Blob for production
-      // Upload to Vercel Blob
-      const blob = await put(filename, file, {
-        access: 'public',
-      })
-
-      return NextResponse.json({ 
-        success: true, 
-        url: blob.url,
-        filename: filename
-      })
-    }
+    // Ensure products subdirectory exists
+    const productsDir = join(uploadsDir, 'products')
+    await mkdir(productsDir, { recursive: true })
+    
+    // Convert file to buffer
+    const bytes = await file.arrayBuffer()
+    const buffer = Buffer.from(bytes)
+    
+    // Write file to local filesystem
+    const filePath = join(uploadsDir, filename)
+    await writeFile(filePath, buffer)
+    
+    // Return local URL
+    const localUrl = `/uploads/${filename}`
+    
+    return NextResponse.json({ 
+      success: true, 
+      url: localUrl,
+      filename: filename
+    })
 
   } catch (error) {
     console.error('=== UPLOAD ERROR START ===')
@@ -118,28 +103,27 @@ export async function POST(request: NextRequest) {
     
     // Environment check
     console.error('Environment check:', {
-      hasBlobToken: !!process.env.BLOB_READ_WRITE_TOKEN,
-      blobTokenLength: process.env.BLOB_READ_WRITE_TOKEN?.length,
       nodeEnv: process.env.NODE_ENV,
       nextAuthUrl: process.env.NEXTAUTH_URL
     })
     
-    // Check if it's a Vercel Blob error
+    // Check if it's an unauthorized error
     if (error instanceof Error) {
-      if (error.message.includes('BLOB_READ_WRITE_TOKEN')) {
-        console.error('BLOB_READ_WRITE_TOKEN error detected')
-        return NextResponse.json({ 
-          error: 'Blob token configuration error',
-          details: 'BLOB_READ_WRITE_TOKEN is missing or invalid'
-        }, { status: 500 })
-      }
-      
       if (error.message.includes('Unauthorized')) {
         console.error('Unauthorized error detected')
         return NextResponse.json({ 
           error: 'Unauthorized access',
           details: 'Admin authentication required'
         }, { status: 401 })
+      }
+      
+      // Check for file system errors
+      if (error.message.includes('ENOENT') || error.message.includes('permission denied')) {
+        console.error('File system error detected')
+        return NextResponse.json({ 
+          error: 'File system error',
+          details: 'Failed to save file to server storage'
+        }, { status: 500 })
       }
     }
     

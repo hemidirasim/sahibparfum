@@ -551,11 +551,11 @@ export default function AdminUsersPage() {
                         <button 
                           onClick={() => deactivateUser(user.id)}
                           disabled={actionLoading === user.id}
-                          className="text-orange-600 hover:text-orange-900 p-1 disabled:opacity-50"
+                          className="text-[#022763] hover:text-[#011d4a] p-1 disabled:opacity-50"
                           title="İstifadəçini deaktiv et"
                         >
                           {actionLoading === user.id ? (
-                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-orange-600 border-t-transparent"></div>
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-[#022763] border-t-transparent"></div>
                           ) : (
                             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728" />

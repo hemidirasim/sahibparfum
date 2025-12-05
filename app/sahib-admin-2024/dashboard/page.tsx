@@ -203,7 +203,7 @@ export default function AdminDashboard() {
           className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
         >
           <div className="flex items-center">
-            <TrendingUp className="h-8 w-8 text-orange-600" />
+            <TrendingUp className="h-8 w-8 text-[#022763]" />
             <div className="ml-4">
               <h3 className="text-lg font-semibold text-gray-900">Slayderlər</h3>
               <p className="text-gray-600">Ana səhifə slayderlərini idarə et</p>

@@ -106,7 +106,7 @@ export default function AdminDashboard() {
       description: 'Müştəri siyahısını idarə edin',
       icon: Users,
       href: '/sahib-admin-2024/customers',
-      color: 'bg-orange-500'
+      color: 'bg-[#022763]'
     }
   ]
 
@@ -257,8 +257,8 @@ export default function AdminDashboard() {
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
           <div className="flex items-center">
-            <div className="p-3 bg-orange-100 rounded-xl">
-              <Users className="h-7 w-7 text-orange-600" />
+            <div className="p-3 bg-[#e6eef5] rounded-xl">
+              <Users className="h-7 w-7 text-[#022763]" />
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Müştərilər</p>
@@ -267,7 +267,7 @@ export default function AdminDashboard() {
           </div>
           <div className="mt-4">
             <div className="w-full bg-gray-200 rounded-full h-2">
-              <div className="bg-orange-600 h-2 rounded-full" style={{ width: '85%' }}></div>
+              <div className="bg-[#022763] h-2 rounded-full" style={{ width: '85%' }}></div>
             </div>
             <p className="text-xs text-gray-500 mt-1">85% məmnun</p>
           </div>

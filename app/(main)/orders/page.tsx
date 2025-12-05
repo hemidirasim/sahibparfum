@@ -525,7 +525,7 @@ export default function OrdersPage() {
                         <button
                           onClick={() => handleRetryPayment(order.id)}
                           disabled={retryingPayment === order.id}
-                          className="flex items-center space-x-1 px-3 py-1 bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                          className="flex items-center space-x-1 px-3 py-1 bg-[#022763] text-white rounded-md hover:bg-[#011d4a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
                         >
                           {retryingPayment === order.id ? (
                             <>

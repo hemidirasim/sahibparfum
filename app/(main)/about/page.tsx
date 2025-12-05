@@ -25,6 +25,7 @@ interface AboutSettings {
   aboutValue3Description?: string | null
   aboutCtaTitle?: string | null
   aboutCtaDescription?: string | null
+  aboutImage?: string | null
 }
 
 export default function AboutPage() {

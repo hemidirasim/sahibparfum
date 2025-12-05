@@ -237,9 +237,9 @@ export function Header() {
 
 
   return (
-    <header className="bg-white shadow-sm border-b md:sticky md:top-0 md:z-50">
+    <header className="bg-[#022763] shadow-sm border-b md:sticky md:top-0 md:z-50">
       {/* Top Bar */}
-      <div className="bg-primary-600 text-white py-2">
+      <div className="bg-[#022763] text-white py-2">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center text-sm">
             <div className="flex items-center space-x-4">
@@ -253,7 +253,7 @@ export function Header() {
               </div>
             </div>
             <div className="hidden md:flex items-center space-x-4">
-              <span>🚚 Pulsuz catdirilma</span>
+              <span>🚚 Pulsuz çatdırılma</span>
               <span>⭐ 1000+ məmnun müştəri</span>
             </div>
           </div>
@@ -282,7 +282,7 @@ export function Header() {
             <div className="relative">
               <button
                 onClick={() => setIsProductsDropdownOpen(!isProductsDropdownOpen)}
-                className="flex items-center space-x-2 text-gray-700 hover:text-primary-600 transition-colors font-medium"
+                className="flex items-center space-x-2 text-white hover:text-gray-200 transition-colors font-medium"
               >
                 <span>Məhsullar</span>
                 <ChevronDown className={`h-4 w-4 transition-transform ${isProductsDropdownOpen ? 'rotate-180' : ''}`} />
@@ -296,7 +296,7 @@ export function Header() {
                       <Link
                         key={category.name}
                         href={category.href}
-                        className="block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors"
+                        className="block px-4 py-2 text-gray-700 hover:bg-[#e6eef5] hover:text-[#022763] transition-colors"
                         onClick={() => setIsProductsDropdownOpen(false)}
                       >
                         {category.name}
@@ -307,7 +307,7 @@ export function Header() {
                       <Link
                         key={category.name}
                         href={category.href}
-                        className="block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors"
+                        className="block px-4 py-2 text-gray-700 hover:bg-[#e6eef5] hover:text-[#022763] transition-colors"
                         onClick={() => setIsProductsDropdownOpen(false)}
                       >
                         {category.name}
@@ -318,11 +318,11 @@ export function Header() {
               )}
             </div>
 
-            <Link href="/about" className="text-gray-700 hover:text-primary-600 transition-colors font-medium">
+            <Link href="/about" className="text-white hover:text-gray-200 transition-colors font-medium">
               Haqqımızda
             </Link>
             
-            <Link href="/blog" className="text-gray-700 hover:text-primary-600 transition-colors font-medium">
+            <Link href="/blog" className="text-white hover:text-gray-200 transition-colors font-medium">
               Blog
             </Link>
             
@@ -330,7 +330,7 @@ export function Header() {
             <div className="relative">
               <button
                 onClick={() => setIsSupportDropdownOpen(!isSupportDropdownOpen)}
-                className="flex items-center space-x-1 text-gray-700 hover:text-primary-600 transition-colors font-medium"
+                className="flex items-center space-x-1 text-white hover:text-gray-200 transition-colors font-medium"
               >
                 <HelpCircle className="h-4 w-4" />
                 <span>Dəstək</span>
@@ -342,42 +342,42 @@ export function Header() {
                   <div className="py-2">
                     <Link
                       href="/support/orders"
-                      className="block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors"
+                      className="block px-4 py-2 text-gray-700 hover:bg-[#e6eef5] hover:text-[#022763] transition-colors"
                       onClick={() => setIsSupportDropdownOpen(false)}
                     >
                       Sifariş Dəstəyi
                     </Link>
                     <Link
                       href="/support/payment"
-                      className="block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors"
+                      className="block px-4 py-2 text-gray-700 hover:bg-[#e6eef5] hover:text-[#022763] transition-colors"
                       onClick={() => setIsSupportDropdownOpen(false)}
                     >
                       Ödəniş Dəstəyi
                     </Link>
                     <Link
                       href="/support/delivery"
-                      className="block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors"
+                      className="block px-4 py-2 text-gray-700 hover:bg-[#e6eef5] hover:text-[#022763] transition-colors"
                       onClick={() => setIsSupportDropdownOpen(false)}
                     >
                       Çatdırılma Dəstəyi
                     </Link>
                     <Link
                       href="/support/loyalty"
-                      className="block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors"
+                      className="block px-4 py-2 text-gray-700 hover:bg-[#e6eef5] hover:text-[#022763] transition-colors"
                       onClick={() => setIsSupportDropdownOpen(false)}
                     >
                       Loyallıq Proqramı
                     </Link>
                     <Link
                       href="/support/returns"
-                      className="block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors"
+                      className="block px-4 py-2 text-gray-700 hover:bg-[#e6eef5] hover:text-[#022763] transition-colors"
                       onClick={() => setIsSupportDropdownOpen(false)}
                     >
                       Geri Qaytarma
                     </Link>
                     <Link
                       href="/support/faq"
-                      className="block px-4 py-2 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors"
+                      className="block px-4 py-2 text-gray-700 hover:bg-[#e6eef5] hover:text-[#022763] transition-colors"
                       onClick={() => setIsSupportDropdownOpen(false)}
                     >
                       FAQ
@@ -387,7 +387,7 @@ export function Header() {
               )}
             </div>
             
-            <Link href="/contact" className="text-gray-700 hover:text-primary-600 transition-colors font-medium">
+            <Link href="/contact" className="text-white hover:text-gray-200 transition-colors font-medium">
               Əlaqə
             </Link>
             
@@ -400,7 +400,7 @@ export function Header() {
                 onChange={handleSearchInputChange}
                 onKeyDown={handleSearchKeyDown}
                 placeholder="Məhsul axtar..."
-                className="w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-gray-50"
+                className="w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-[#022763] focus:border-transparent bg-white"
               />
               
               {/* Search Suggestions Dropdown */}
@@ -411,7 +411,7 @@ export function Header() {
                       <button
                         key={index}
                         onClick={() => handleSuggestionClick(suggestion)}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors"
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-[#e6eef5] hover:text-[#022763] transition-colors"
                       >
                         {suggestion}
                       </button>
@@ -425,15 +425,15 @@ export function Header() {
           {/* Right Side Icons */}
           <div className="flex items-center space-x-4">
             {/* Wishlist */}
-            <Link href="/wishlist" className="relative p-2 text-gray-700 hover:text-primary-600 transition-colors">
+            <Link href="/wishlist" className="relative p-2 text-white hover:text-gray-200 transition-colors">
               <Heart className="h-6 w-6" />
             </Link>
 
             {/* Cart */}
-            <Link href="/cart" className="relative p-2 text-gray-700 hover:text-primary-600 transition-colors">
+            <Link href="/cart" className="relative p-2 text-white hover:text-gray-200 transition-colors">
               <ShoppingCart className="h-6 w-6" />
               {cartItemsCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-primary-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                <span className="absolute -top-1 -right-1 bg-white text-[#022763] text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
                   {cartItemsCount}
                 </span>
               )}
@@ -445,7 +445,7 @@ export function Header() {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="lg:hidden p-2 text-gray-700 hover:text-primary-600 transition-colors"
+              className="lg:hidden p-2 text-white hover:text-gray-200 transition-colors"
             >
               {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
@@ -453,19 +453,19 @@ export function Header() {
         </div>
 
         {/* Brand Search Bar */}
-        <div className="hidden lg:block border-t border-gray-200 py-4">
+        <div className="hidden lg:block border-t border-gray-300 py-4">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-center">
-              <div className="flex items-center space-x-4 bg-gray-50 rounded-full px-6 py-3">
-                <span className="text-base text-gray-700 font-medium">Brend axtar:</span>
+              <div className="flex items-center space-x-4 bg-white/10 rounded-full px-6 py-3">
+                <span className="text-base text-white font-medium">Brend axtar:</span>
                 <div className="flex items-center space-x-2">
                   {alphabetFilter.map((letter) => (
                     <div key={letter} className="relative z-50">
                     <button
                       className={`w-8 h-8 rounded-full font-semibold text-sm transition-all duration-200 hover:scale-105 ${
                         activeLetter === letter
-                          ? 'bg-primary-600 text-white shadow-md'
-                          : 'bg-white text-gray-600 hover:bg-primary-50 hover:text-primary-600 border border-gray-200'
+                          ? 'bg-white text-[#022763] shadow-md'
+                          : 'bg-white/20 text-white hover:bg-white/30 hover:text-white border border-white/30'
                       }`}
                       onClick={() => {
                         // Disable hover when clicked
@@ -526,7 +526,7 @@ export function Header() {
                         >
                           <div className="p-6">
                             <div className="flex items-center space-x-2 mb-4">
-                              <div className="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center">
+                              <div className="w-8 h-8 bg-[#022763] rounded-full flex items-center justify-center">
                                 <span className="text-white font-bold text-sm">{letter}</span>
                               </div>
                               <h3 className="text-lg font-semibold text-gray-800">
@@ -538,13 +538,13 @@ export function Header() {
                               {brands[letter].map((brand, index) => (
                                 <div
                                   key={index}
-                                  className="p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-primary-50 hover:border-primary-200 hover:shadow-md transition-all duration-200 cursor-pointer group"
+                                  className="p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-[#e6eef5] hover:border-[#022763] hover:shadow-md transition-all duration-200 cursor-pointer group"
                                   onClick={() => {
                                     router.push(`/categories?brand=${encodeURIComponent(brand)}`)
                                     setActiveLetter(null)
                                   }}
                                 >
-                                  <span className="text-gray-700 font-medium text-sm group-hover:text-primary-600 transition-colors">{brand}</span>
+                                  <span className="text-gray-700 font-medium text-sm group-hover:text-[#022763] transition-colors">{brand}</span>
                                 </div>
                               ))}
                             </div>
@@ -567,7 +567,7 @@ export function Header() {
           </div>
         </div>
 
-        {/* Mobile Search */}
+            {/* Mobile Search */}
         <div className="lg:hidden mb-4">
           <form onSubmit={handleSearch} className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -577,7 +577,7 @@ export function Header() {
               onChange={handleSearchInputChange}
               onKeyDown={handleSearchKeyDown}
               placeholder="Məhsul axtar..."
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-gray-50"
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-[#022763] focus:border-transparent bg-white"
             />
             
             {/* Mobile Search Suggestions Dropdown */}
@@ -588,7 +588,7 @@ export function Header() {
                     <button
                       key={index}
                       onClick={() => handleSuggestionClick(suggestion)}
-                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors"
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-[#e6eef5] hover:text-[#022763] transition-colors"
                     >
                       {suggestion}
                     </button>
@@ -605,7 +605,7 @@ export function Header() {
             <nav className="flex flex-col space-y-4">
               <Link
                 href="/"
-                className="text-gray-700 hover:text-primary-600 transition-colors font-medium"
+                className="text-white hover:text-gray-200 transition-colors font-medium"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Ana Səhifə
@@ -613,13 +613,13 @@ export function Header() {
               
               {/* Mobile Products Dropdown */}
               <div className="space-y-2">
-                <div className="text-gray-700 font-medium">Məhsullar</div>
+                <div className="text-white font-medium">Məhsullar</div>
                 {/* Dynamic categories from API */}
                 {categories.map((category) => (
                   <Link
                     key={category.name}
                     href={category.href}
-                    className="block pl-4 text-gray-600 hover:text-primary-600 transition-colors"
+                    className="block pl-4 text-gray-200 hover:text-white transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     {category.name}
@@ -630,7 +630,7 @@ export function Header() {
                   <Link
                     key={category.name}
                     href={category.href}
-                    className="block pl-4 text-gray-600 hover:text-primary-600 transition-colors"
+                    className="block pl-4 text-gray-200 hover:text-white transition-colors"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     {category.name}
@@ -640,7 +640,7 @@ export function Header() {
               
               <Link
                 href="/about"
-                className="text-gray-700 hover:text-primary-600 transition-colors font-medium"
+                className="text-white hover:text-gray-200 transition-colors font-medium"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Haqqımızda
@@ -648,7 +648,7 @@ export function Header() {
               
               <Link
                 href="/blog"
-                className="text-gray-700 hover:text-primary-600 transition-colors font-medium"
+                className="text-white hover:text-gray-200 transition-colors font-medium"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Blog
@@ -656,48 +656,48 @@ export function Header() {
               
               {/* Mobile Support Links */}
               <div className="space-y-2">
-                <div className="text-gray-700 font-medium flex items-center">
+                <div className="text-white font-medium flex items-center">
                   <HelpCircle className="h-4 w-4 mr-2" />
                   Dəstək
                 </div>
                 <Link
                   href="/support/orders"
-                  className="block pl-6 text-gray-600 hover:text-primary-600 transition-colors"
+                  className="block pl-6 text-gray-200 hover:text-white transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Sifariş
                 </Link>
                 <Link
                   href="/support/payment"
-                  className="block pl-6 text-gray-600 hover:text-primary-600 transition-colors"
+                  className="block pl-6 text-gray-200 hover:text-white transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Ödəniş
                 </Link>
                 <Link
                   href="/support/delivery"
-                  className="block pl-6 text-gray-600 hover:text-primary-600 transition-colors"
+                  className="block pl-6 text-gray-200 hover:text-white transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Çatdırılma
                 </Link>
                 <Link
                   href="/support/loyalty"
-                  className="block pl-6 text-gray-600 hover:text-primary-600 transition-colors"
+                  className="block pl-6 text-gray-200 hover:text-white transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Bonus və loyallıq proqramı
                 </Link>
                 <Link
                   href="/support/returns"
-                  className="block pl-6 text-gray-600 hover:text-primary-600 transition-colors"
+                  className="block pl-6 text-gray-200 hover:text-white transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   Geri qaytarma
                 </Link>
                 <Link
                   href="/support/faq"
-                  className="block pl-6 text-gray-600 hover:text-primary-600 transition-colors"
+                  className="block pl-6 text-gray-200 hover:text-white transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   FAQ
@@ -706,7 +706,7 @@ export function Header() {
               
               <Link
                 href="/contact"
-                className="text-gray-700 hover:text-primary-600 transition-colors font-medium"
+                className="text-white hover:text-gray-200 transition-colors font-medium"
                 onClick={() => setIsMenuOpen(false)}
               >
                 Əlaqə
@@ -723,8 +723,8 @@ export function Header() {
                       key={letter}
                       className={`w-8 h-8 rounded-full font-semibold text-sm transition-all duration-200 ${
                         activeLetter === letter
-                          ? 'bg-primary-600 text-white shadow-md'
-                          : 'bg-white text-gray-600 hover:bg-primary-50 hover:text-primary-600 border border-gray-200'
+                          ? 'bg-[#022763] text-white shadow-md'
+                          : 'bg-white text-gray-600 hover:bg-[#e6eef5] hover:text-[#022763] border border-gray-200'
                       }`}
                       onClick={() => setActiveLetter(activeLetter === letter ? null : letter)}
                     >
@@ -738,7 +738,7 @@ export function Header() {
                   <div className="mt-4 bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-y-auto">
                     <div className="p-4">
                       <div className="flex items-center space-x-2 mb-3">
-                        <div className="w-6 h-6 bg-primary-600 rounded-full flex items-center justify-center">
+                        <div className="w-6 h-6 bg-[#022763] rounded-full flex items-center justify-center">
                           <span className="text-white font-bold text-xs">{activeLetter}</span>
                         </div>
                         <h4 className="text-sm font-semibold text-gray-800">
@@ -750,7 +750,7 @@ export function Header() {
                           {brands[activeLetter].map((brand, index) => (
                             <button
                               key={index}
-                              className="p-2 bg-gray-50 rounded-md border border-gray-200 hover:bg-primary-50 hover:border-primary-200 transition-all duration-200 text-left"
+                              className="p-2 bg-gray-50 rounded-md border border-gray-200 hover:bg-[#e6eef5] hover:border-[#022763] transition-all duration-200 text-left"
                               onClick={() => {
                                 router.push(`/categories?brand=${encodeURIComponent(brand)}`)
                                 setActiveLetter(null)

@@ -84,7 +84,7 @@ export default function CategoryPageClient() {
 
   // Check favorite status for all products
   const checkFavoriteStatus = async (productIds: string[]) => {
-    if (!session?.user?.id) return
+    if (!session?.user || !('id' in session.user)) return
     
     try {
       const promises = productIds.map(async (productId) => {
@@ -106,7 +106,7 @@ export default function CategoryPageClient() {
 
   // Toggle favorite status
   const toggleFavorite = async (productId: string) => {
-    if (!session?.user?.id) {
+    if (!session?.user || !('id' in session.user)) {
       toast.error('Favoritlərə əlavə etmək üçün giriş edin')
       return
     }
@@ -202,7 +202,7 @@ export default function CategoryPageClient() {
           setShowProducts(true)
           
           // Check favorite status for all products
-          if (session?.user?.id) {
+          if (session?.user && 'id' in session.user) {
             const productIds = categoryProducts.map((p: any) => p.id)
             checkFavoriteStatus(productIds)
           }

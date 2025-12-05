@@ -94,7 +94,7 @@ export default function ProductsPage() {
                 </span>
               ))}
               {activeFilters.ratings.map((rating) => (
-                <span key={rating} className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-orange-100 text-orange-800">
+                <span key={rating} className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-[#e6eef5] text-[#022763]">
                   Dəyərləndirmə: {rating}+ ulduz
                 </span>
               ))}
