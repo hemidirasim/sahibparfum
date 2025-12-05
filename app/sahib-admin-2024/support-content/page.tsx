@@ -125,6 +125,49 @@ export default function SupportContentPage() {
     }
   }
 
+  // Find duplicate contents (same title and content)
+  const findDuplicates = () => {
+    const duplicates: { [key: string]: SupportContent[] } = {}
+    const seen = new Map<string, SupportContent[]>()
+
+    supportContent.forEach((content) => {
+      const key = `${content.title.toLowerCase().trim()}_${content.content.toLowerCase().trim()}`
+      if (!seen.has(key)) {
+        seen.set(key, [])
+      }
+      seen.get(key)!.push(content)
+    })
+
+    seen.forEach((contents, key) => {
+      if (contents.length > 1) {
+        duplicates[key] = contents
+      }
+    })
+
+    return duplicates
+  }
+
+  const duplicates = findDuplicates()
+  const hasDuplicates = Object.keys(duplicates).length > 0
+
+  const handleDeleteDuplicates = async (key: string) => {
+    const duplicateContents = duplicates[key]
+    if (!confirm(`${duplicateContents.length} təkrar kontent silinəcək. Davam etmək istəyirsiniz?`)) return
+
+    try {
+      // Keep the first one, delete the rest
+      const toDelete = duplicateContents.slice(1)
+      for (const content of toDelete) {
+        await fetch(`/api/sahib-admin-2024/support-content/${content.id}`, {
+          method: 'DELETE'
+        })
+      }
+      await fetchSupportContent()
+    } catch (error) {
+      console.error('Error deleting duplicates:', error)
+    }
+  }
+
   const groupedContent = supportContent.reduce((acc, content) => {
     if (!acc[content.page]) {
       acc[content.page] = []
@@ -162,6 +205,56 @@ export default function SupportContentPage() {
           </div>
 
           <div className="p-6">
+            {hasDuplicates && (
+              <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="text-lg font-semibold text-yellow-800">
+                    ⚠️ Təkrar Kontentlər Tapıldı ({Object.keys(duplicates).length} qrup)
+                  </h3>
+                </div>
+                <div className="space-y-3">
+                  {Object.entries(duplicates).map(([key, contents]) => (
+                    <div key={key} className="bg-white p-4 rounded border border-yellow-200">
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-800 mb-1">{contents[0].title}</p>
+                          <p className="text-sm text-gray-600 mb-2">
+                            {contents.length} təkrar kontent tapıldı - Səhifə: {SUPPORT_PAGES.find(p => p.value === contents[0].page)?.label || contents[0].page}
+                          </p>
+                          <div className="text-xs text-gray-500">
+                            Məzmun: {contents[0].content.substring(0, 100)}...
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleDeleteDuplicates(key)}
+                          className="ml-4 px-4 py-2 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition-colors whitespace-nowrap"
+                        >
+                          Təkrarları Sil ({contents.length - 1})
+                        </button>
+                      </div>
+                      <div className="mt-2 pt-2 border-t border-gray-200">
+                        <p className="text-xs text-gray-500 mb-1">Təkrar kontentlər:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {contents.map((content, idx) => (
+                            <span
+                              key={content.id}
+                              className={`text-xs px-2 py-1 rounded ${
+                                idx === 0
+                                  ? 'bg-green-100 text-green-800'
+                                  : 'bg-red-100 text-red-800'
+                              }`}
+                            >
+                              {idx === 0 ? '✓ Qalacaq' : `✗ Silinəcək (ID: ${content.id.substring(0, 8)}...)`}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {showAddForm && (
               <div className="mb-6 p-4 bg-gray-50 rounded-lg">
                 <h3 className="text-lg font-semibold mb-4">Yeni Kontent Əlavə Et</h3>
@@ -305,9 +398,20 @@ export default function SupportContentPage() {
                       ) : (
                         <div>
                           <div className="flex justify-between items-start mb-2">
-                            <h3 className="text-lg font-semibold text-gray-800">
-                              {content.title}
-                            </h3>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <h3 className="text-lg font-semibold text-gray-800">
+                                  {content.title}
+                                </h3>
+                                {Object.values(duplicates).some(dups => 
+                                  dups.some(d => d.id === content.id && dups.length > 1)
+                                ) && (
+                                  <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-medium rounded">
+                                    Təkrar
+                                  </span>
+                                )}
+                              </div>
+                            </div>
                             <div className="flex space-x-2">
                               <button
                                 onClick={() => handleEdit(content)}

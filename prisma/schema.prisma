@@ -120,7 +120,7 @@ model Product {
   images        String
   inStock       Boolean            @default(true)
   stockCount    Int                @default(0)
-  sku           String             @unique
+  sku           String?            @unique
   brandId       String?
   volume        String?
   categoryId    String
@@ -152,7 +152,7 @@ model ProductVariant {
   price      Float
   salePrice  Float?
   stock      Int         @default(0)
-  sku        String      @unique
+  sku        String?     @unique
   isActive   Boolean     @default(true)
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
@@ -237,6 +237,28 @@ model Settings {
   twitterCard              String?  @default("summary")
   twitterTitle             String?  @default("SAHIB perfumery & cosmetics - Premium Parfüm Mağazası")
   twitterDescription       String?  @default("Ən yaxşı parfüm markaları, sərfəli qiymətlər və keyfiyyətli xidmət.")
+  // About page content
+  aboutHeroTitle           String?  @default("Haqqımızda")
+  aboutHeroDescription     String?  @default("Sahib Parfümeriya - Azərbaycanın ən böyük və etibarlı parfüm mağazası. 20 ildən artıq təcrübəmizlə sizə ən yaxşı xidməti təqdim edirik.")
+  aboutStoryTitle          String?  @default("Bizim Hekayəmiz")
+  aboutStoryContent        String?  @default("2004-cü ildə Bakı şəhərində kiçik bir parfüm mağazası kimi başladığımız yolculuğumuz, bu gün Azərbaycanın ən böyük parfüm şəbəkəsinə çevrildi.\n\nSahib Parfümeriya olaraq, dünyanın ən məşhur parfüm brendlərini Azərbaycan müştərilərimizə təqdim edirik. Chanel, Dior, Yves Saint Laurent, Tom Ford və daha çox brendlərin rəsmi tərəfdaşıyıq.\n\nMüştəri məmnuniyyəti bizim ən böyük prioritetimizdir. Hər bir məhsulumuz orijinal və zəmanətli olduğu üçün rahatlıqla alış-veriş edə bilərsiniz.")
+  aboutStat1Value          String?  @default("50,000+")
+  aboutStat1Label          String?  @default("Məmnun Müştəri")
+  aboutStat2Value          String?  @default("1000+")
+  aboutStat2Label          String?  @default("Məhsul Növü")
+  aboutStat3Value          String?  @default("20+")
+  aboutStat3Label          String?  @default("İllik Təcrübə")
+  aboutStat4Value          String?  @default("24 Saat")
+  aboutStat4Label          String?  @default("Çatdırılma")
+  aboutValue1Title         String?  @default("Etibarlılıq")
+  aboutValue1Description   String?  @default("Bütün məhsullarımız orijinal və zəmanətli olduğu üçün rahatlıqla alış-veriş edə bilərsiniz.")
+  aboutValue2Title         String?  @default("Müştəri Məmnuniyyəti")
+  aboutValue2Description   String?  @default("Müştərilərimizin məmnuniyyəti bizim ən böyük prioritetimizdir. Hər zaman sizin üçün buradayıq.")
+  aboutValue3Title         String?  @default("Keyfiyyət")
+  aboutValue3Description   String?  @default("Yalnız ən yüksək keyfiyyətli məhsulları təqdim edirik və daimi olaraq keyfiyyətimizi artırırıq.")
+  aboutCtaTitle            String?  @default("Bizimlə Əlaqə Saxlayın")
+  aboutCtaDescription      String?  @default("Hər hansı sualınız və ya təklifiniz varsa, bizimlə əlaqə saxlayın. Komandamız sizə kömək etməkdən məmnuniyyət duyacaq.")
+  aboutImage               String?
   createdAt                DateTime @default(now())
   updatedAt                DateTime @updatedAt
 

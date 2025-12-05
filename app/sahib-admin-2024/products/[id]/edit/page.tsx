@@ -477,15 +477,14 @@ export default function EditProductPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                SKU *
+                SKU
               </label>
               <input
                 type="text"
-                required
                 value={formData.sku}
                 onChange={(e) => handleInputChange('sku', e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="SKU kodunu daxil edin"
+                placeholder="SKU kodunu daxil edin (istəyə bağlı)"
               />
             </div>
 
@@ -759,15 +758,14 @@ export default function EditProductPage() {
                     
                     <div className="md:col-span-2">
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Variant SKU *
+                        Variant SKU
                       </label>
                       <input
                         type="text"
-                        required
                         value={variant.sku}
                         onChange={(e) => updateVariant(variant.id, 'sku', e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="SKU-50ML"
+                        placeholder="SKU-50ML (istəyə bağlı)"
                       />
                     </div>
                   </div>

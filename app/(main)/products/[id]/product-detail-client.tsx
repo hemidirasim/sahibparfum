@@ -412,7 +412,7 @@ export default function ProductDetailClient({ initialProduct }: ProductDetailCli
                       {/* Volume */}
                       <div className="flex-1">
                         <span className="text-sm font-medium text-gray-900">
-                          {product.volume || 'Standart'}
+                          {product.volume || (product.variants && product.variants.length > 0 && product.variants[0]?.volume) || ''}
                         </span>
                         <div className="text-xs text-gray-500">
                           SKU: {product.sku}

@@ -75,6 +75,7 @@ export async function PUT(request: NextRequest) {
     try {
       revalidatePath('/api/settings')
       revalidatePath('/')
+      revalidatePath('/about')
       revalidatePath('/cart')
       revalidatePath('/checkout')
     } catch (revalidateError) {

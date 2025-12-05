@@ -85,7 +85,7 @@ export function Footer() {
             {/* Working Hours */}
             <div className="flex items-center gap-3 text-white">
               <Clock className="h-5 w-5 text-pink-500" />
-              <span className="font-medium">09:00 - 22:00</span>
+              <span className="font-medium">10:00 - 20:00</span>
             </div>
           </div>
         </div>
@@ -102,6 +102,7 @@ export function Footer() {
                 width={80}
                 height={80}
                 className="h-20 w-auto"
+                style={{ filter: 'brightness(0) invert(1)' }}
               />
             </Link>
             <p className="text-gray-400 mb-4">

@@ -124,6 +124,7 @@ export default function AdminLayout({
     { name: 'Blog', href: '/sahib-admin-2024/blogs', icon: FileText },
     { name: 'Slayderlər', href: '/sahib-admin-2024/sliders', icon: TrendingUp },
     { name: 'Dəstək Kontenti', href: '/sahib-admin-2024/support-content', icon: HelpCircle },
+    { name: 'Haqqımızda', href: '/sahib-admin-2024/about', icon: FileText },
     { name: 'Tənzimləmələr', href: '/sahib-admin-2024/settings', icon: Settings },
   ]
 

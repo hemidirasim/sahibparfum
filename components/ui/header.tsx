@@ -253,7 +253,7 @@ export function Header() {
               </div>
             </div>
             <div className="hidden md:flex items-center space-x-4">
-              <span>🚚 {settings.freeDeliveryThreshold}₼ üzərində pulsuz çatdırılma</span>
+              <span>🚚 Pulsuz catdirilma</span>
               <span>⭐ 1000+ məmnun müştəri</span>
             </div>
           </div>
@@ -271,6 +271,7 @@ export function Header() {
                 width={77}
                 height={77}
                 className="h-[77px] w-auto"
+                style={{ filter: 'brightness(0) saturate(100%) invert(8%) sepia(95%) saturate(2000%) hue-rotate(200deg) brightness(10%) contrast(95%)' }}
                 priority
               />
             </Link>

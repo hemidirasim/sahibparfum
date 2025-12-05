@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { signIn, useSession } from 'next-auth/react'
+import { signIn, useSession, getSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import { Shield, Eye, EyeOff } from 'lucide-react'
@@ -20,7 +20,7 @@ export default function AdminLoginPage() {
     if (status === 'loading') return
     
     if (session?.user?.role === 'ADMIN') {
-      router.push('/sahib-admin-2024')
+      router.push('/sahib-admin-2024/dashboard')
     }
   }, [session, status, router])
 
@@ -38,13 +38,21 @@ export default function AdminLoginPage() {
 
       if (result?.error) {
         setError('Email və ya şifrə yanlışdır')
+        setLoading(false)
       } else if (result?.ok) {
-        // Success - reload the page to get fresh session
-        window.location.reload()
+        // Success - wait for session to update, then redirect
+        await new Promise(resolve => setTimeout(resolve, 300))
+        const session = await getSession()
+        if (session?.user?.role === 'ADMIN') {
+          // Use window.location for full page reload to ensure session is loaded
+          window.location.href = '/sahib-admin-2024/dashboard'
+        } else {
+          setError('Admin səlahiyyəti yoxdur')
+          setLoading(false)
+        }
       }
     } catch (error) {
       setError('Giriş zamanı xəta baş verdi')
-    } finally {
       setLoading(false)
     }
   }

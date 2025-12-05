@@ -156,19 +156,21 @@ export async function POST(request: NextRequest) {
     const trimmedName = name?.toString().trim()
     const trimmedDescription = description?.toString().trim()
     const trimmedCategoryId = categoryId?.toString().trim()
-    const trimmedSku = sku?.toString().trim()
+    const trimmedSku = sku?.toString().trim() || null
     
-    if (!trimmedName || !trimmedDescription || !trimmedCategoryId || !trimmedSku) {
-      return NextResponse.json({ error: 'Name, description, category and SKU are required' }, { status: 400 })
+    if (!trimmedName || !trimmedDescription || !trimmedCategoryId) {
+      return NextResponse.json({ error: 'Name, description and category are required' }, { status: 400 })
     }
 
-    // Check if SKU already exists
-    const existingProduct = await prisma.product.findUnique({
-      where: { sku: trimmedSku }
-    })
+    // Check if SKU already exists (only if SKU is provided)
+    if (trimmedSku) {
+      const existingProduct = await prisma.product.findUnique({
+        where: { sku: trimmedSku }
+      })
 
-    if (existingProduct) {
-      return NextResponse.json({ error: 'SKU already exists' }, { status: 400 })
+      if (existingProduct) {
+        return NextResponse.json({ error: 'SKU already exists' }, { status: 400 })
+      }
     }
 
     // Create product
@@ -181,7 +183,7 @@ export async function POST(request: NextRequest) {
         price: price ? parseFloat(price) : 0,
         salePrice: salePrice ? parseFloat(salePrice) : null,
         stockCount: parseInt(stockCount) || 0,
-        sku: trimmedSku,
+        sku: trimmedSku || null,
         isNew: isNew || false,
         isOnSale: isOnSale || false,
         isActive: isActive !== false,
@@ -199,7 +201,7 @@ export async function POST(request: NextRequest) {
             price: parseFloat(variant.price),
             salePrice: variant.salePrice ? parseFloat(variant.salePrice) : null,
             stock: parseInt(variant.stock) || 0,
-            sku: variant.sku,
+            sku: variant.sku?.trim() || null,
             isActive: true
           }
         })

@@ -121,10 +121,11 @@ export async function PATCH(
       return NextResponse.json({ error: 'Product not found' }, { status: 404 })
     }
 
-    // Check if SKU already exists (if changed)
-    if (sku && sku !== existingProduct.sku) {
+    // Check if SKU already exists (if changed and provided)
+    const trimmedSku = sku?.toString().trim() || null
+    if (trimmedSku && trimmedSku !== existingProduct.sku) {
       const skuExists = await prisma.product.findUnique({
-        where: { sku }
+        where: { sku: trimmedSku }
       })
 
       if (skuExists) {
@@ -143,7 +144,7 @@ export async function PATCH(
         price: parseFloat(price),
         salePrice: salePrice ? parseFloat(salePrice) : null,
         stockCount: parseInt(stockCount) || 0,
-        sku,
+        sku: trimmedSku,
         isNew: isNew || false,
         isOnSale: isOnSale || false,
         isActive: isActive !== false,
@@ -167,7 +168,7 @@ export async function PATCH(
             price: parseFloat(variant.price),
             salePrice: variant.salePrice ? parseFloat(variant.salePrice) : null,
             stock: parseInt(variant.stock) || 0,
-            sku: variant.sku,
+            sku: variant.sku?.trim() || null,
             isActive: true
           }
         })
